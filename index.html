@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101410">
+  <meta name="description" content="Snap Kitchen — Taste That Clicks!">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="stylesheet" href="styles.css">
+  <title>Snap Kitchen</title>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="brand-mark">S</div><div><b>SNAP <span>KITCHEN</span></b><small>TASTE THAT CLICKS!</small></div></div>
+    <button class="icon-btn" aria-label="Profile" id="profileBtn">☺</button>
+  </header>
+  <main>
+    <div class="location"><span>⌖</span><div><small>DELIVERING TO</small><b id="address">Choose your location</b></div><button id="locationBtn">⌄</button></div>
+    <label class="search">⌕ <input id="search" placeholder="Search momos, chaap, rolls..."></label>
+    <section class="hero">
+      <div class="hero-copy"><span class="tag">PURE VEG</span><h1>SNAP<br>MOMO</h1><p>Hot. Fresh. Irresistible!</p><button class="primary" data-category="Momos">ORDER NOW ↗</button></div>
+      <div class="hero-food">🥟</div>
+    </section>
+    <nav class="categories" id="categories"></nav>
+    <section class="section-head"><h2>Popular right now</h2><small>FRESHLY MADE</small></section>
+    <section class="menu-grid" id="menu"></section>
+    <section class="rewards">
+      <div class="section-head"><h2>SNAP REWARDS</h2><button class="text-btn" id="rewardsBtn">View all</button></div>
+      <b class="reward-count">0 / 6 stamps collected</b>
+      <div class="stamps"><i>✓</i><i>✓</i><i>3</i><i>4</i><i>5</i><i>🎁</i></div>
+      <p>Collect stamps on eligible orders and unlock rewards.</p>
+    </section>
+    <section class="section-head"><h2>Today's special</h2><small>SNAP PICK</small></section>
+    <div class="special"><div><small>CHEF'S PICK</small><h2>Paneer Tikka Roll</h2><b>₹109</b><del>₹139</del><p>Fresh, spicy and full of flavour.</p></div><div class="special-art">🌯</div></div>
+  </main>
+  <div class="cart-bar" id="cartBar" hidden><div><b id="cartCount">0 items</b><small id="cartTotal">₹0</small></div><button class="primary" id="viewCart">VIEW CART →</button></div>
+  <nav class="bottom-nav"><button class="active">⌂<small>Home</small></button><button id="menuNav">▦<small>Menu</small></button><button id="rewardsNav">☆<small>Rewards</small></button><button id="ordersNav">▤<small>Orders</small></button><button id="profileNav">☺<small>Profile</small></button></nav>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
