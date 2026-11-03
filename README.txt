@@ -1,26 +1,15 @@
-SNAP KITCHEN PWA STARTER — CUSTOMER HOME SCREEN
+SNAP KITCHEN CUSTOMER APP - VERSION 2
 
-What this is:
-- A first front-end prototype of the customer home screen.
-- Includes sample categories, sample food cards, search, add-to-cart count, rewards preview and mobile navigation.
-- PWA manifest and basic service-worker caching are included.
+This is a front-end customer app prototype.
+Includes responsive black/neon-lime design, category filters, search, separate Rewards/Stamp section, add-to-cart, quantity controls, PWA manifest and service worker.
 
-Important:
-- This is NOT yet a live ordering app.
-- No login, database, payment gateway, delivery tracking, push notifications, owner panel or rider app is connected.
-- Sample menu items/prices are placeholders. Replace them with your approved menu before launch.
-- The stamp rule and inactive-customer offer settings still need backend implementation.
+IMPORTANT:
+Menu items and prices are sample placeholders. Confirm and edit before taking real orders.
+Checkout, database, login, actual rewards, payment, push notifications, live delivery tracking, admin panel and delivery-partner features are NOT connected yet. This is not a production ordering system.
 
-How to preview:
-1. Extract the ZIP.
-2. Open the folder in a code editor.
-3. Run it using a local web server (for example VS Code Live Server).
-4. For install testing, host it on HTTPS; installability requirements vary by browser.
-
-Next build steps:
-1. Cart and checkout (pickup/delivery, COD/UPI/online).
-2. Customer account and digital loyalty card.
-3. Backend/database and admin-managed menu/offers.
-4. Rider mode, self-accept order locking, GPS tracking and COD reconciliation.
-5. Admin dashboard, analytics and manual inactive-customer campaigns.
-6. Push notification consent and delivery partner payout integration.
+UPDATE ON GITHUB:
+1. Extract this ZIP.
+2. In your GitHub repository choose Add file > Upload files.
+3. Upload index.html, styles.css, app.js, manifest.webmanifest and sw.js into the repository root, replacing the existing files.
+4. Commit changes to main.
+5. Wait for GitHub Pages to redeploy, then refresh your website.

@@ -1,41 +1,14 @@
 <!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101410">
-  <meta name="description" content="Snap Kitchen — Taste That Clicks!">
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="styles.css">
-  <title>Snap Kitchen</title>
-</head>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101510"><title>Snap Kitchen</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
 <body>
-  <header class="topbar">
-    <div class="brand"><div class="brand-mark">S</div><div><b>SNAP <span>KITCHEN</span></b><small>TASTE THAT CLICKS!</small></div></div>
-    <button class="icon-btn" aria-label="Profile" id="profileBtn">☺</button>
-  </header>
-  <main>
-    <div class="location"><span>⌖</span><div><small>DELIVERING TO</small><b id="address">Choose your location</b></div><button id="locationBtn">⌄</button></div>
-    <label class="search">⌕ <input id="search" placeholder="Search momos, chaap, rolls..."></label>
-    <section class="hero">
-      <div class="hero-copy"><span class="tag">PURE VEG</span><h1>SNAP<br>MOMO</h1><p>Hot. Fresh. Irresistible!</p><button class="primary" data-category="Momos">ORDER NOW ↗</button></div>
-      <div class="hero-food">🥟</div>
-    </section>
-    <nav class="categories" id="categories"></nav>
-    <section class="section-head"><h2>Popular right now</h2><small>FRESHLY MADE</small></section>
-    <section class="menu-grid" id="menu"></section>
-    <section class="rewards">
-      <div class="section-head"><h2>SNAP REWARDS</h2><button class="text-btn" id="rewardsBtn">View all</button></div>
-      <b class="reward-count">0 / 6 stamps collected</b>
-      <div class="stamps"><i>✓</i><i>✓</i><i>3</i><i>4</i><i>5</i><i>🎁</i></div>
-      <p>Collect stamps on eligible orders and unlock rewards.</p>
-    </section>
-    <section class="section-head"><h2>Today's special</h2><small>SNAP PICK</small></section>
-    <div class="special"><div><small>CHEF'S PICK</small><h2>Paneer Tikka Roll</h2><b>₹109</b><del>₹139</del><p>Fresh, spicy and full of flavour.</p></div><div class="special-art">🌯</div></div>
-  </main>
-  <div class="cart-bar" id="cartBar" hidden><div><b id="cartCount">0 items</b><small id="cartTotal">₹0</small></div><button class="primary" id="viewCart">VIEW CART →</button></div>
-  <nav class="bottom-nav"><button class="active">⌂<small>Home</small></button><button id="menuNav">▦<small>Menu</small></button><button id="rewardsNav">☆<small>Rewards</small></button><button id="ordersNav">▤<small>Orders</small></button><button id="profileNav">☺<small>Profile</small></button></nav>
-  <div class="toast" id="toast" role="status"></div>
-  <script src="app.js"></script>
-</body>
-</html>
+<header><a class="brand" href="#"><b class="logo">S<span>K</span></b><span><strong>SNAP KITCHEN</strong><small>TASTE THAT CLICKS!</small></span></a><button id="openCart">🛒 <b id="count">0</b></button></header>
+<main>
+<section class="hero"><div><label>● PURE VEG</label><p class="eyebrow">CRAVINGS? WE'VE GOT YOU.</p><h1>Good food.<br><em>Great mood.</em></h1><p>Freshly prepared favourites, made to make your day.</p><a class="btn" href="#menu">Explore menu ↗</a></div><div class="food">🥟<small>HOT & FRESH</small></div></section>
+<div class="info"><span>🕓 <b>4 PM–11 PM</b><small>Open daily</small></span><span>🛵 <b>Home delivery</b><small>Available</small></span><span>🥬 <b>100% Veg</b><small>Pure veg kitchen</small></span></div>
+<section id="menu"><p class="eyebrow">WHAT ARE YOU IN THE MOOD FOR?</p><h2>Explore menu</h2><input id="search" placeholder="Search momos, rolls, fries..."><div class="cats" id="cats"><button class="active" data-cat="All">✨ All</button><button data-cat="Momos">🥟 Momos</button><button data-cat="Chinese">🍜 Chinese</button><button data-cat="Rolls">🌯 Rolls</button><button data-cat="Snacks">🍟 Snacks</button></div><div id="products" class="products"></div><p id="empty" hidden>No items found.</p></section>
+<section class="promo"><div><label>SNAP REWARDS</label><h2>Every order<br>gets you closer.</h2><p>Collect stamps on successful orders and unlock rewards.</p><button class="outline" id="rewardJump">View my stamps ↗</button></div><div class="seal">✦<b>SNAP<br>REWARDS</b>♡</div></section>
+<section id="rewards"><p class="eyebrow">A LITTLE EXTRA LOVE</p><h2>Your rewards</h2><div class="reward"><small>YOUR STAMP CARD</small><h3>Snap & Collect <b>0 / 6</b></h3><div class="stamps"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i></div><p>Place an order to start collecting stamps. Reward rules will be announced by Snap Kitchen.</p></div><div class="offer">🎁 <span><b>Offers & updates</b><small>Check back for the latest Snap Kitchen deals.</small></span> →</div></section>
+<section class="last"><div><p class="eyebrow">READY WHEN YOU ARE</p><h2>Your next favourite<br>is one tap away.</h2></div><button class="btn" id="viewCart">View cart →</button></section>
+</main>
+<nav><a href="#">⌂<small>Home</small></a><a href="#menu">▦<small>Menu</small></a><a href="#rewards">✦<small>Rewards</small></a><button id="navCart">🛒<small>Cart</small></button></nav>
+<div class="shade" id="shade"><div class="sheet"><button class="close" id="close">✕</button><p class="eyebrow">YOUR SELECTION</p><h2>Your cart</h2><div id="cartLines">Your cart is empty.</div><h3>Total: <b id="total">₹0</b></h3><button class="btn" id="checkout">Continue →</button><small>Demo preview: checkout and payment will be connected later.</small></div></div><div id="toast"></div><script src="app.js"></script></body></html>

@@ -1,10 +1,1 @@
-{
-  "name": "Snap Kitchen",
-  "short_name": "Snap Kitchen",
-  "start_url": "./",
-  "display": "standalone",
-  "background_color": "#0c100d",
-  "theme_color": "#101410",
-  "description": "Snap Kitchen \u2014 Taste That Clicks!",
-  "icons": []
-}
+{"name":"Snap Kitchen","short_name":"Snap Kitchen","start_url":"./","display":"standalone","background_color":"#0c100d","theme_color":"#101510","description":"Snap Kitchen - Taste That Clicks!"}
