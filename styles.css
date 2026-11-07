@@ -61,3 +61,16 @@
   z-index: 20;
   pointer-events: auto !important;
 }
+.sheet select {
+  cursor: pointer !important;
+  touch-action: manipulation !important;
+  -webkit-appearance: auto !important;
+  appearance: auto !important;
+  position: relative;
+  z-index: 30;
+}
+
+.sheet select option {
+  background: #202a20;
+  color: #ffffff;
+}
