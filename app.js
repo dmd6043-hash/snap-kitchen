@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 import {
   getFirestore, collection, addDoc, serverTimestamp
@@ -34,6 +33,7 @@ const $ = id => document.getElementById(id);
 
 function render() {
   let q = $("search").value.toLowerCase();
+
   let list = menu.filter(x =>
     (category === "All" || x.c === category) &&
     (x.n + " " + x.d).toLowerCase().includes(q)
@@ -136,21 +136,29 @@ $("shade").addEventListener("click", e => {
   }
 });
 
+/* CART QUANTITY BUTTON FIXED */
+
 $("cartLines").addEventListener("click", e => {
   let p = e.target.closest("[data-plus]");
   let m = e.target.closest("[data-minus]");
+
+  // Important: checkout form ke doosre buttons par cart reload nahi hoga
+  if (!p && !m) return;
 
   if (p) cart[+p.dataset.plus]++;
 
   if (m) {
     let id = +m.dataset.minus;
     cart[id]--;
+
     if (cart[id] <= 0) delete cart[id];
   }
 
   update();
   openCart();
 });
+
+/* CHECKOUT FORM */
 
 $("checkout").addEventListener("click", () => {
   if (!qty()) return toast("Your cart is empty!");
@@ -224,6 +232,7 @@ $("checkout").addEventListener("click", () => {
         btn.style.background = active ? "#c5ff36" : "#202a20";
         btn.style.color = active ? "#172017" : "#ffffff";
         btn.style.borderColor = active ? "#c5ff36" : "#65745c";
+
         btn.textContent = active
           ? "✓ " + btn.dataset.orderType
           : btn.dataset.orderType;
@@ -238,6 +247,7 @@ $("checkout").addEventListener("click", () => {
     e.preventDefault();
 
     const data = new FormData(form);
+
     const customerName = data.get("customerName").trim();
     const phone = data.get("phone").trim();
     const orderType = data.get("orderType");
@@ -291,6 +301,7 @@ Payment: Cash`;
       update();
 
       $("shade").classList.remove("show");
+
       toast("Order saved successfully! Order ID: " + orderId);
 
       window.open(
@@ -301,7 +312,9 @@ Payment: Cash`;
 
     } catch (error) {
       console.error(error);
+
       toast("Order save nahi hua: " + error.message);
+
       button.disabled = false;
       button.textContent = "Try again";
     }
