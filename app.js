@@ -247,4 +247,4 @@ if ("serviceWorker" in navigator &&
   addEventListener("load", () =>
     navigator.serviceWorker.register("./sw.js").catch(console.error)
   );
-}
+}console.log("SNAP KITCHEN NEW APP LOADED");
