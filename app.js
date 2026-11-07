@@ -657,65 +657,17 @@ $("checkout").addEventListener("click", () => {
         status: "New",
         createdAt: serverTimestamp()
       });
-
-      const orderId = orderRef.id;
-
-      const itemText = items.map(x =>
-        `${x.name} x ${x.quantity} = Rs.${x.subtotal}`
-      ).join("\n");
-
-      const message =
+const message =
 `NEW SNAP KITCHEN ORDER
+
 Order ID: ${orderId}
 Name: ${customerName}
 Phone: ${phone}
 Type: ${orderType}
-${address ? "Address: " + address : ""}
-${mapLink ? "Customer Location: " + mapLink : ""}
+${orderType === "Home Delivery" ? "Address: " + (address.includes("Google Maps:") ? "Customer shared current location" : address) : ""}
+
 Items:
 ${itemText}
+
 Total: Rs.${amount}
 Payment: Cash`;
-
-      cart = {};
-      update();
-
-      $("shade").classList.remove("show");
-
-      toast("Order saved successfully! Order ID: " + orderId);
-
-      window.open(
-        "https://wa.me/918319014718?text=" +
-        encodeURIComponent(message),
-        "_blank"
-      );
-
-    } catch (error) {
-      console.error(error);
-
-      toast("Order save nahi hua: " + error.message);
-
-      button.disabled = false;
-      button.textContent = "Try again";
-    }
-  });
-});
-
-function rewards() {
-  $("rewards").scrollIntoView({behavior:"smooth"});
-}
-
-$("rewardJump").addEventListener("click", rewards);
-
-render();
-update();
-
-if ("serviceWorker" in navigator &&
-    location.protocol.startsWith("http")) {
-  addEventListener("load", () =>
-    navigator.serviceWorker.register("./sw.js").catch(console.error)
-  );
-}
-
-console.log("SNAP KITCHEN NEW APP LOADED");
-
