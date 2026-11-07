@@ -74,3 +74,28 @@
   background: #202a20;
   color: #ffffff;
 }
+/* Mobile touch fix */
+#cartLines,
+#cartLines * {
+  pointer-events: auto !important;
+  touch-action: manipulation !important;
+}
+
+#cartLines input,
+#cartLines textarea,
+#cartLines button {
+  position: relative;
+  z-index: 50;
+  -webkit-user-select: auto;
+  user-select: auto;
+  cursor: pointer;
+}
+
+#cartLines input,
+#cartLines textarea {
+  font-size: 16px !important;
+}
+
+#cartLines button {
+  min-height: 48px;
+}
