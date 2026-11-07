@@ -292,31 +292,59 @@ $("checkout").addEventListener("click", () => {
   });
 
   // CURRENT GPS LOCATION
-  locationButton.addEventListener("click", () => {
+  
+  // CURRENT GPS LOCATION + AUTO ADDRESS
+  locationButton.addEventListener("click", async () => {
 
     if (!navigator.geolocation) {
-      locationStatus.textContent =
-        "Your browser does not support GPS location.";
+      locationStatus.textContent = "Your browser does not support GPS.";
       return;
     }
 
     locationButton.disabled = true;
     locationButton.textContent = "Getting location...";
-    locationStatus.textContent =
-      "Please allow location permission.";
+    locationStatus.textContent = "Please allow location permission.";
 
     navigator.geolocation.getCurrentPosition(
 
-      position => {
+      async position => {
 
         latitude = position.coords.latitude;
         longitude = position.coords.longitude;
 
-        mapLink =
-          `https://www.google.com/maps?q=${latitude},${longitude}`;
+        mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
-        locationStatus.textContent =
-          "✓ Current location added successfully!";
+        locationStatus.textContent = "GPS found! Getting your address...";
+
+        try {
+
+          const response = await fetch(
+            `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
+          );
+
+          if (!response.ok) {
+            throw new Error("Address service unavailable");
+          }
+
+          const result = await response.json();
+
+          if (result.display_name) {
+            addressField.value = result.display_name;
+            locationStatus.textContent =
+              "✓ Address automatically added! You can edit it if needed.";
+          } else {
+            locationStatus.textContent =
+              "GPS found, but address not found. Please enter it manually.";
+          }
+
+        } catch (error) {
+
+          console.error("Address error:", error);
+
+          locationStatus.textContent =
+            "GPS found, but address could not be loaded. Please enter it manually.";
+
+        }
 
         locationButton.textContent = "✓ Location Added";
         locationButton.disabled = false;
@@ -348,116 +376,3 @@ $("checkout").addEventListener("click", () => {
       }
     );
   });
-
-  // SAVE ORDER
-  form.addEventListener("submit", async e => {
-    e.preventDefault();
-
-    const data = new FormData(form);
-
-    const customerName = data.get("customerName").trim();
-    const phone = data.get("phone").trim();
-    const orderType = data.get("orderType");
-    const address = (data.get("address") || "").trim();
-
-    if (
-      orderType === "Home Delivery" &&
-      !address &&
-      latitude === null
-    ) {
-      toast("Please enter address or use current location.");
-      return;
-    }
-
-    const items = menu
-      .filter(x => cart[x.id])
-      .map(x => ({
-        name: x.n,
-        price: x.p,
-        quantity: cart[x.id],
-        subtotal: x.p * cart[x.id]
-      }));
-
-    const amount = total();
-    const button = $("placeOrder");
-
-    button.disabled = true;
-    button.textContent = "Saving order...";
-
-    try {
-
-      const orderRef = await addDoc(collection(db, "orders"), {
-
-        customerName,
-        phone,
-        orderType,
-        address,
-        latitude,
-        longitude,
-        mapLink,
-
-        items,
-        total: amount,
-
-        paymentMethod: "Cash",
-        status: "New",
-
-        createdAt: serverTimestamp()
-      });
-
-      const orderId = orderRef.id;
-
-      // WHATSAPP ORDER MESSAGE
-      const itemText = items.map(x =>
-        `${x.name} x ${x.quantity} = Rs.${x.subtotal}`
-      ).join("\n");
-
-      const message =
-`🍽️ NEW SNAP KITCHEN ORDER
-
-Order ID: ${orderId}
-
-Name: ${customerName}
-Phone: ${phone}
-Order Type: ${orderType}
-
-${orderType === "Home Delivery"
-  ? `Address: ${address || "Current location shared"}\n${mapLink ? "Google Maps: " + mapLink : ""}`
-  : "Pickup from Snap Kitchen"}
-
-ITEMS:
-${itemText}
-
-Total: Rs.${amount}
-Payment: Cash
-
-Thank you!`;
-
-      const whatsappURL =
-        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-
-      // CLEAR CART
-      cart = {};
-      update();
-
-      toast("Order saved successfully!");
-
-      // OPEN WHATSAPP
-      window.location.href = whatsappURL;
-
-    } catch (error) {
-
-      console.error("Order error:", error);
-
-      button.disabled = false;
-      button.textContent = "Try Again";
-
-      toast("Order could not be saved. Please try again.");
-    }
-  });
-
-});
-
-// INITIALIZE
-render();
-update();
