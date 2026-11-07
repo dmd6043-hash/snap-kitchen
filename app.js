@@ -18,15 +18,15 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const menu = [
-{id:1,n:"Veg Steam Momos",c:"Momos",p:30,d:"8 pieces • Fresh & soft",e:"🥟"},
-{id:2,n:"Paneer Steam Momos",c:"Momos",p:50,d:"6 pieces • Paneer filling",e:"🥟"},
-{id:3,n:"Veg Chilli Momos",c:"Chinese",p:60,d:"Spicy tossed momos",e:"🥡"},
-{id:4,n:"Soya Chilli",c:"Chinese",p:40,d:"Half portion",e:"🍲"},
-{id:5,n:"Paneer Chilli",c:"Chinese",p:60,d:"Half portion",e:"🍛"},
-{id:6,n:"Soya Kathi Roll",c:"Rolls",p:40,d:"Desi street-style roll",e:"🌯"},
-{id:7,n:"Paneer Kathi Roll",c:"Rolls",p:70,d:"Loaded paneer filling",e:"🌯"},
-{id:8,n:"Peri Peri Fries",c:"Snacks",p:50,d:"Crispy & spicy",e:"🍟"},
-{id:9,n:"Alu Tikki Chaat",c:"Snacks",p:30,d:"Tangy street-style chaat",e:"🥗"}
+  {id:1,n:"Veg Steam Momos",c:"Momos",p:30,d:"8 pieces • Fresh & soft",e:"🥟"},
+  {id:2,n:"Paneer Steam Momos",c:"Momos",p:50,d:"6 pieces • Paneer filling",e:"🥟"},
+  {id:3,n:"Veg Chilli Momos",c:"Chinese",p:60,d:"Spicy tossed momos",e:"🥡"},
+  {id:4,n:"Soya Chilli",c:"Chinese",p:40,d:"Half portion",e:"🍲"},
+  {id:5,n:"Paneer Chilli",c:"Chinese",p:60,d:"Half portion",e:"🍛"},
+  {id:6,n:"Soya Kathi Roll",c:"Rolls",p:40,d:"Desi street-style roll",e:"🌯"},
+  {id:7,n:"Paneer Kathi Roll",c:"Rolls",p:70,d:"Loaded paneer filling",e:"🌯"},
+  {id:8,n:"Peri Peri Fries",c:"Snacks",p:50,d:"Crispy & spicy",e:"🍟"},
+  {id:9,n:"Alu Tikki Chaat",c:"Snacks",p:30,d:"Tangy street-style chaat",e:"🥗"}
 ];
 
 let category = "All", cart = {};
@@ -38,15 +38,21 @@ function render() {
     (category === "All" || x.c === category) &&
     (x.n + " " + x.d).toLowerCase().includes(q)
   );
+
   $("products").innerHTML = list.map(x => `
     <article class="product">
       <div class="art">${x.e}</div>
       <div class="details">
-        <h3>${x.n}</h3><p>${x.d}</p>
-        <div class="row"><span>₹${x.p}</span>
-        <button class="add" data-add="${x.id}">+ ADD</button></div>
+        <h3>${x.n}</h3>
+        <p>${x.d}</p>
+        <div class="row">
+          <span>₹${x.p}</span>
+          <button class="add" data-add="${x.id}">+ ADD</button>
+        </div>
       </div>
-    </article>`).join("");
+    </article>
+  `).join("");
+
   $("empty").hidden = list.length > 0;
 }
 
@@ -65,6 +71,7 @@ function update() {
 
 function openCart() {
   let chosen = menu.filter(x => cart[x.id]);
+
   $("cartLines").innerHTML = chosen.length
     ? chosen.map(x => `
       <div class="cartline">
@@ -74,8 +81,10 @@ function openCart() {
           ${cart[x.id]}
           <button data-plus="${x.id}">+</button>
         </span>
-      </div>`).join("")
+      </div>
+    `).join("")
     : "Your cart is empty.";
+
   $("total").textContent = "₹" + total();
   $("checkout").hidden = !chosen.length;
   $("shade").classList.add("show");
@@ -90,10 +99,13 @@ function toast(t) {
 $("cats").addEventListener("click", e => {
   let b = e.target.closest("[data-cat]");
   if (!b) return;
+
   category = b.dataset.cat;
+
   document.querySelectorAll("[data-cat]").forEach(x =>
     x.classList.toggle("active", x === b)
   );
+
   render();
 });
 
@@ -102,8 +114,10 @@ $("search").addEventListener("input", render);
 $("products").addEventListener("click", e => {
   let b = e.target.closest("[data-add]");
   if (!b) return;
+
   let id = +b.dataset.add;
   cart[id] = (cart[id] || 0) + 1;
+
   update();
   toast("Added to cart!");
 });
@@ -117,18 +131,23 @@ $("close").addEventListener("click", () =>
 );
 
 $("shade").addEventListener("click", e => {
-  if (e.target === $("shade")) $("shade").classList.remove("show");
+  if (e.target === $("shade")) {
+    $("shade").classList.remove("show");
+  }
 });
 
 $("cartLines").addEventListener("click", e => {
   let p = e.target.closest("[data-plus]");
   let m = e.target.closest("[data-minus]");
+
   if (p) cart[+p.dataset.plus]++;
+
   if (m) {
     let id = +m.dataset.minus;
     cart[id]--;
     if (cart[id] <= 0) delete cart[id];
   }
+
   update();
   openCart();
 });
@@ -138,35 +157,86 @@ $("checkout").addEventListener("click", () => {
 
   $("cartLines").innerHTML = `
     <form id="orderForm">
+
       <label>Your name</label>
-      <input name="customerName" required maxlength="60" placeholder="Enter your name">
+      <input name="customerName" required maxlength="60"
+        placeholder="Enter your name">
+
       <label>Mobile number</label>
-      <input name="phone" type="tel" required pattern="[6-9][0-9]{9}" maxlength="10" placeholder="10 digit mobile number">
-      <label>Order type</label>
-      <select name="orderType" id="orderType">
-        <option value="Pickup">Pickup</option>
-        <option value="Home Delivery">Home Delivery</option>
-      </select>
+      <input name="phone" type="tel" required
+        pattern="[6-9][0-9]{9}" maxlength="10"
+        placeholder="10 digit mobile number">
+
+      <label>Choose order type</label>
+
+      <input type="hidden" name="orderType"
+        id="orderType" value="Pickup">
+
+      <div style="display:flex;gap:10px;margin:12px 0 18px;">
+
+        <button type="button" data-order-type="Pickup"
+          style="flex:1;min-height:50px;border:2px solid #c5ff36;
+          border-radius:10px;background:#c5ff36;color:#172017;
+          font-size:16px;font-weight:bold;">
+          ✓ Pickup
+        </button>
+
+        <button type="button" data-order-type="Home Delivery"
+          style="flex:1;min-height:50px;border:2px solid #65745c;
+          border-radius:10px;background:#202a20;color:white;
+          font-size:16px;font-weight:bold;">
+          Home Delivery
+        </button>
+
+      </div>
+
       <div id="addressBox" hidden>
         <label>Delivery address</label>
-        <textarea name="address" placeholder="House number, area, landmark"></textarea>
+        <textarea name="address"
+          placeholder="House number, area, landmark"></textarea>
       </div>
+
       <p><b>Payment: Cash on Delivery / Pay at pickup</b></p>
-      <button class="btn" type="submit" id="placeOrder">Place order →</button>
-    </form>`;
+
+      <button class="btn" type="submit" id="placeOrder">
+        Place order →
+      </button>
+
+    </form>
+  `;
 
   $("checkout").hidden = true;
 
-  $("orderType").addEventListener("change", e => {
-    $("addressBox").hidden = e.target.value !== "Home Delivery";
-    $("orderForm").elements.address.required =
-      e.target.value === "Home Delivery";
+  const form = $("orderForm");
+  const addressBox = $("addressBox");
+  const addressField = form.elements.address;
+  const typeField = $("orderType");
+
+  form.querySelectorAll("[data-order-type]").forEach(button => {
+    button.addEventListener("click", () => {
+
+      const selected = button.dataset.orderType;
+      typeField.value = selected;
+
+      form.querySelectorAll("[data-order-type]").forEach(btn => {
+        const active = btn === button;
+
+        btn.style.background = active ? "#c5ff36" : "#202a20";
+        btn.style.color = active ? "#172017" : "#ffffff";
+        btn.style.borderColor = active ? "#c5ff36" : "#65745c";
+        btn.textContent = active
+          ? "✓ " + btn.dataset.orderType
+          : btn.dataset.orderType;
+      });
+
+      addressBox.hidden = selected !== "Home Delivery";
+      addressField.required = selected === "Home Delivery";
+    });
   });
 
-  $("orderForm").addEventListener("submit", async e => {
+  form.addEventListener("submit", async e => {
     e.preventDefault();
 
-    const form = e.currentTarget;
     const data = new FormData(form);
     const customerName = data.get("customerName").trim();
     const phone = data.get("phone").trim();
@@ -182,6 +252,7 @@ $("checkout").addEventListener("click", () => {
 
     const amount = total();
     const button = $("placeOrder");
+
     button.disabled = true;
     button.textContent = "Saving order...";
 
@@ -199,6 +270,7 @@ $("checkout").addEventListener("click", () => {
       });
 
       const orderId = orderRef.id;
+
       const itemText = items.map(x =>
         `${x.name} x ${x.quantity} = Rs.${x.subtotal}`
       ).join("\n");
@@ -217,11 +289,13 @@ Payment: Cash`;
 
       cart = {};
       update();
+
       $("shade").classList.remove("show");
       toast("Order saved successfully! Order ID: " + orderId);
 
       window.open(
-        "https://wa.me/918319014718?text=" + encodeURIComponent(message),
+        "https://wa.me/918319014718?text=" +
+        encodeURIComponent(message),
         "_blank"
       );
 
@@ -237,6 +311,7 @@ Payment: Cash`;
 function rewards() {
   $("rewards").scrollIntoView({behavior:"smooth"});
 }
+
 $("rewardJump").addEventListener("click", rewards);
 
 render();
@@ -247,4 +322,6 @@ if ("serviceWorker" in navigator &&
   addEventListener("load", () =>
     navigator.serviceWorker.register("./sw.js").catch(console.error)
   );
-}console.log("SNAP KITCHEN NEW APP LOADED");
+}
+
+console.log("SNAP KITCHEN NEW APP LOADED");
