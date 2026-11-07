@@ -38,3 +38,26 @@
   z-index: 12;
   pointer-events: auto;
 }
+.sheet input,
+.sheet select,
+.sheet textarea {
+  pointer-events: auto !important;
+  user-select: auto !important;
+  -webkit-user-select: auto !important;
+  touch-action: auto !important;
+  cursor: text;
+}
+
+.sheet {
+  pointer-events: auto !important;
+}
+
+.shade.show {
+  pointer-events: auto !important;
+}
+
+#orderForm {
+  position: relative;
+  z-index: 20;
+  pointer-events: auto !important;
+}
