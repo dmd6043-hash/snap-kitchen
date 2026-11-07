@@ -20,8 +20,6 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
-// SNAP KITCHEN WHATSAPP NUMBER
 const WHATSAPP_NUMBER = "918319014718";
 
 // MENU
@@ -253,7 +251,6 @@ $("checkout").addEventListener("click", () => {
   const addressBox = $("addressBox");
   const addressField = form.elements.address;
   const typeField = $("orderType");
-
   const locationButton = $("getLocation");
   const locationStatus = $("locationStatus");
 
@@ -287,14 +284,15 @@ $("checkout").addEventListener("click", () => {
         latitude = null;
         longitude = null;
         mapLink = "";
+        locationButton.textContent = "📍 Use Current Location";
+        locationButton.disabled = false;
+        locationStatus.textContent = "Tap to share your current location.";
       }
     });
   });
 
-  // CURRENT GPS LOCATION
-  
-  // CURRENT GPS LOCATION + AUTO ADDRESS
-  locationButton.addEventListener("click", async () => {
+  // GPS + AUTOMATIC ADDRESS
+  locationButton.addEventListener("click", () => {
 
     if (!navigator.geolocation) {
       locationStatus.textContent = "Your browser does not support GPS.";
@@ -331,10 +329,10 @@ $("checkout").addEventListener("click", () => {
           if (result.display_name) {
             addressField.value = result.display_name;
             locationStatus.textContent =
-              "✓ Address automatically added! You can edit it if needed.";
+              "✓ Address automatically added! You can edit it.";
           } else {
             locationStatus.textContent =
-              "GPS found, but address not found. Please enter it manually.";
+              "GPS found, but address not found. Please enter manually.";
           }
 
         } catch (error) {
@@ -342,8 +340,7 @@ $("checkout").addEventListener("click", () => {
           console.error("Address error:", error);
 
           locationStatus.textContent =
-            "GPS found, but address could not be loaded. Please enter it manually.";
-
+            "GPS found, but address could not load. Please enter manually.";
         }
 
         locationButton.textContent = "✓ Location Added";
@@ -376,3 +373,114 @@ $("checkout").addEventListener("click", () => {
       }
     );
   });
+
+  // SAVE ORDER TO FIREBASE
+  form.addEventListener("submit", async e => {
+    e.preventDefault();
+
+    const data = new FormData(form);
+
+    const customerName = data.get("customerName").trim();
+    const phone = data.get("phone").trim();
+    const orderType = data.get("orderType");
+    const address = (data.get("address") || "").trim();
+
+    if (
+      orderType === "Home Delivery" &&
+      !address &&
+      latitude === null
+    ) {
+      toast("Please enter address or use current location.");
+      return;
+    }
+
+    const items = menu
+      .filter(x => cart[x.id])
+      .map(x => ({
+        name: x.n,
+        price: x.p,
+        quantity: cart[x.id],
+        subtotal: x.p * cart[x.id]
+      }));
+
+    const amount = total();
+    const button = $("placeOrder");
+
+    button.disabled = true;
+    button.textContent = "Saving order...";
+
+    try {
+
+      const orderRef = await addDoc(collection(db, "orders"), {
+
+        customerName,
+        phone,
+        orderType,
+        address,
+        latitude,
+        longitude,
+        mapLink,
+
+        items,
+        total: amount,
+
+        paymentMethod: "Cash",
+        status: "New",
+
+        createdAt: serverTimestamp()
+      });
+
+      const orderId = orderRef.id;
+
+      // WHATSAPP MESSAGE
+      const itemText = items.map(x =>
+        `${x.name} x ${x.quantity} = Rs.${x.subtotal}`
+      ).join("\n");
+
+      const message =
+`🍽️ NEW SNAP KITCHEN ORDER
+
+Order ID: ${orderId}
+
+Name: ${customerName}
+Phone: ${phone}
+Order Type: ${orderType}
+
+${orderType === "Home Delivery"
+  ? `Address: ${address || "Current location shared"}\n${mapLink ? "Google Maps: " + mapLink : ""}`
+  : "Pickup from Snap Kitchen"}
+
+ITEMS:
+${itemText}
+
+Total: Rs.${amount}
+Payment: Cash
+
+Thank you!`;
+
+      const whatsappURL =
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+
+      cart = {};
+      update();
+
+      toast("Order saved successfully!");
+
+      window.location.href = whatsappURL;
+
+    } catch (error) {
+
+      console.error("Order error:", error);
+
+      button.disabled = false;
+      button.textContent = "Try Again";
+
+      toast("Order could not be saved. Please try again.");
+    }
+  });
+
+});
+
+// INITIALIZE
+render();
+update();
