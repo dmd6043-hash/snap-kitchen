@@ -9,7 +9,7 @@ import {
 
 // FIREBASE
 const firebaseConfig = {
-  apiKey: "AIzaSyCiG0M2i59aJGUge5SokM8nHkC8k4SByE",
+  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
   authDomain: "snap-kitchen-b8a73.firebaseapp.com",
   projectId: "snap-kitchen-b8a73",
   storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
