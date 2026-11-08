@@ -6,14 +6,47 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101510">
 <title>Snap Kitchen Admin</title>
+
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#101510;color:#fff;font-family:Arial,sans-serif;padding:18px}
+
+body{
+  margin:0;
+  background:#101510;
+  color:#fff;
+  font-family:Arial,sans-serif;
+  padding:18px;
+}
+
 .wrap{max-width:850px;margin:auto}
 h1{color:#b8f36b}
-.card{background:#1d271e;padding:18px;border-radius:15px;margin:14px 0}
-input{width:100%;padding:14px;margin:8px 0;border:0;border-radius:9px}
-button{padding:11px 15px;border:0;border-radius:9px;font-weight:bold;margin:5px;cursor:pointer}
+
+.card{
+  background:#1d271e;
+  padding:18px;
+  border-radius:15px;
+  margin:14px 0;
+}
+
+input{
+  width:100%;
+  padding:14px;
+  margin:8px 0;
+  border:0;
+  border-radius:9px;
+}
+
+button{
+  padding:11px 15px;
+  border:0;
+  border-radius:9px;
+  font-weight:bold;
+  margin:5px;
+  cursor:pointer;
+}
+
+button:disabled{opacity:.5;cursor:not-allowed}
+
 .primary{background:#b8f36b;color:#101510}
 .reject{background:#ff6868;color:#fff}
 .status{background:#344333;color:white}
@@ -22,40 +55,68 @@ button{padding:11px 15px;border:0;border-radius:9px;font-weight:bold;margin:5px;
 .order{border:1px solid #465344;border-radius:12px;padding:14px;margin:12px 0}
 .order h3{margin-top:0;color:#b8f36b}
 a{color:#b8f36b}
-#message{color:#ffd27a}
+#message{color:#ffd27a;overflow-wrap:anywhere}
 </style>
 </head>
+
 <body>
 <div class="wrap">
+
 <h1>SNAP KITCHEN</h1>
 <p class="small">ADMIN DASHBOARD</p>
 
 <div id="loginBox" class="card">
-<h2>Admin Login</h2>
-<input id="email" type="email" placeholder="Admin email">
-<input id="password" type="password" placeholder="Password">
-<button class="primary" id="loginBtn">LOGIN</button>
-<p id="message"></p>
+  <h2>Admin Login</h2>
+
+  <input id="email" type="email"
+    placeholder="Admin email" autocomplete="username">
+
+  <input id="password" type="password"
+    placeholder="Password" autocomplete="current-password">
+
+  <button class="primary" id="loginBtn" type="button">
+    LOGIN
+  </button>
+
+  <p id="message"></p>
 </div>
 
 <div id="dashboard" class="hidden">
-<div class="card">
-<h2>Orders <span id="count">0</span></h2>
-<button class="status" id="logoutBtn">LOGOUT</button>
-<p class="small">Live orders from Firebase</p>
-</div>
-<div id="orders">Loading orders...</div>
+
+  <div class="card">
+    <h2>Orders <span id="count">0</span></h2>
+    <button class="status" id="logoutBtn" type="button">LOGOUT</button>
+    <p class="small">Live orders from Firebase</p>
+  </div>
+
+  <div id="orders">Loading orders...</div>
+
 </div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
 import {
-  getFirestore, collection, onSnapshot, doc, updateDoc
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+  getFirestore,
+  collection,
+  onSnapshot,
+  doc,
+  updateDoc
+} from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
 import {
-  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut
-} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+// FIREBASE CONFIG
 
 const firebaseConfig = {
   apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
@@ -66,18 +127,23 @@ const firebaseConfig = {
   appId: "1:1060475241392:web:c3751859ecb085830b8c75",
   measurementId: "G-KRFFRFJY5X"
 };
-};
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
+// ELEMENTS
+
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
 const message = document.getElementById("message");
 const ordersBox = document.getElementById("orders");
+const loginBtn = document.getElementById("loginBtn");
 
-document.getElementById("loginBtn").onclick = async () => {
+// LOGIN
+
+loginBtn.addEventListener("click", async () => {
+
   const email = document.getElementById("email").value.trim();
   const password = document.getElementById("password").value;
 
@@ -86,125 +152,249 @@ document.getElementById("loginBtn").onclick = async () => {
     return;
   }
 
+  loginBtn.disabled = true;
+  loginBtn.textContent = "LOGGING IN...";
+  message.textContent = "Please wait...";
+
   try {
-    message.textContent = "Logging in...";
+
     await signInWithEmailAndPassword(auth, email, password);
+
     message.textContent = "";
+
   } catch (error) {
-    message.textContent = "Login failed: " + error.message;
-  }
-};
 
-document.getElementById("logoutBtn").onclick = () => signOut(auth);
+    console.error("Login error:", error);
 
-onAuthStateChanged(auth, user => {
-  if (user) {
-    loginBox.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-    loadOrders();
-  } else {
-    loginBox.classList.remove("hidden");
-    dashboard.classList.add("hidden");
-    ordersBox.innerHTML = "";
+    message.textContent =
+      "Login failed: " + error.code + " - " + error.message;
+
+  } finally {
+
+    loginBtn.disabled = false;
+    loginBtn.textContent = "LOGIN";
+
   }
+
 });
+
+// LOGOUT
+
+document.getElementById("logoutBtn").addEventListener("click", async () => {
+
+  try {
+    await signOut(auth);
+  } catch (error) {
+    alert("Logout failed: " + error.message);
+  }
+
+});
+
+// AUTH STATE
 
 let unsubscribe = null;
 
-function safe(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;", "<":"&lt;", ">":"&gt;",
-    '"':"&quot;", "'":"&#039;"
-  })[char]);
-}
+onAuthStateChanged(auth, user => {
 
-function loadOrders() {
-  if (unsubscribe) unsubscribe();
+  if (user) {
 
-  unsubscribe = onSnapshot(collection(db, "orders"), snapshot => {
-    const list = snapshot.docs.map(item => ({
-      id: item.id,
-      ...item.data()
-    }));
+    loginBox.classList.add("hidden");
+    dashboard.classList.remove("hidden");
 
-    list.sort((a,b) => {
-      const at = a.createdAt?.toMillis?.() || 0;
-      const bt = b.createdAt?.toMillis?.() || 0;
-      return bt - at;
-    });
+    loadOrders();
 
-    document.getElementById("count").textContent = list.length;
+  } else {
 
-    if (!list.length) {
-      ordersBox.innerHTML = '<div class="card">Abhi koi order nahi hai.</div>';
-      return;
+    if (unsubscribe) {
+      unsubscribe();
+      unsubscribe = null;
     }
 
-    ordersBox.innerHTML = list.map(order => {
-      const name = order.customerName || order.name || "Customer";
-      const phone = order.phone || order.mobile || "";
-      const type = order.orderType || "Not specified";
-      const address = order.address || "Address not available";
-      const total = order.total ?? order.grandTotal ?? 0;
-      const status = order.status || "New";
-      const items = Array.isArray(order.items)
-        ? order.items.map(item => {
-            if (typeof item === "string") return safe(item);
-            return safe(item.name || item.title || "Item") +
-              " × " + safe(item.quantity || item.qty || 1);
-          }).join("<br>")
-        : safe(order.items || "Items not available");
+    loginBox.classList.remove("hidden");
+    dashboard.classList.add("hidden");
+    ordersBox.innerHTML = "";
 
-      const map = order.mapLink || order.googleMapsLink ||
-        (order.latitude && order.longitude
-          ? `https://www.google.com/maps?q=${order.latitude},${order.longitude}`
-          : "");
+  }
 
-      const date = order.createdAt?.toDate
-        ? order.createdAt.toDate().toLocaleString("en-IN")
-        : "Time unavailable";
+});
 
-      return `
-        <div class="order">
-          <h3>Order #${safe(order.id.slice(0,8))}</h3>
-          <p><b>Name:</b> ${safe(name)}</p>
-          <p><b>Phone:</b> ${safe(phone)}</p>
-          <p><b>Order Type:</b> ${safe(type)}</p>
-          <p><b>Items:</b><br>${items}</p>
-          <p><b>Total:</b> ₹${safe(total)}</p>
-          <p><b>Address:</b> ${safe(address)}</p>
-          ${map ? `<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>` : ""}
-          <p><b>Current Status:</b> ${safe(status)}</p>
-          <p class="small">${safe(date)}</p>
-          <button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
-          <button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
-          <br>
-          <button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
-          <button class="status" data-id="${safe(order.id)}" data-status="Out for Delivery">OUT FOR DELIVERY</button>
-          <button class="status" data-id="${safe(order.id)}" data-status="Delivered">DELIVERED</button>
-        </div>
-      `;
-    }).join("");
-  }, error => {
-    ordersBox.textContent = "Orders load nahi hue: " + error.message;
-  });
+// SAFE TEXT
+
+function safe(value) {
+
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+
 }
 
+// LOAD ORDERS
+
+function loadOrders() {
+
+  if (unsubscribe) unsubscribe();
+
+  ordersBox.textContent = "Loading orders...";
+
+  unsubscribe = onSnapshot(
+    collection(db, "orders"),
+
+    snapshot => {
+
+      const list = snapshot.docs.map(item => ({
+        id: item.id,
+        ...item.data()
+      }));
+
+      list.sort((a,b) => {
+
+        const at = a.createdAt?.toMillis?.() || 0;
+        const bt = b.createdAt?.toMillis?.() || 0;
+
+        return bt - at;
+
+      });
+
+      document.getElementById("count").textContent = list.length;
+
+      if (!list.length) {
+
+        ordersBox.innerHTML =
+          '<div class="card">Abhi koi order nahi hai.</div>';
+
+        return;
+
+      }
+
+      ordersBox.innerHTML = list.map(order => {
+
+        const name = order.customerName || order.name || "Customer";
+        const phone = order.phone || order.mobile || "";
+        const type = order.orderType || "Not specified";
+        const address = order.address || "Address not available";
+        const total = order.total ?? order.grandTotal ?? 0;
+        const status = order.status || "New";
+
+        const items = Array.isArray(order.items)
+          ? order.items.map(item => {
+
+              if (typeof item === "string") {
+                return safe(item);
+              }
+
+              return safe(item.name || item.title || "Item") +
+                " × " + safe(item.quantity || item.qty || 1);
+
+            }).join("<br>")
+          : safe(order.items || "Items not available");
+
+        const map = order.mapLink || order.googleMapsLink ||
+          (order.latitude != null && order.longitude != null
+            ? `https://www.google.com/maps?q=${encodeURIComponent(order.latitude)},${encodeURIComponent(order.longitude)}`
+            : "");
+
+        const date = order.createdAt?.toDate
+          ? order.createdAt.toDate().toLocaleString("en-IN")
+          : "Time unavailable";
+
+        return `
+          <div class="order">
+
+            <h3>Order #${safe(order.id.slice(0,8))}</h3>
+
+            <p><b>Name:</b> ${safe(name)}</p>
+            <p><b>Phone:</b> ${safe(phone)}</p>
+            <p><b>Order Type:</b> ${safe(type)}</p>
+            <p><b>Items:</b><br>${items}</p>
+            <p><b>Total:</b> ₹${safe(total)}</p>
+            <p><b>Address:</b> ${safe(address)}</p>
+
+            ${map
+              ? `<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>`
+              : ""}
+
+            <p><b>Current Status:</b> ${safe(status)}</p>
+            <p class="small">${safe(date)}</p>
+
+            <button class="primary"
+              data-id="${safe(order.id)}"
+              data-status="Accepted">ACCEPT</button>
+
+            <button class="reject"
+              data-id="${safe(order.id)}"
+              data-status="Rejected">REJECT</button>
+
+            <br>
+
+            <button class="status"
+              data-id="${safe(order.id)}"
+              data-status="Preparing">PREPARING</button>
+
+            <button class="status"
+              data-id="${safe(order.id)}"
+              data-status="Out for Delivery">OUT FOR DELIVERY</button>
+
+            <button class="status"
+              data-id="${safe(order.id)}"
+              data-status="Delivered">DELIVERED</button>
+
+          </div>
+        `;
+
+      }).join("");
+
+    },
+
+    error => {
+
+      console.error("Orders error:", error);
+
+      ordersBox.textContent =
+        "Orders load nahi hue: " + error.message;
+
+    }
+
+  );
+
+}
+
+// UPDATE ORDER STATUS
+
 ordersBox.addEventListener("click", async event => {
+
   const button = event.target.closest("button[data-id]");
+
   if (!button) return;
 
   try {
+
     button.disabled = true;
-    await updateDoc(doc(db, "orders", button.dataset.id), {
-      status: button.dataset.status
-    });
+
+    await updateDoc(
+      doc(db, "orders", button.dataset.id),
+      {
+        status: button.dataset.status
+      }
+    );
+
   } catch (error) {
+
+    console.error("Status update error:", error);
+
     alert("Status update nahi hua: " + error.message);
+
   } finally {
+
     button.disabled = false;
+
   }
+
 });
+
 </script>
 </body>
 </html>
