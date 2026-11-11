@@ -1,14 +1,533 @@
-<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#101510"><title>Snap Kitchen</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#180d2e">
+  <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box!">
+  <title>ZaikaBox | Food Delivery</title>
+  <link rel="manifest" href="manifest.webmanifest">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    :root {
+      --bg:#10091e;
+      --surface:#1d1230;
+      --surface2:#291a40;
+      --purple:#9b5cff;
+      --orange:#ff914d;
+      --white:#fff;
+      --muted:#b9a9ce;
+    }
+
+    * { box-sizing:border-box; }
+
+    html { scroll-behavior:smooth; }
+
+    body {
+      margin:0;
+      background:var(--bg);
+      color:var(--white);
+      font-family:'DM Sans',sans-serif;
+      padding-bottom:85px;
+    }
+
+    button,input { font:inherit; }
+
+    button { cursor:pointer; }
+
+    header {
+      position:sticky;
+      top:0;
+      z-index:20;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:14px 5%;
+      background:rgba(16,9,30,.94);
+      backdrop-filter:blur(15px);
+      border-bottom:1px solid #ffffff12;
+    }
+
+    .brand {
+      display:flex;
+      align-items:center;
+      gap:10px;
+      color:white;
+      text-decoration:none;
+    }
+
+    .logo {
+      width:43px;
+      height:43px;
+      display:grid;
+      place-items:center;
+      border-radius:14px;
+      background:linear-gradient(135deg,#a75bff,#6e35d9);
+      font-family:Outfit;
+      font-size:20px;
+    }
+
+    .brand strong {
+      display:block;
+      font-family:Outfit;
+      font-size:20px;
+      letter-spacing:.5px;
+    }
+
+    .brand small {
+      color:var(--orange);
+      font-size:9px;
+      letter-spacing:1.5px;
+      font-weight:800;
+    }
+
+    #openCart {
+      background:var(--surface2);
+      color:white;
+      border:1px solid #ffffff20;
+      border-radius:13px;
+      padding:11px 15px;
+    }
+
+    main {
+      width:min(1100px,92%);
+      margin:auto;
+    }
+
+    .hero {
+      margin-top:22px;
+      padding:30px 24px;
+      border-radius:25px;
+      background:
+        radial-gradient(circle at 90% 20%,#a75bff66,transparent 35%),
+        linear-gradient(130deg,#32165a,#1d1034 65%,#40205b);
+      border:1px solid #ffffff15;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:20px;
+      overflow:hidden;
+    }
+
+    .hero label {
+      color:#ffc18e;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1.5px;
+    }
+
+    .eyebrow {
+      color:#c39bff;
+      font-size:11px;
+      font-weight:800;
+      letter-spacing:1.5px;
+    }
+
+    h1,h2,h3 { font-family:Outfit,sans-serif; }
+
+    .hero h1 {
+      font-size:clamp(38px,7vw,65px);
+      line-height:1.02;
+      margin:13px 0;
+    }
+
+    .hero h1 em {
+      color:#ffad72;
+      font-style:normal;
+    }
+
+    .hero p { color:#d6c9e7; }
+
+    .food {
+      min-width:110px;
+      width:150px;
+      height:150px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#ffffff12;
+      font-size:75px;
+      box-shadow:0 0 60px #a75bff30;
+    }
+
+    .food small {
+      font-size:9px;
+      color:#ffd0a8;
+      letter-spacing:2px;
+    }
+
+    .btn {
+      display:inline-block;
+      border:0;
+      border-radius:13px;
+      padding:13px 20px;
+      color:#210d36;
+      font-weight:800;
+      background:linear-gradient(100deg,#ffad72,#ff8548);
+      text-decoration:none;
+    }
+
+    .info {
+      display:grid;
+      grid-template-columns:repeat(3,1fr);
+      gap:10px;
+      margin:18px 0 35px;
+    }
+
+    .info span {
+      background:var(--surface);
+      border:1px solid #ffffff12;
+      border-radius:15px;
+      padding:14px 10px;
+      font-size:13px;
+    }
+
+    .info small {
+      display:block;
+      color:var(--muted);
+      margin-top:5px;
+      font-size:10px;
+    }
+
+    section { margin:35px 0; }
+
+    h2 {
+      font-size:30px;
+      margin:7px 0 18px;
+    }
+
+    #search {
+      width:100%;
+      padding:15px;
+      border-radius:13px;
+      border:1px solid #ffffff20;
+      background:var(--surface);
+      color:white;
+      outline:none;
+      margin-bottom:15px;
+    }
+
+    .cats {
+      display:flex;
+      gap:9px;
+      overflow-x:auto;
+      padding-bottom:12px;
+    }
+
+    .cats button {
+      white-space:nowrap;
+      border:1px solid #ffffff20;
+      background:var(--surface);
+      color:white;
+      padding:11px 16px;
+      border-radius:30px;
+    }
+
+    .cats button.active {
+      background:var(--purple);
+      border-color:var(--purple);
+      color:white;
+    }
+
+    .products {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:13px;
+      margin-top:15px;
+    }
+
+    .promo,.reward,.offer {
+      background:linear-gradient(120deg,#35175b,#211333);
+      border:1px solid #ffffff15;
+      border-radius:20px;
+      padding:22px;
+    }
+
+    .promo {
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+    }
+
+    .promo label { color:#ffb27e;font-weight:800; }
+
+    .promo p,.reward p { color:var(--muted);font-size:13px; }
+
+    .seal {
+      width:100px;
+      height:100px;
+      flex-shrink:0;
+      border:2px dashed #c69bff;
+      border-radius:50%;
+      display:grid;
+      place-items:center;
+      color:#ffb27e;
+      font-size:24px;
+    }
+
+    .seal b { font-size:11px;text-align:center; }
+
+    .outline {
+      padding:11px 15px;
+      border:1px solid #c69bff;
+      border-radius:12px;
+      background:transparent;
+      color:white;
+    }
+
+    .reward h3 b { color:#ffad72; }
+
+    .stamps {
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+
+    .stamps i {
+      width:37px;
+      height:37px;
+      display:grid;
+      place-items:center;
+      border-radius:50%;
+      background:#ffffff15;
+      border:1px dashed #b68aff;
+      font-style:normal;
+    }
+
+    .offer {
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-top:12px;
+    }
+
+    .offer small {
+      display:block;
+      color:var(--muted);
+      margin-top:4px;
+    }
+
+    .last {
+      padding:25px 0;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:10px;
+    }
+
+    nav {
+      position:fixed;
+      z-index:30;
+      bottom:0;
+      left:0;
+      right:0;
+      display:flex;
+      justify-content:space-around;
+      align-items:center;
+      padding:12px 5%;
+      background:#1b102b;
+      border-top:1px solid #ffffff18;
+    }
+
+    nav a,nav button {
+      color:#d9c8ed;
+      background:none;
+      border:0;
+      text-decoration:none;
+      text-align:center;
+      font-size:19px;
+    }
+
+    nav small {
+      display:block;
+      font-size:10px;
+      margin-top:4px;
+    }
+
+    .shade {
+      display:none;
+      position:fixed;
+      inset:0;
+      z-index:50;
+      background:#000a;
+      align-items:flex-end;
+      justify-content:center;
+    }
+
+    .shade.show { display:flex; }
+
+    .sheet {
+      width:min(550px,100%);
+      max-height:85vh;
+      overflow:auto;
+      padding:25px;
+      background:#211432;
+      border-radius:24px 24px 0 0;
+    }
+
+    .close {
+      float:right;
+      background:#ffffff15;
+      color:white;
+      border:0;
+      padding:10px;
+      border-radius:10px;
+    }
+
+    #toast {
+      position:fixed;
+      bottom:90px;
+      left:50%;
+      transform:translateX(-50%);
+      background:#6e35d9;
+      color:white;
+      padding:12px 18px;
+      border-radius:12px;
+      z-index:100;
+      display:none;
+    }
+
+    @media(min-width:700px) {
+      .products { grid-template-columns:repeat(3,minmax(0,1fr)); }
+    }
+
+    @media(max-width:480px) {
+      .hero { padding:23px 17px; }
+      .food { width:95px;height:95px;font-size:48px;min-width:95px; }
+      .hero h1 { font-size:39px; }
+      .info span { font-size:11px; }
+      .products { grid-template-columns:repeat(2,minmax(0,1fr)); }
+      .promo { padding:17px; }
+      .seal { width:75px;height:75px; }
+    }
+  </style>
+</head>
+
 <body>
-<header><a class="brand" href="#"><b class="logo">S<span>K</span></b><span><strong>SNAP KITCHEN</strong><small>TASTE THAT CLICKS!</small></span></a><button id="openCart">🛒 <b id="count">0</b></button></header>
+
+<header>
+  <a class="brand" href="#">
+    <b class="logo">ZB</b>
+    <span>
+      <strong>ZAIKABOX</strong>
+      <small>HAR CRAVING KA APNA BOX!</small>
+    </span>
+  </a>
+  <button id="openCart">🛒 <b id="count">0</b></button>
+</header>
+
 <main>
-<section class="hero"><div><label>● PURE VEG</label><p class="eyebrow">CRAVINGS? WE'VE GOT YOU.</p><h1>Good food.<br><em>Great mood.</em></h1><p>Freshly prepared favourites, made to make your day.</p><a class="btn" href="#menu">Explore menu ↗</a></div><div class="food">🥟<small>HOT & FRESH</small></div></section>
-<div class="info"><span>🕓 <b>4 PM–11 PM</b><small>Open daily</small></span><span>🛵 <b>Home delivery</b><small>Available</small></span><span>🥬 <b>100% Veg</b><small>Pure veg kitchen</small></span></div>
-<section id="menu"><p class="eyebrow">WHAT ARE YOU IN THE MOOD FOR?</p><h2>Explore menu</h2><input id="search" placeholder="Search momos, rolls, fries..."><div class="cats" id="cats"><button class="active" data-cat="All">✨ All</button><button data-cat="Momos">🥟 Momos</button><button data-cat="Chinese">🍜 Chinese</button><button data-cat="Rolls">🌯 Rolls</button><button data-cat="Snacks">🍟 Snacks</button></div><div id="products" class="products"></div><p id="empty" hidden>No items found.</p></section>
-<section class="promo"><div><label>SNAP REWARDS</label><h2>Every order<br>gets you closer.</h2><p>Collect stamps on successful orders and unlock rewards.</p><button class="outline" id="rewardJump">View my stamps ↗</button></div><div class="seal">✦<b>SNAP<br>REWARDS</b>♡</div></section>
-<section id="rewards"><p class="eyebrow">A LITTLE EXTRA LOVE</p><h2>Your rewards</h2><div class="reward"><small>YOUR STAMP CARD</small><h3>Snap & Collect <b>0 / 6</b></h3><div class="stamps"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i></div><p>Place an order to start collecting stamps. Reward rules will be announced by Snap Kitchen.</p></div><div class="offer">🎁 <span><b>Offers & updates</b><small>Check back for the latest Snap Kitchen deals.</small></span> →</div></section>
-<section class="last"><div><p class="eyebrow">READY WHEN YOU ARE</p><h2>Your next favourite<br>is one tap away.</h2></div><button class="btn" id="viewCart">View cart →</button></section>
+
+  <section class="hero">
+    <div>
+      <label>✨ FOOD • MOOD • MAGIC</label>
+      <p class="eyebrow">JAGDALPUR, GET READY!</p>
+      <h1>Good food.<br><em>Good mood.</em></h1>
+      <p>Your favourite food, from your favourite places.</p>
+      <a class="btn" href="#menu">Explore food ↗</a>
+    </div>
+    <div class="food">
+      🍔
+      <small>YUMMY!</small>
+    </div>
+  </section>
+
+  <div class="info">
+    <span>🍽️ <b>Local food</b><small>Discover favourites</small></span>
+    <span>🛵 <b>Home delivery</b><small>Order from home</small></span>
+    <span>💜 <b>Made with love</b><small>For every craving</small></span>
+  </div>
+
+  <section id="menu">
+    <p class="eyebrow">FIND YOUR FAVOURITE</p>
+    <h2>What are you craving?</h2>
+
+    <input id="search" placeholder="Search momos, rolls, fries...">
+
+    <div class="cats" id="cats">
+      <button class="active" data-cat="All">✨ All</button>
+      <button data-cat="Momos">🥟 Momos</button>
+      <button data-cat="Chinese">🍜 Chinese</button>
+      <button data-cat="Rolls">🌯 Rolls</button>
+      <button data-cat="Snacks">🍟 Snacks</button>
+    </div>
+
+    <div id="products" class="products"></div>
+    <p id="empty" hidden>No items found.</p>
+  </section>
+
+  <section class="promo">
+    <div>
+      <label>💜 ZAIKABOX REWARDS</label>
+      <h2>Every order<br>brings a surprise.</h2>
+      <p>Order, collect stamps and unlock exciting rewards.</p>
+      <button class="outline" id="rewardJump">View rewards ↗</button>
+    </div>
+    <div class="seal">✦<b>ZAIKA<br>REWARDS</b>♡</div>
+  </section>
+
+  <section id="rewards">
+    <p class="eyebrow">A LITTLE EXTRA LOVE</p>
+    <h2>Your rewards</h2>
+    <div class="reward">
+      <small>YOUR STAMP CARD</small>
+      <h3>Order & Collect <b>0 / 6</b></h3>
+      <div class="stamps">
+        <i>1</i><i>2</i><i>3</i>
+        <i>4</i><i>5</i><i>6</i>
+      </div>
+      <p>Rewards will be managed by ZaikaBox.</p>
+    </div>
+    <div class="offer">
+      🎁
+      <span>
+        <b>Offers & updates</b>
+        <small>Exciting deals coming soon.</small>
+      </span>
+      →
+    </div>
+  </section>
+
+  <section class="last">
+    <div>
+      <p class="eyebrow">READY WHEN YOU ARE</p>
+      <h2>Your next favourite<br>is one tap away.</h2>
+    </div>
+    <button class="btn" id="viewCart">View cart →</button>
+  </section>
+
 </main>
-<nav><a href="#">⌂<small>Home</small></a><a href="#menu">▦<small>Menu</small></a><a href="#rewards">✦<small>Rewards</small></a><button id="navCart">🛒<small>Cart</small></button></nav>
-<div class="shade" id="shade"><div class="sheet"><button class="close" id="close">✕</button><p class="eyebrow">YOUR SELECTION</p><h2>Your cart</h2><div id="cartLines">Your cart is empty.</div><h3>Total: <b id="total">₹0</b></h3><button class="btn" id="checkout">Continue →</button><small>Demo preview: checkout and payment will be connected later.</small></div></div><div id="toast"></div><script type="module" src="app.js?v=3"></script>
+
+<nav>
+  <a href="#">⌂<small>Home</small></a>
+  <a href="#menu">▦<small>Explore</small></a>
+  <a href="#rewards">✦<small>Rewards</small></a>
+  <button id="navCart">🛒<small>Cart</small></button>
+</nav>
+
+<div class="shade" id="shade">
+  <div class="sheet">
+    <button class="close" id="close">✕</button>
+    <p class="eyebrow">YOUR SELECTION</p>
+    <h2>Your cart</h2>
+    <div id="cartLines">Your cart is empty.</div>
+    <h3>Total: <b id="total">₹0</b></h3>
+    <button class="btn" id="checkout">Continue →</button>
+    <small>Checkout connection will be updated in the next step.</small>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script type="module" src="app.js?v=4"></script>
+
+</body>
+</html>
