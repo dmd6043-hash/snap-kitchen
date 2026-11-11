@@ -110,6 +110,14 @@ const loginBtn = document.getElementById("loginBtn");
 let unsubscribeOrders = null;
 let checkingUser = false;
 
+// ROLE NORMALIZATION
+function normalizeRole(value){
+return String(value ?? "")
+.replace(/[\u200B-\u200D\uFEFF]/g,"")
+.trim()
+.toLowerCase();
+}
+
 // LOGIN
 
 loginBtn.addEventListener("click", async () => {
@@ -172,6 +180,7 @@ if(!user){
 checkingUser = false;
 loginBox.classList.remove("hidden");
 appBox.classList.add("hidden");
+loginMessage.textContent = "";
 
 return;
 }
@@ -195,21 +204,28 @@ if(!userSnap.exists()){
 loginMessage.textContent =
 "ERROR: Delivery user document nahi mila. UID: "+user.uid;
 
-checkingUser = false;
 return;
 
 }
 
 const data = userSnap.data();
 
+// NORMALIZE ROLE
+
+const rawRole = data.role;
+const cleanRole = normalizeRole(rawRole);
+
+console.log("Firestore role:",rawRole);
+console.log("Normalized role:",cleanRole);
+
 // CHECK ROLE
 
-if(data.role !== "delivery"){
+if(cleanRole !== "delivery"){
 
 loginMessage.textContent =
-"ERROR: Role mismatch. Firestore role: "+String(data.role);
+"ROLE ERROR: Received value = "+JSON.stringify(rawRole)+
+" | Normalized value = "+JSON.stringify(cleanRole);
 
-checkingUser = false;
 return;
 
 }
@@ -219,9 +235,9 @@ return;
 if(data.active !== true){
 
 loginMessage.textContent =
-"ERROR: Active Boolean true nahi hai. Current value: "+String(data.active);
+"ACTIVE ERROR: Expected Boolean true. Received = "+
+JSON.stringify(data.active);
 
-checkingUser = false;
 return;
 
 }
