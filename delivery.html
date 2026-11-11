@@ -2,320 +2,415 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Snap Kitchen - Delivery</title>
-  <style>
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #101010;
-      color: white;
-    }
-    header {
-      background: #171717;
-      padding: 18px;
-      text-align: center;
-      border-bottom: 2px solid #e53935;
-    }
-    header h2 { margin: 0; color: #ff4545; }
-    .container {
-      max-width: 650px;
-      margin: auto;
-      padding: 16px;
-    }
-    .card {
-      background: #202020;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 15px;
-      border: 1px solid #333;
-    }
-    input {
-      width: 100%;
-      padding: 13px;
-      margin: 8px 0;
-      border: 1px solid #555;
-      border-radius: 8px;
-      background: #111;
-      color: white;
-      font-size: 16px;
-    }
-    button, .map-btn {
-      display: inline-block;
-      border: 0;
-      padding: 12px 15px;
-      margin: 5px 4px 5px 0;
-      border-radius: 8px;
-      background: #e53935;
-      color: white;
-      font-weight: bold;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    button:disabled {
-      opacity: .5;
-      cursor: not-allowed;
-    }
-    .green { background: #168b45; }
-    .blue { background: #1769aa; }
-    .muted { color: #bbb; }
-    .hidden { display: none; }
-    .status { color: #ffd54f; font-weight: bold; }
-    #message { color: #ffcc80; margin: 10px 0; }
-    .order h3 { margin-top: 0; color: #ff6666; }
-    .order p { line-height: 1.5; overflow-wrap: anywhere; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101010">
+<title>Snap Kitchen - Delivery</title>
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:#101010;color:white}
+header{background:#171717;padding:18px;text-align:center;border-bottom:2px solid #e53935}
+header h2{margin:0;color:#ff4545}
+.container{max-width:650px;margin:auto;padding:16px}
+.card{background:#202020;padding:16px;border-radius:12px;margin-bottom:15px;border:1px solid #333}
+input{width:100%;padding:13px;margin:8px 0;border:1px solid #555;border-radius:8px;background:#111;color:white;font-size:16px}
+button,.map-btn{display:inline-block;border:0;padding:12px 15px;margin:5px 4px 5px 0;border-radius:8px;background:#e53935;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
+button:disabled{opacity:.5}
+.green{background:#168b45}
+.blue{background:#1769aa}
+.muted{color:#bbb}
+.hidden{display:none}
+#loginMessage,#message{color:#ffcc80;overflow-wrap:anywhere;line-height:1.5}
+.order h3{margin-top:0;color:#ff6666}
+.order p{line-height:1.5;overflow-wrap:anywhere}
+</style>
 </head>
+
 <body>
 
 <header>
-  <h2>SNAP KITCHEN</h2>
-  <p>Delivery Partner App</p>
+<h2>SNAP KITCHEN</h2>
+<p>Delivery Partner App</p>
 </header>
 
 <div class="container">
 
-  <div id="loginBox" class="card">
-    <h3>Delivery Boy Login</h3>
-    <input id="email" type="email" placeholder="Email address">
-    <input id="password" type="password" placeholder="Password">
-    <button id="loginBtn">Login</button>
-    <p id="loginMessage"></p>
-  </div>
+<div id="loginBox" class="card">
+<h3>Delivery Boy Login</h3>
+<input id="email" type="email" placeholder="Email address">
+<input id="password" type="password" placeholder="Password">
+<button id="loginBtn">LOGIN</button>
+<p id="loginMessage"></p>
+</div>
 
-  <div id="appBox" class="hidden">
-    <div class="card">
-      <h3>Welcome, Delivery Partner</h3>
-      <p id="userEmail" class="muted"></p>
-      <button id="logoutBtn" class="blue">Logout</button>
-    </div>
+<div id="appBox" class="hidden">
 
-    <h3>My Assigned Orders</h3>
-    <p id="message">Loading orders...</p>
-    <div id="orders"></div>
-  </div>
+<div class="card">
+<h3>Welcome, Delivery Partner</h3>
+<p id="userEmail" class="muted"></p>
+<button id="logoutBtn" class="blue">LOGOUT</button>
+</div>
 
+<h3>My Assigned Orders</h3>
+<p id="message">Loading orders...</p>
+<div id="orders"></div>
+
+</div>
 </div>
 
 <script type="module">
-  import { initializeApp }
-    from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
-  import {
-    getAuth,
-    signInWithEmailAndPassword,
-    onAuthStateChanged,
-    signOut
-  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
-  import {
-    getFirestore,
-    doc,
-    getDoc,
-    collection,
-    query,
-    where,
-    onSnapshot,
-    updateDoc
-  } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+import {
+getAuth,
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-  // admin.html se apna exact Firebase config yahan copy karo
-  const firebaseConfig = {
-  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
-  authDomain: "snap-kitchen-b8a73.firebaseapp.com",
-  projectId: "snap-kitchen-b8a73",
-  storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
-  messagingSenderId: "1060475241392",
-  appId: "1:1060475241392:web:c3751859ecb085830b8c75",
-  measurementId: "G-KRFFRFJY5X"
+import {
+getFirestore,
+doc,
+getDoc,
+collection,
+query,
+where,
+onSnapshot,
+updateDoc
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+// FIREBASE CONFIG
+
+const firebaseConfig = {
+apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+authDomain: "snap-kitchen-b8a73.firebaseapp.com",
+projectId: "snap-kitchen-b8a73",
+storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
+messagingSenderId: "1060475241392",
+appId: "1:1060475241392:web:c3751859ecb085830b8c75",
+measurementId: "G-KRFFRFJY5X"
 };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
 
-  const loginBox = document.getElementById("loginBox");
-  const appBox = document.getElementById("appBox");
-  const loginMessage = document.getElementById("loginMessage");
-  const message = document.getElementById("message");
-  const ordersDiv = document.getElementById("orders");
+// ELEMENTS
 
-  let unsubscribeOrders = null;
+const loginBox = document.getElementById("loginBox");
+const appBox = document.getElementById("appBox");
+const loginMessage = document.getElementById("loginMessage");
+const message = document.getElementById("message");
+const ordersDiv = document.getElementById("orders");
+const loginBtn = document.getElementById("loginBtn");
 
-  document.getElementById("loginBtn").addEventListener("click", async () => {
-    const email = document.getElementById("email").value.trim();
-    const password = document.getElementById("password").value;
+let unsubscribeOrders = null;
+let checkingUser = false;
 
-    if (!email || !password) {
-      loginMessage.textContent = "Email aur password bharo.";
-      return;
-    }
+// LOGIN
 
-    loginMessage.textContent = "Logging in...";
+loginBtn.addEventListener("click", async () => {
 
-    try {
-      await signInWithEmailAndPassword(auth, email, password);
-    } catch (error) {
-      loginMessage.textContent = "Login error: " + error.message;
-    }
-  });
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value;
 
-  document.getElementById("logoutBtn").addEventListener("click", async () => {
-    await signOut(auth);
-  });
+if(!email || !password){
+loginMessage.textContent = "Email aur password bhariye.";
+return;
+}
 
-  onAuthStateChanged(auth, async (user) => {
-    if (unsubscribeOrders) {
-      unsubscribeOrders();
-      unsubscribeOrders = null;
-    }
+loginBtn.disabled = true;
+loginBtn.textContent = "LOGGING IN...";
+loginMessage.textContent = "Login checking...";
 
-    ordersDiv.innerHTML = "";
+try{
 
-    if (!user) {
-      loginBox.classList.remove("hidden");
-      appBox.classList.add("hidden");
-      return;
-    }
+await signInWithEmailAndPassword(auth,email,password);
 
-    try {
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
+}catch(error){
 
-      if (
-        !userSnap.exists() ||
-        userSnap.data().role !== "delivery" ||
-        userSnap.data().active !== true
-      ) {
-        await signOut(auth);
-        loginMessage.textContent = "Delivery account active nahi hai.";
-        return;
-      }
+loginMessage.textContent =
+"Login error: " + error.code + " - " + error.message;
 
-      loginBox.classList.add("hidden");
-      appBox.classList.remove("hidden");
-      document.getElementById("userEmail").textContent = user.email || "";
+}finally{
 
-      const ordersQuery = query(
-        collection(db, "orders"),
-        where("assignedTo", "==", user.uid)
-      );
+loginBtn.disabled = false;
+loginBtn.textContent = "LOGIN";
 
-      unsubscribeOrders = onSnapshot(
-        ordersQuery,
-        (snapshot) => {
-          ordersDiv.innerHTML = "";
+}
 
-          if (snapshot.empty) {
-            message.textContent = "Abhi aapko koi order assign nahi hua hai.";
-            return;
-          }
+});
 
-          message.textContent = snapshot.size + " assigned order(s)";
+// LOGOUT
 
-          snapshot.forEach((orderDoc) => {
-            const order = orderDoc.data();
-            const orderId = orderDoc.id;
+document.getElementById("logoutBtn").addEventListener("click",async()=>{
 
-            const itemText = Array.isArray(order.items)
-              ? order.items.map(item => {
-                  if (typeof item === "string") return item;
-                  return (item.name || item.title || "Item") +
-                    (item.quantity ? " x " + item.quantity : "");
-                }).join(", ")
-              : "Details unavailable";
+try{
+await signOut(auth);
+}catch(error){
+alert("Logout error: "+error.message);
+}
 
-            const card = document.createElement("div");
-            card.className = "card order";
+});
 
-            const heading = document.createElement("h3");
-            heading.textContent = "Order #" + orderId;
+// AUTH STATE
 
-            const details = document.createElement("p");
-            details.textContent =
-              "Customer: " + (order.customerName || "N/A") +
-              "\nPhone: " + (order.phone || "N/A") +
-              "\nAddress: " + (order.address || "N/A") +
-              "\nItems: " + itemText +
-              "\nTotal: ₹" + (order.total ?? "N/A") +
-              "\nStatus: " + (order.status || "New");
-            details.style.whiteSpace = "pre-line";
+onAuthStateChanged(auth,async(user)=>{
 
-            card.append(heading, details);
+if(unsubscribeOrders){
+unsubscribeOrders();
+unsubscribeOrders = null;
+}
 
-            if (order.phone) {
-              const call = document.createElement("a");
-              call.className = "map-btn blue";
-              call.href = "tel:" + String(order.phone).replace(/[^\d+]/g, "");
-              call.textContent = "Call Customer";
-              card.appendChild(call);
-            }
+ordersDiv.innerHTML = "";
 
-            if (order.mapLink) {
-              const map = document.createElement("a");
-              map.className = "map-btn";
-              map.href = order.mapLink;
-              map.target = "_blank";
-              map.rel = "noopener";
-              map.textContent = "Open Google Maps";
-              card.appendChild(map);
-            } else if (order.latitude != null && order.longitude != null) {
-              const map = document.createElement("a");
-              map.className = "map-btn";
-              map.href = "https://www.google.com/maps?q=" +
-                encodeURIComponent(order.latitude + "," + order.longitude);
-              map.target = "_blank";
-              map.rel = "noopener";
-              map.textContent = "Open Google Maps";
-              card.appendChild(map);
-            }
+if(!user){
 
-            if (order.status !== "Delivered") {
-              const nextStatus =
-                order.status === "Out for Delivery"
-                  ? "Delivered"
-                  : "Out for Delivery";
+checkingUser = false;
+loginBox.classList.remove("hidden");
+appBox.classList.add("hidden");
 
-              const updateButton = document.createElement("button");
-              updateButton.className =
-                nextStatus === "Delivered" ? "green" : "";
-              updateButton.textContent =
-                nextStatus === "Delivered"
-                  ? "Mark Delivered"
-                  : "Start Delivery";
+return;
+}
 
-              updateButton.addEventListener("click", async () => {
-                updateButton.disabled = true;
+if(checkingUser) return;
+checkingUser = true;
 
-                try {
-                  await updateDoc(doc(db, "orders", orderId), {
-                    status: nextStatus
-                  });
-                } catch (error) {
-                  alert("Status update nahi hua: " + error.message);
-                  updateButton.disabled = false;
-                }
-              });
+loginBox.classList.remove("hidden");
+appBox.classList.add("hidden");
+loginMessage.textContent = "Checking delivery account...";
 
-              card.appendChild(updateButton);
-            }
+try{
 
-            ordersDiv.appendChild(card);
-          });
-        },
-        (error) => {
-          message.textContent = "Orders load nahi hue: " + error.message;
-        }
-      );
+// CHECK FIRESTORE DOCUMENT
 
-    } catch (error) {
-      message.textContent = "Error: " + error.message;
-    }
-  });
+const userRef = doc(db,"users",user.uid);
+const userSnap = await getDoc(userRef);
+
+if(!userSnap.exists()){
+
+loginMessage.textContent =
+"ERROR: Delivery user document nahi mila. UID: "+user.uid;
+
+checkingUser = false;
+return;
+
+}
+
+const data = userSnap.data();
+
+// CHECK ROLE
+
+if(data.role !== "delivery"){
+
+loginMessage.textContent =
+"ERROR: Role mismatch. Firestore role: "+String(data.role);
+
+checkingUser = false;
+return;
+
+}
+
+// CHECK ACTIVE
+
+if(data.active !== true){
+
+loginMessage.textContent =
+"ERROR: Active Boolean true nahi hai. Current value: "+String(data.active);
+
+checkingUser = false;
+return;
+
+}
+
+// ACCOUNT VERIFIED
+
+loginBox.classList.add("hidden");
+appBox.classList.remove("hidden");
+
+loginMessage.textContent = "";
+document.getElementById("userEmail").textContent =
+user.email || "";
+
+message.textContent = "Loading assigned orders...";
+
+// LOAD ASSIGNED ORDERS
+
+const ordersQuery = query(
+collection(db,"orders"),
+where("assignedTo","==",user.uid)
+);
+
+unsubscribeOrders = onSnapshot(
+ordersQuery,
+
+(snapshot)=>{
+
+ordersDiv.innerHTML = "";
+
+if(snapshot.empty){
+
+message.textContent =
+"Abhi aapko koi order assign nahi hua hai.";
+
+return;
+
+}
+
+message.textContent =
+snapshot.size+" assigned order(s)";
+
+snapshot.forEach((orderDoc)=>{
+
+const order = orderDoc.data();
+const orderId = orderDoc.id;
+
+const itemText = Array.isArray(order.items)
+? order.items.map(item=>{
+
+if(typeof item === "string") return item;
+
+return (item.name || item.title || "Item")+
+" x "+(item.quantity || item.qty || 1);
+
+}).join(", ")
+: "Details unavailable";
+
+const card = document.createElement("div");
+card.className = "card order";
+
+const heading = document.createElement("h3");
+heading.textContent = "Order #"+orderId;
+
+const details = document.createElement("p");
+
+details.textContent =
+"Customer: "+(order.customerName || order.name || "N/A")+
+"\nPhone: "+(order.phone || "N/A")+
+"\nAddress: "+(order.address || "N/A")+
+"\nItems: "+itemText+
+"\nTotal: ₹"+(order.total ?? order.grandTotal ?? "N/A")+
+"\nStatus: "+(order.status || "New");
+
+details.style.whiteSpace = "pre-line";
+
+card.append(heading,details);
+
+// CALL CUSTOMER
+
+if(order.phone){
+
+const call = document.createElement("a");
+
+call.className = "map-btn blue";
+call.href = "tel:"+String(order.phone).replace(/[^\d+]/g,"");
+call.textContent = "CALL CUSTOMER";
+
+card.appendChild(call);
+
+}
+
+// GOOGLE MAPS
+
+const mapLink = order.mapLink ||
+order.googleMapsLink ||
+(order.latitude != null && order.longitude != null
+? "https://www.google.com/maps?q="+
+encodeURIComponent(order.latitude+","+order.longitude)
+: "");
+
+if(mapLink){
+
+const map = document.createElement("a");
+
+map.className = "map-btn";
+map.href = mapLink;
+map.target = "_blank";
+map.rel = "noopener";
+map.textContent = "OPEN GOOGLE MAPS";
+
+card.appendChild(map);
+
+}
+
+// DELIVERY STATUS
+
+if(order.status !== "Delivered"){
+
+const nextStatus =
+order.status === "Out for Delivery"
+? "Delivered"
+: "Out for Delivery";
+
+const updateButton = document.createElement("button");
+
+updateButton.className =
+nextStatus === "Delivered" ? "green" : "";
+
+updateButton.textContent =
+nextStatus === "Delivered"
+? "MARK DELIVERED"
+: "START DELIVERY";
+
+updateButton.addEventListener("click",async()=>{
+
+updateButton.disabled = true;
+
+try{
+
+await updateDoc(
+doc(db,"orders",orderId),
+{status:nextStatus}
+);
+
+}catch(error){
+
+alert("Status update error: "+error.message);
+updateButton.disabled = false;
+
+}
+
+});
+
+card.appendChild(updateButton);
+
+}
+
+ordersDiv.appendChild(card);
+
+});
+
+},
+
+(error)=>{
+
+message.textContent =
+"Orders error: "+error.code+" - "+error.message;
+
+console.error(error);
+
+}
+);
+
+}catch(error){
+
+loginMessage.textContent =
+"FIREBASE ERROR: "+error.code+" - "+error.message;
+
+console.error("Delivery verification error:",error);
+
+}finally{
+
+checkingUser = false;
+
+}
+
+});
+
 </script>
 
 </body>
 </html>
-
