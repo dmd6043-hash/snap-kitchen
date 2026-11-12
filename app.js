@@ -1,4 +1,6 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
 import {
   getFirestore,
   collection,
@@ -9,7 +11,7 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-// FIREBASE
+// FIREBASE CONFIG - ORIGINAL
 const firebaseConfig = {
   apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
   authDomain: "snap-kitchen-b8a73.firebaseapp.com",
@@ -22,9 +24,9 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+
 const DEFAULT_WHATSAPP_NUMBER = "918319014718";
 
-// RESTAURANT AND MENU
 let restaurants = [];
 let selectedRestaurant = null;
 let menu = [];
@@ -33,6 +35,24 @@ let cart = {};
 
 const $ = id => document.getElementById(id);
 
+// SCREEN ERROR
+function showError(message) {
+  const products = $("products");
+  if (products) {
+    products.innerHTML = `
+      <div style="padding:18px;color:#ffb18a;text-align:center;">
+        <h3>ZaikaBox</h3>
+        <p>${message}</p>
+        <button onclick="location.reload()"
+          style="padding:12px 22px;border:0;border-radius:10px;">
+          Retry
+        </button>
+      </div>
+    `;
+  }
+  if ($("empty")) $("empty").hidden = true;
+}
+
 // RESTAURANT PICKER
 function renderRestaurantPicker() {
   let picker = $("restaurantPicker");
@@ -40,31 +60,45 @@ function renderRestaurantPicker() {
   if (!picker) {
     picker = document.createElement("div");
     picker.id = "restaurantPicker";
-    picker.style.cssText = "padding:12px 16px;margin:8px 0;";
-    $("cats").parentNode.insertBefore(picker, $("cats"));
+
+    picker.style.cssText =
+      "padding:12px 16px;margin:12px 0;";
+
+    const cats = $("cats");
+
+    if (!cats || !cats.parentNode) {
+      throw new Error("Category section not found in index.html");
+    }
+
+    cats.parentNode.insertBefore(picker, cats);
   }
 
   picker.innerHTML = `
-    <label for="restaurantSelect" style="display:block;margin-bottom:7px;font-weight:bold;">
+    <label for="restaurantSelect"
+      style="display:block;margin-bottom:8px;font-weight:bold;color:white;">
       Choose restaurant
     </label>
 
     <select id="restaurantSelect"
-      style="width:100%;padding:12px;border-radius:10px;border:1px solid #777;background:#202a20;color:white;font-size:16px;">
+      style="width:100%;padding:14px;border-radius:12px;
+      border:1px solid #8e45d9;background:#241331;
+      color:white;font-size:16px;">
 
       ${restaurants.map(r => `
-        <option value="${r.id}" ${selectedRestaurant?.id === r.id ? "selected" : ""}>
-          ${r.name}
+        <option value="${r.id}">
+          ${r.name || "Restaurant"}
         </option>
       `).join("")}
 
     </select>
   `;
 
+  $("restaurantSelect").value = selectedRestaurant.id;
+
   $("restaurantSelect").addEventListener("change", async e => {
     const next = restaurants.find(r => r.id === e.target.value);
 
-    if (!next || next.id === selectedRestaurant?.id) return;
+    if (!next) return;
 
     selectedRestaurant = next;
     menu = [];
@@ -73,13 +107,14 @@ function renderRestaurantPicker() {
 
     update();
 
-    $("products").innerHTML = "<p>Loading menu...</p>";
+    $("products").innerHTML =
+      "<p>Loading menu...</p>";
 
     await loadSelectedRestaurantMenu();
   });
 }
 
-// LOAD SELECTED RESTAURANT MENU
+// LOAD RESTAURANT MENU
 async function loadSelectedRestaurantMenu() {
   if (!selectedRestaurant) return;
 
@@ -93,56 +128,59 @@ async function loadSelectedRestaurantMenu() {
 
     const snapshot = await getDocs(menuRef);
 
-    menu = snapshot.docs
-      .map(itemDoc => {
-        const data = itemDoc.data();
+    menu = snapshot.docs.map(itemDoc => {
+      const data = itemDoc.data();
 
-        return {
-          id: itemDoc.id,
-          n: data.name || "Unnamed item",
-          c: data.category || "Other",
-          p: Number(data.price || 0),
-          d: data.description || "",
-          e: data.emoji || "🍽️",
-          foodType: data.foodType || "veg",
-          available: data.available === true
-        };
-      })
-      .filter(item => item.available && item.p >= 0);
+      return {
+        id: itemDoc.id,
+        n: data.name || "Unnamed item",
+        c: data.category || "Other",
+        p: Number(data.price || 0),
+        d: data.description || "",
+        e: data.emoji || "🍽️",
+        foodType: data.foodType || "veg",
+        available: data.available === true
+      };
+    }).filter(item => item.available);
 
     render();
     update();
 
+    if (!menu.length) {
+      $("products").innerHTML =
+        "<p>No menu items available in this restaurant.</p>";
+      $("empty").hidden = true;
+    }
+
   } catch (error) {
-    console.error("Menu load error:", error);
+    console.error("MENU ERROR:", error);
 
-    $("products").innerHTML =
-      "<p>Menu load nahi ho paya. Internet aur Firestore Rules check karein.</p>";
-
-    $("empty").hidden = true;
+    showError(
+      "Menu load nahi hua. Error: " + error.message
+    );
   }
 }
 
-// LOAD RESTAURANTS
+// LOAD ACTIVE RESTAURANTS
 async function loadRestaurants() {
   try {
-    const activeRestaurants = query(
+    $("products").innerHTML =
+      "<p>Loading restaurants...</p>";
+
+    const restaurantQuery = query(
       collection(db, "restaurants"),
       where("active", "==", true)
     );
 
-    const snapshot = await getDocs(activeRestaurants);
+    const snapshot = await getDocs(restaurantQuery);
 
-    restaurants = snapshot.docs.map(restaurantDoc => ({
-      id: restaurantDoc.id,
-      ...restaurantDoc.data()
+    restaurants = snapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
     }));
 
-    if (!restaurants.length) {
-      $("products").innerHTML =
-        "<p>Abhi koi restaurant available nahi hai.</p>";
-
-      $("empty").hidden = true;
+    if (restaurants.length === 0) {
+      showError("Abhi koi active restaurant nahi mila.");
       return;
     }
 
@@ -153,12 +191,11 @@ async function loadRestaurants() {
     await loadSelectedRestaurantMenu();
 
   } catch (error) {
-    console.error("Restaurant load error:", error);
+    console.error("RESTAURANT ERROR:", error);
 
-    $("products").innerHTML =
-      "<p>Restaurants load nahi hue. Firestore Rules aur internet check karein.</p>";
-
-    $("empty").hidden = true;
+    showError(
+      "Restaurant load nahi hua. Error: " + error.message
+    );
   }
 }
 
@@ -200,15 +237,19 @@ function render() {
   $("empty").hidden = list.length > 0;
 }
 
-// CART QUANTITY
+// CART COUNT
 function qty() {
-  return Object.values(cart).reduce((a, b) => a + b, 0);
+  return Object.values(cart).reduce(
+    (a, b) => a + b,
+    0
+  );
 }
 
 // CART TOTAL
 function total() {
   return menu.reduce(
-    (s, x) => s + (cart[x.id] || 0) * x.p,
+    (sum, item) =>
+      sum + (cart[item.id] || 0) * item.p,
     0
   );
 }
@@ -256,28 +297,27 @@ function openCart() {
 }
 
 // TOAST
-function toast(t) {
-  $("toast").textContent = t;
+function toast(message) {
+  $("toast").textContent = message;
 
   $("toast").classList.add("show");
 
-  setTimeout(
-    () => $("toast").classList.remove("show"),
-    2500
-  );
+  setTimeout(() => {
+    $("toast").classList.remove("show");
+  }, 2500);
 }
 
 // CATEGORY
 $("cats").addEventListener("click", e => {
-  const b = e.target.closest("[data-cat]");
+  const button = e.target.closest("[data-cat]");
 
-  if (!b) return;
+  if (!button) return;
 
-  category = b.dataset.cat;
+  category = button.dataset.cat;
 
-  document.querySelectorAll("[data-cat]").forEach(x =>
-    x.classList.toggle("active", x === b)
-  );
+  document.querySelectorAll("[data-cat]").forEach(x => {
+    x.classList.toggle("active", x === button);
+  });
 
   render();
 });
@@ -287,11 +327,11 @@ $("search").addEventListener("input", render);
 
 // ADD TO CART
 $("products").addEventListener("click", e => {
-  const b = e.target.closest("[data-add]");
+  const button = e.target.closest("[data-add]");
 
-  if (!b) return;
+  if (!button) return;
 
-  const id = b.dataset.add;
+  const id = button.dataset.add;
 
   cart[id] = (cart[id] || 0) + 1;
 
@@ -316,7 +356,7 @@ $("shade").addEventListener("click", e => {
   }
 });
 
-// CART QUANTITY BUTTONS
+// CART QUANTITY
 $("cartLines").addEventListener("click", e => {
   const plus = e.target.closest("[data-plus]");
   const minus = e.target.closest("[data-minus]");
@@ -343,7 +383,9 @@ $("cartLines").addEventListener("click", e => {
 
 // CHECKOUT
 $("checkout").addEventListener("click", () => {
-  if (!qty()) return toast("Your cart is empty!");
+  if (!qty()) {
+    return toast("Your cart is empty!");
+  }
 
   $("cartLines").innerHTML = `
     <form id="orderForm">
@@ -375,22 +417,20 @@ $("checkout").addEventListener("click", () => {
 
         <button type="button"
           data-order-type="Pickup"
-          style="flex:1;min-height:50px;border:2px solid #c5ff36;
-          border-radius:10px;background:#c5ff36;color:#172017;
+          style="flex:1;min-height:50px;
+          border:2px solid #c5ff36;border-radius:10px;
+          background:#c5ff36;color:#172017;
           font-size:16px;font-weight:bold;">
-
           ✓ Pickup
-
         </button>
 
         <button type="button"
           data-order-type="Home Delivery"
-          style="flex:1;min-height:50px;border:2px solid #65745c;
-          border-radius:10px;background:#202a20;color:white;
+          style="flex:1;min-height:50px;
+          border:2px solid #65745c;border-radius:10px;
+          background:#202a20;color:white;
           font-size:16px;font-weight:bold;">
-
           Home Delivery
-
         </button>
 
       </div>
@@ -399,22 +439,17 @@ $("checkout").addEventListener("click", () => {
 
         <label>Delivery Address</label>
 
-        <button type="button"
-          id="getLocation"
+        <button type="button" id="getLocation"
           style="width:100%;min-height:48px;margin:8px 0;
           border:2px solid #c5ff36;border-radius:10px;
           background:#202a20;color:#c5ff36;
           font-size:15px;font-weight:bold;">
-
           📍 Use Current Location
-
         </button>
 
         <p id="locationStatus"
           style="font-size:13px;color:#777;margin:5px 0 10px;">
-
           Tap to share your current location.
-
         </p>
 
         <textarea name="address"
@@ -422,16 +457,12 @@ $("checkout").addEventListener("click", () => {
 
       </div>
 
-      <p>
-        <b>Payment: Cash on Delivery / Pay at pickup</b>
-      </p>
+      <p><b>Payment: Cash on Delivery / Pay at pickup</b></p>
 
       <button class="btn"
         type="submit"
         id="placeOrder">
-
         Place order →
-
       </button>
 
     </form>
@@ -440,32 +471,24 @@ $("checkout").addEventListener("click", () => {
   $("checkout").hidden = true;
 
   const form = $("orderForm");
-
   const addressBox = $("addressBox");
-
   const addressField = form.elements.address;
-
   const typeField = $("orderType");
-
   const locationButton = $("getLocation");
-
   const locationStatus = $("locationStatus");
 
   let latitude = null;
   let longitude = null;
   let mapLink = "";
 
-  // PICKUP / HOME DELIVERY
+  // PICKUP / DELIVERY
   form.querySelectorAll("[data-order-type]").forEach(button => {
-
     button.addEventListener("click", () => {
-
       const selected = button.dataset.orderType;
 
       typeField.value = selected;
 
       form.querySelectorAll("[data-order-type]").forEach(btn => {
-
         const active = btn === button;
 
         btn.style.background =
@@ -480,15 +503,12 @@ $("checkout").addEventListener("click", () => {
         btn.textContent = active
           ? "✓ " + btn.dataset.orderType
           : btn.dataset.orderType;
-
       });
 
       addressBox.hidden = selected !== "Home Delivery";
 
       if (selected !== "Home Delivery") {
-
         addressField.value = "";
-
         latitude = null;
         longitude = null;
         mapLink = "";
@@ -501,46 +521,32 @@ $("checkout").addEventListener("click", () => {
         locationStatus.textContent =
           "Tap to share your current location.";
       }
-
     });
-
   });
 
-  // GPS + AUTOMATIC ADDRESS
+  // GPS LOCATION
   locationButton.addEventListener("click", () => {
-
     if (!navigator.geolocation) {
-
       locationStatus.textContent =
         "Your browser does not support GPS.";
-
       return;
     }
 
     locationButton.disabled = true;
-
-    locationButton.textContent =
-      "Getting location...";
-
-    locationStatus.textContent =
-      "Please allow location permission.";
+    locationButton.textContent = "Getting location...";
 
     navigator.geolocation.getCurrentPosition(
-
       async position => {
-
         latitude = position.coords.latitude;
-
         longitude = position.coords.longitude;
 
         mapLink =
           `https://www.google.com/maps?q=${latitude},${longitude}`;
 
         locationStatus.textContent =
-          "GPS found! Getting your address...";
+          "GPS found! Getting address...";
 
         try {
-
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`
           );
@@ -552,66 +558,36 @@ $("checkout").addEventListener("click", () => {
           const result = await response.json();
 
           if (result.display_name) {
-
             addressField.value = result.display_name;
 
             locationStatus.textContent =
-              "✓ Address automatically added! You can edit it.";
-
+              "✓ Address added! You can edit it.";
           } else {
-
             locationStatus.textContent =
-              "GPS found, but address not found. Please enter manually.";
-
+              "GPS found. Please enter address manually.";
           }
 
         } catch (error) {
-
-          console.error("Address error:", error);
+          console.error(error);
 
           locationStatus.textContent =
-            "GPS found, but address could not load. Please enter manually.";
-
+            "GPS found, but address could not load. Enter manually.";
         }
 
-        locationButton.textContent =
-          "✓ Location Added";
-
+        locationButton.textContent = "✓ Location Added";
         locationButton.disabled = false;
-
       },
 
       error => {
-
         console.error(error);
 
-        let message =
-          "Could not get location. Please try again.";
+        locationStatus.textContent =
+          error.code === 1
+            ? "Location permission denied. Allow location access."
+            : "Could not get location. Please try again.";
 
-        if (error.code === 1) {
-
-          message =
-            "Location permission denied. Allow location access.";
-
-        } else if (error.code === 2) {
-
-          message =
-            "Location unavailable. Please turn on GPS.";
-
-        } else if (error.code === 3) {
-
-          message =
-            "Location request timed out. Try again.";
-
-        }
-
-        locationStatus.textContent = message;
-
-        locationButton.textContent =
-          "📍 Try Again";
-
+        locationButton.textContent = "📍 Try Again";
         locationButton.disabled = false;
-
       },
 
       {
@@ -619,14 +595,11 @@ $("checkout").addEventListener("click", () => {
         timeout: 15000,
         maximumAge: 0
       }
-
     );
-
   });
 
-  // SAVE ORDER TO FIREBASE
+  // SAVE ORDER
   form.addEventListener("submit", async e => {
-
     e.preventDefault();
 
     const data = new FormData(form);
@@ -648,56 +621,37 @@ $("checkout").addEventListener("click", () => {
       !address &&
       latitude === null
     ) {
-
       toast("Please enter address or use current location.");
-
       return;
     }
 
     const items = menu
       .filter(x => cart[x.id])
       .map(x => ({
-
         name: x.n,
-
         price: x.p,
-
         quantity: cart[x.id],
-
         subtotal: x.p * cart[x.id]
-
       }));
 
     const amount = total();
-
     const button = $("placeOrder");
 
     button.disabled = true;
-
     button.textContent = "Saving order...";
 
     try {
-
       const orderRef = await addDoc(
         collection(db, "orders"),
         {
-
           customerName,
-
           phone,
-
           orderType,
-
           address,
-
           latitude,
-
           longitude,
-
           mapLink,
-
           items,
-
           total: amount,
 
           restaurantId:
@@ -707,17 +661,13 @@ $("checkout").addEventListener("click", () => {
             selectedRestaurant?.name || "Snap Kitchen",
 
           paymentMethod: "Cash",
-
           status: "New",
-
           createdAt: serverTimestamp()
-
         }
       );
 
       const orderId = orderRef.id;
 
-      // WHATSAPP MESSAGE
       const itemText = items.map(x =>
         `${x.name} x ${x.quantity} = Rs.${x.subtotal}`
       ).join("\n");
@@ -733,7 +683,7 @@ Order Type: ${orderType}
 
 ${orderType === "Home Delivery"
   ? `Address: ${address || "Current location shared"}\n${mapLink ? "Google Maps: " + mapLink : ""}`
-  : "Pickup from Snap Kitchen"}
+  : "Pickup"}
 
 ITEMS:
 ${itemText}
@@ -751,30 +701,22 @@ Thank you!`;
         `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
       cart = {};
-
       update();
-
-      toast("Order saved successfully!");
 
       window.location.href = whatsappURL;
 
     } catch (error) {
-
-      console.error("Order error:", error);
+      console.error("ORDER ERROR:", error);
 
       button.disabled = false;
-
       button.textContent = "Try Again";
 
       toast("Order could not be saved. Please try again.");
-
     }
-
   });
-
 });
 
-// INITIALIZE
+// START APP
 update();
 
 $("products").innerHTML =
