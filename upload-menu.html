@@ -1,0 +1,177 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ZaikaBox Menu Upload</title>
+<style>
+body{font-family:Arial;background:#241044;color:white;padding:25px}
+button{background:#a855f7;color:white;border:0;padding:15px 22px;border-radius:12px;font-size:17px}
+#status{margin-top:20px;white-space:pre-wrap}
+</style>
+</head>
+<body>
+<h2>💜 ZaikaBox Menu Upload</h2>
+<p>Snap Kitchen ke menu items Firebase mein upload karein.</p>
+<button id="upload">Upload All Menu Items</button>
+<div id="status">Admin login check ho raha hai...</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import {
+  getFirestore, doc, setDoc
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+import {
+  getAuth, onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+  authDomain: "snap-kitchen-b8a73.firebaseapp.com",
+  projectId: "snap-kitchen-b8a73",
+  storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
+  messagingSenderId: "1060475241392",
+  appId: "1:1060475241392:web:c3751859ecb085830b8c75",
+  measurementId: "G-KRFFRFJY5X"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const items = [
+  {
+    id:"veg-momos",
+    name:"Veg Steam Momos",
+    category:"Momos",
+    description:"Fresh vegetable momos",
+    emoji:"🥟",
+    foodType:"veg",
+    price:30
+  },
+  {
+    id:"paneer-momos",
+    name:"Paneer Momos",
+    category:"Momos",
+    description:"Fresh paneer momos",
+    emoji:"🥟",
+    foodType:"veg",
+    price:50
+  },
+  {
+    id:"veg-chilli-momos",
+    name:"Veg Chilli Momos",
+    category:"Momos",
+    description:"Spicy veg chilli momos",
+    emoji:"🌶️",
+    foodType:"veg",
+    price:60
+  },
+  {
+    id:"soya-chilli",
+    name:"Soya Chilli",
+    category:"Chinese",
+    description:"Spicy crispy soya chilli",
+    emoji:"🌶️",
+    foodType:"veg",
+    price:40
+  },
+  {
+    id:"paneer-chilli",
+    name:"Paneer Chilli",
+    category:"Chinese",
+    description:"Spicy paneer chilli",
+    emoji:"🍛",
+    foodType:"veg",
+    price:60
+  },
+  {
+    id:"soya-kathi",
+    name:"Soya Kathi Roll",
+    category:"Rolls",
+    description:"Soya stuffed kathi roll",
+    emoji:"🌯",
+    foodType:"veg",
+    price:40
+  },
+  {
+    id:"paneer-kathi",
+    name:"Paneer Kathi Roll",
+    category:"Rolls",
+    description:"Paneer stuffed kathi roll",
+    emoji:"🌯",
+    foodType:"veg",
+    price:70
+  },
+  {
+    id:"peri-peri-fries",
+    name:"Peri Peri Fries",
+    category:"Snacks",
+    description:"Crispy peri peri fries",
+    emoji:"🍟",
+    foodType:"veg",
+    price:50
+  },
+  {
+    id:"aloo-tikki",
+    name:"Aloo Tikki",
+    category:"Snacks",
+    description:"Crispy potato tikki",
+    emoji:"🥔",
+    foodType:"veg",
+    price:30
+  }
+];
+
+const button = document.getElementById("upload");
+const status = document.getElementById("status");
+
+let adminLoggedIn = false;
+
+onAuthStateChanged(auth, user => {
+  adminLoggedIn = !!user;
+  status.textContent = user
+    ? "Admin login active. Upload button dabaiye."
+    : "Admin login nahi hai. Pehle admin.html mein login kijiye.";
+  button.disabled = !user;
+});
+
+button.addEventListener("click", async () => {
+  if (!adminLoggedIn) {
+    status.textContent = "Pehle Admin login kijiye.";
+    return;
+  }
+
+  button.disabled = true;
+  status.textContent = "Upload shuru ho raha hai...";
+
+  try {
+    for (const item of items) {
+      const { id, ...data } = item;
+
+      await setDoc(
+        doc(db, "restaurants", "snap-kitchen", "menuItems", id),
+        {
+          ...data,
+          available: true
+        },
+        { merge: true }
+      );
+
+      status.textContent = "Uploaded: " + item.name;
+    }
+
+    status.textContent =
+      "SUCCESS! Saare 9 menu items upload ho gaye. 💜";
+
+  } catch (error) {
+    status.textContent =
+      "ERROR: " + error.code + "\n" + error.message;
+  }
+
+  button.disabled = false;
+});
+</script>
+</body>
+</html>
