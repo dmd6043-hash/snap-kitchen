@@ -11,7 +11,7 @@ import {
   where
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-// FIREBASE CONFIG - ORIGINAL
+// FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
   authDomain: "snap-kitchen-b8a73.firebaseapp.com",
@@ -35,9 +35,10 @@ let cart = {};
 
 const $ = id => document.getElementById(id);
 
-// SCREEN ERROR
+// ERROR DISPLAY
 function showError(message) {
   const products = $("products");
+
   if (products) {
     products.innerHTML = `
       <div style="padding:18px;color:#ffb18a;text-align:center;">
@@ -50,6 +51,7 @@ function showError(message) {
       </div>
     `;
   }
+
   if ($("empty")) $("empty").hidden = true;
 }
 
@@ -60,9 +62,7 @@ function renderRestaurantPicker() {
   if (!picker) {
     picker = document.createElement("div");
     picker.id = "restaurantPicker";
-
-    picker.style.cssText =
-      "padding:12px 16px;margin:12px 0;";
+    picker.style.cssText = "padding:12px 16px;margin:12px 0;";
 
     const cats = $("cats");
 
@@ -107,8 +107,7 @@ function renderRestaurantPicker() {
 
     update();
 
-    $("products").innerHTML =
-      "<p>Loading menu...</p>";
+    $("products").innerHTML = "<p>Loading menu...</p>";
 
     await loadSelectedRestaurantMenu();
   });
@@ -119,6 +118,8 @@ async function loadSelectedRestaurantMenu() {
   if (!selectedRestaurant) return;
 
   try {
+    console.log("Loading menu for:", selectedRestaurant.id);
+
     const menuRef = collection(
       db,
       "restaurants",
@@ -127,6 +128,8 @@ async function loadSelectedRestaurantMenu() {
     );
 
     const snapshot = await getDocs(menuRef);
+
+    console.log("Menu documents found:", snapshot.size);
 
     menu = snapshot.docs.map(itemDoc => {
       const data = itemDoc.data();
@@ -155,17 +158,17 @@ async function loadSelectedRestaurantMenu() {
   } catch (error) {
     console.error("MENU ERROR:", error);
 
-    showError(
-      "Menu load nahi hua. Error: " + error.message
-    );
+    showError("Menu load nahi hua. Error: " + error.message);
   }
 }
 
 // LOAD ACTIVE RESTAURANTS
 async function loadRestaurants() {
   try {
-    $("products").innerHTML =
-      "<p>Loading restaurants...</p>";
+    $("products").innerHTML = "<p>Loading restaurants...</p>";
+
+    console.log("Firebase project:", firebaseConfig.projectId);
+    console.log("Checking active restaurants...");
 
     const restaurantQuery = query(
       collection(db, "restaurants"),
@@ -174,17 +177,39 @@ async function loadRestaurants() {
 
     const snapshot = await getDocs(restaurantQuery);
 
+    console.log("Restaurant documents found:", snapshot.size);
+
+    console.log(
+      "Restaurant IDs:",
+      snapshot.docs.map(doc => doc.id)
+    );
+
+    console.log(
+      "Restaurant data:",
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        name: doc.data().name,
+        active: doc.data().active,
+        city: doc.data().city
+      }))
+    );
+
     restaurants = snapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
     }));
 
     if (restaurants.length === 0) {
-      showError("Abhi koi active restaurant nahi mila.");
+      showError(
+        "Abhi koi active restaurant nahi mila. Firebase project: " +
+        firebaseConfig.projectId
+      );
       return;
     }
 
     selectedRestaurant = restaurants[0];
+
+    console.log("Selected restaurant:", selectedRestaurant);
 
     renderRestaurantPicker();
 
@@ -192,9 +217,13 @@ async function loadRestaurants() {
 
   } catch (error) {
     console.error("RESTAURANT ERROR:", error);
+    console.error("Error code:", error.code);
+    console.error("Error message:", error.message);
 
     showError(
-      "Restaurant load nahi hua. Error: " + error.message
+      "Restaurant load nahi hua. " +
+      "Error code: " + (error.code || "Unknown") +
+      " | " + error.message
     );
   }
 }
@@ -210,27 +239,20 @@ function render() {
 
   $("products").innerHTML = list.map(x => `
     <article class="product">
-
       <div class="art">${x.e}</div>
 
       <div class="details">
-
         <h3>${x.n}</h3>
-
         <p>${x.d}</p>
 
         <div class="row">
-
           <span>₹${x.p}</span>
 
           <button class="add" data-add="${x.id}">
             + ADD
           </button>
-
         </div>
-
       </div>
-
     </article>
   `).join("");
 
@@ -239,17 +261,13 @@ function render() {
 
 // CART COUNT
 function qty() {
-  return Object.values(cart).reduce(
-    (a, b) => a + b,
-    0
-  );
+  return Object.values(cart).reduce((a, b) => a + b, 0);
 }
 
 // CART TOTAL
 function total() {
   return menu.reduce(
-    (sum, item) =>
-      sum + (cart[item.id] || 0) * item.p,
+    (sum, item) => sum + (cart[item.id] || 0) * item.p,
     0
   );
 }
@@ -258,8 +276,7 @@ function total() {
 function update() {
   $("count").textContent = qty();
 
-  $("navCart").innerHTML =
-    `🛒<small>Cart (${qty()})</small>`;
+  $("navCart").innerHTML = `🛒<small>Cart (${qty()})</small>`;
 }
 
 // OPEN CART
@@ -269,37 +286,28 @@ function openCart() {
   $("cartLines").innerHTML = chosen.length
     ? chosen.map(x => `
       <div class="cartline">
-
         <span>
           ${x.n}<br>
           <small>₹${x.p} each</small>
         </span>
 
         <span class="qty">
-
           <button data-minus="${x.id}">−</button>
-
           ${cart[x.id]}
-
           <button data-plus="${x.id}">+</button>
-
         </span>
-
       </div>
     `).join("")
     : "Your cart is empty.";
 
   $("total").textContent = "₹" + total();
-
   $("checkout").hidden = !chosen.length;
-
   $("shade").classList.add("show");
 }
 
 // TOAST
 function toast(message) {
   $("toast").textContent = message;
-
   $("toast").classList.add("show");
 
   setTimeout(() => {
@@ -310,7 +318,6 @@ function toast(message) {
 // CATEGORY
 $("cats").addEventListener("click", e => {
   const button = e.target.closest("[data-cat]");
-
   if (!button) return;
 
   category = button.dataset.cat;
@@ -328,15 +335,12 @@ $("search").addEventListener("input", render);
 // ADD TO CART
 $("products").addEventListener("click", e => {
   const button = e.target.closest("[data-add]");
-
   if (!button) return;
 
   const id = button.dataset.add;
-
   cart[id] = (cart[id] || 0) + 1;
 
   update();
-
   toast("Added to cart!");
 });
 
@@ -369,12 +373,9 @@ $("cartLines").addEventListener("click", e => {
 
   if (minus) {
     const id = minus.dataset.minus;
-
     cart[id]--;
 
-    if (cart[id] <= 0) {
-      delete cart[id];
-    }
+    if (cart[id] <= 0) delete cart[id];
   }
 
   update();
@@ -383,60 +384,39 @@ $("cartLines").addEventListener("click", e => {
 
 // CHECKOUT
 $("checkout").addEventListener("click", () => {
-  if (!qty()) {
-    return toast("Your cart is empty!");
-  }
+  if (!qty()) return toast("Your cart is empty!");
 
   $("cartLines").innerHTML = `
     <form id="orderForm">
-
       <label>Your name</label>
-
-      <input name="customerName"
-        required maxlength="60"
+      <input name="customerName" required maxlength="60"
         placeholder="Enter your name">
 
       <label>Mobile number</label>
-
-      <input name="phone"
-        type="tel"
-        required
-        pattern="[6-9][0-9]{9}"
-        maxlength="10"
-        inputmode="numeric"
-        placeholder="10 digit mobile number">
+      <input name="phone" type="tel" required
+        pattern="[6-9][0-9]{9}" maxlength="10"
+        inputmode="numeric" placeholder="10 digit mobile number">
 
       <label>Choose order type</label>
-
-      <input type="hidden"
-        name="orderType"
-        id="orderType"
-        value="Pickup">
+      <input type="hidden" name="orderType" id="orderType" value="Pickup">
 
       <div style="display:flex;gap:10px;margin:12px 0 18px;">
-
-        <button type="button"
-          data-order-type="Pickup"
-          style="flex:1;min-height:50px;
-          border:2px solid #c5ff36;border-radius:10px;
-          background:#c5ff36;color:#172017;
+        <button type="button" data-order-type="Pickup"
+          style="flex:1;min-height:50px;border:2px solid #c5ff36;
+          border-radius:10px;background:#c5ff36;color:#172017;
           font-size:16px;font-weight:bold;">
           ✓ Pickup
         </button>
 
-        <button type="button"
-          data-order-type="Home Delivery"
-          style="flex:1;min-height:50px;
-          border:2px solid #65745c;border-radius:10px;
-          background:#202a20;color:white;
+        <button type="button" data-order-type="Home Delivery"
+          style="flex:1;min-height:50px;border:2px solid #65745c;
+          border-radius:10px;background:#202a20;color:white;
           font-size:16px;font-weight:bold;">
           Home Delivery
         </button>
-
       </div>
 
       <div id="addressBox" hidden>
-
         <label>Delivery Address</label>
 
         <button type="button" id="getLocation"
@@ -454,17 +434,13 @@ $("checkout").addEventListener("click", () => {
 
         <textarea name="address"
           placeholder="House number, area, landmark"></textarea>
-
       </div>
 
       <p><b>Payment: Cash on Delivery / Pay at pickup</b></p>
 
-      <button class="btn"
-        type="submit"
-        id="placeOrder">
+      <button class="btn" type="submit" id="placeOrder">
         Place order →
       </button>
-
     </form>
   `;
 
@@ -485,20 +461,14 @@ $("checkout").addEventListener("click", () => {
   form.querySelectorAll("[data-order-type]").forEach(button => {
     button.addEventListener("click", () => {
       const selected = button.dataset.orderType;
-
       typeField.value = selected;
 
       form.querySelectorAll("[data-order-type]").forEach(btn => {
         const active = btn === button;
 
-        btn.style.background =
-          active ? "#c5ff36" : "#202a20";
-
-        btn.style.color =
-          active ? "#172017" : "#ffffff";
-
-        btn.style.borderColor =
-          active ? "#c5ff36" : "#65745c";
+        btn.style.background = active ? "#c5ff36" : "#202a20";
+        btn.style.color = active ? "#172017" : "#ffffff";
+        btn.style.borderColor = active ? "#c5ff36" : "#65745c";
 
         btn.textContent = active
           ? "✓ " + btn.dataset.orderType
@@ -513,9 +483,7 @@ $("checkout").addEventListener("click", () => {
         longitude = null;
         mapLink = "";
 
-        locationButton.textContent =
-          "📍 Use Current Location";
-
+        locationButton.textContent = "📍 Use Current Location";
         locationButton.disabled = false;
 
         locationStatus.textContent =
@@ -559,7 +527,6 @@ $("checkout").addEventListener("click", () => {
 
           if (result.display_name) {
             addressField.value = result.display_name;
-
             locationStatus.textContent =
               "✓ Address added! You can edit it.";
           } else {
@@ -604,17 +571,10 @@ $("checkout").addEventListener("click", () => {
 
     const data = new FormData(form);
 
-    const customerName =
-      data.get("customerName").trim();
-
-    const phone =
-      data.get("phone").trim();
-
-    const orderType =
-      data.get("orderType");
-
-    const address =
-      (data.get("address") || "").trim();
+    const customerName = data.get("customerName").trim();
+    const phone = data.get("phone").trim();
+    const orderType = data.get("orderType");
+    const address = (data.get("address") || "").trim();
 
     if (
       orderType === "Home Delivery" &&
@@ -641,30 +601,24 @@ $("checkout").addEventListener("click", () => {
     button.textContent = "Saving order...";
 
     try {
-      const orderRef = await addDoc(
-        collection(db, "orders"),
-        {
-          customerName,
-          phone,
-          orderType,
-          address,
-          latitude,
-          longitude,
-          mapLink,
-          items,
-          total: amount,
+      const orderRef = await addDoc(collection(db, "orders"), {
+        customerName,
+        phone,
+        orderType,
+        address,
+        latitude,
+        longitude,
+        mapLink,
+        items,
+        total: amount,
 
-          restaurantId:
-            selectedRestaurant?.id || "snap-kitchen",
+        restaurantId: selectedRestaurant?.id || "snap-kitchen",
+        restaurantName: selectedRestaurant?.name || "Snap Kitchen",
 
-          restaurantName:
-            selectedRestaurant?.name || "Snap Kitchen",
-
-          paymentMethod: "Cash",
-          status: "New",
-          createdAt: serverTimestamp()
-        }
-      );
+        paymentMethod: "Cash",
+        status: "New",
+        createdAt: serverTimestamp()
+      });
 
       const orderId = orderRef.id;
 
@@ -719,7 +673,6 @@ Thank you!`;
 // START APP
 update();
 
-$("products").innerHTML =
-  "<p>Loading restaurants...</p>";
+$("products").innerHTML = "<p>Loading restaurants...</p>";
 
 loadRestaurants();
