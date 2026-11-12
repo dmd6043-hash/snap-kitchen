@@ -30,13 +30,31 @@ const $ = (id) => document.getElementById(id);
 let restaurants = [];
 let selectedRestaurant = null;
 let menu = [];
+let cart = [];
 let category = "All";
-let cart = {};
 let userLocation = null;
 
+// ------------------------------
 // HELPERS
-function field(data, name, fallback = "") {
-  return data?.[name] ?? fallback;
+// ------------------------------
+
+function showToast(message) {
+  const toast = $("toast");
+  if (!toast) {
+    alert(message);
+    return;
+  }
+
+  toast.textContent = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2500);
+}
+
+function money(value) {
+  return "₹" + Number(value || 0);
 }
 
 function escapeHTML(value) {
@@ -46,207 +64,123 @@ function escapeHTML(value) {
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#039;"
-  })[char]);
+  }[char]));
 }
 
-function toast(message) {
-  const box = $("toast");
-  if (!box) return;
+// ------------------------------
+// RESTAURANTS
+// ------------------------------
 
-  box.textContent = message;
-  box.classList.add("show");
-
-  setTimeout(() => {
-    box.classList.remove("show");
-  }, 2200);
-}
-
-// LOAD ALL ACTIVE RESTAURANTS
 async function loadRestaurants() {
-  const grid = $("restaurantGrid");
-  const status = $("restaurantStatus");
-
-  if (grid) grid.innerHTML = "";
-  if (status) status.textContent = "Restaurants loading...";
+  const grid = $("restaurantGrid") || $("restaurants");
 
   try {
+    if (grid) {
+      grid.innerHTML = "<p>Loading restaurants...</p>";
+    }
+
     const snapshot = await getDocs(collection(db, "restaurants"));
 
     restaurants = snapshot.docs
       .map((item) => ({
-        ...item.data(),
-        id: item.id
+        id: item.id,
+        ...item.data()
       }))
-      .filter((restaurant) => {
-        return field(
-          restaurant,
-          "active",
-          field(restaurant, "Active", false)
-        ) === true;
-      });
+      .filter((item) => item.active === true || item.Active === true);
 
-    renderRestaurantCards();
+    if (!restaurants.length) {
+      if (grid) {
+        grid.innerHTML = `
+          <p>No active restaurant found.</p>
+          <button onclick="location.reload()">Retry</button>
+        `;
+      }
+      return;
+    }
+
+    renderRestaurants();
 
   } catch (error) {
     console.error("Restaurant loading error:", error);
 
-    if (status) {
-      status.textContent = "Restaurants load nahi ho paaye.";
-    }
-
     if (grid) {
       grid.innerHTML = `
-        <button class="restaurant-card" id="retryRestaurants">
-          🔄 Retry
-        </button>
+        <p>Restaurant loading error.</p>
+        <button onclick="location.reload()">Retry</button>
       `;
-
-      $("retryRestaurants")?.addEventListener("click", loadRestaurants);
     }
   }
 }
 
-// SHOW RESTAURANT CARDS
-function renderRestaurantCards() {
-  const grid = $("restaurantGrid");
-  const status = $("restaurantStatus");
-
+function renderRestaurants() {
+  const grid = $("restaurantGrid") || $("restaurants");
   if (!grid) return;
 
   grid.innerHTML = "";
 
-  if (restaurants.length === 0) {
-    if (status) {
-      status.textContent = "Abhi koi active restaurant available nahi hai.";
-    }
-    return;
-  }
-
-  if (status) {
-    status.textContent = `${restaurants.length} restaurants available`;
-  }
-
   restaurants.forEach((restaurant) => {
-    const name = field(restaurant, "name", "Restaurant");
-    const city = String(field(restaurant, "city", "Jagdalpur")).trim();
-    const description = field(
-      restaurant,
-      "description",
-      "Delicious food awaits you"
-    );
-
-    const isPureVeg = field(restaurant, "isPureVeg", false);
-
-    const card = document.createElement("button");
+    const card = document.createElement("div");
     card.className = "restaurant-card";
-    card.type = "button";
-    card.dataset.restaurant = restaurant.id;
 
     card.innerHTML = `
-      <div class="restaurant-icon">🍽️</div>
-
-      <h3>${escapeHTML(name)}</h3>
-
-      <p>${escapeHTML(description)}</p>
-
-      <span>${escapeHTML(city)}</span>
-
-      <div class="restaurant-tag">
-        ${isPureVeg ? "🟢 Pure Veg" : "🍽️ Veg & Non-Veg"}
+      <div class="restaurant-emoji">🍽️</div>
+      <div class="restaurant-info">
+        <h3>${escapeHTML(restaurant.name || "Restaurant")}</h3>
+        <p>${escapeHTML(restaurant.description || "Fresh food and local favourites")}</p>
+        <small>${escapeHTML(restaurant.city || "Jagdalpur")}</small>
+        ${restaurant.isPureVeg ? '<span class="veg-label">PURE VEG</span>' : ""}
       </div>
     `;
+
+    card.addEventListener("click", () => {
+      openRestaurant(restaurant);
+    });
 
     grid.appendChild(card);
   });
 }
 
-// SELECT RESTAURANT
-$("restaurantGrid")?.addEventListener("click", (event) => {
-  const card = event.target.closest("[data-restaurant]");
-  if (!card) return;
+// ------------------------------
+// OPEN RESTAURANT
+// ------------------------------
 
-  const restaurant = restaurants.find(
-    (item) => item.id === card.dataset.restaurant
-  );
-
-  if (!restaurant) return;
-
+async function openRestaurant(restaurant) {
   selectedRestaurant = restaurant;
-
-  // Har restaurant ka alag cart
-  cart = {};
   menu = [];
+  cart = [];
   category = "All";
-  userLocation = null;
 
-  update();
+  const restaurantSection = $("restaurantGrid") || $("restaurants");
+  const menuSection = $("menu");
 
-  if ($("restaurants")) {
-    $("restaurants").hidden = true;
-  }
-
-  if ($("menu")) {
-    $("menu").hidden = false;
-  }
+  if (restaurantSection) restaurantSection.style.display = "none";
+  if (menuSection) menuSection.style.display = "block";
 
   if ($("selectedRestaurantName")) {
-    $("selectedRestaurantName").textContent =
-      restaurant.name || "Restaurant";
+    $("selectedRestaurantName").textContent = restaurant.name;
   }
 
-  if ($("search")) {
-    $("search").value = "";
+  if ($("backRestaurants")) {
+    $("backRestaurants").style.display = "inline-flex";
   }
 
-  document.querySelectorAll("#cats button").forEach((button) => {
-    button.classList.remove("active");
+  renderCart();
 
-    if (
-      (button.dataset.category || button.textContent.trim())
-        .toLowerCase() === "all"
-    ) {
-      button.classList.add("active");
-    }
-  });
+  await loadSelectedRestaurantMenu();
+}
 
-  loadSelectedRestaurantMenu();
+// ------------------------------
+// MENU
+// ------------------------------
 
-  $("menu")?.scrollIntoView({ behavior: "smooth" });
-});
-
-// BACK TO RESTAURANTS
-$("backRestaurants")?.addEventListener("click", () => {
-  if ($("menu")) {
-    $("menu").hidden = true;
-  }
-
-  if ($("restaurants")) {
-    $("restaurants").hidden = false;
-  }
-
-  if ($("search")) {
-    $("search").value = "";
-  }
-
-  $("restaurants")?.scrollIntoView({ behavior: "smooth" });
-});
-
-// LOAD SELECTED RESTAURANT MENU
 async function loadSelectedRestaurantMenu() {
-  if (!selectedRestaurant) return;
-
   const products = $("products");
-  const empty = $("empty");
-
-  if (products) {
-    products.innerHTML = "<p>Loading menu...</p>";
-  }
-
-  if (empty) {
-    empty.hidden = true;
-  }
 
   try {
+    if (products) {
+      products.innerHTML = "<p>Loading menu...</p>";
+    }
+
     const menuRef = collection(
       db,
       "restaurants",
@@ -256,401 +190,383 @@ async function loadSelectedRestaurantMenu() {
 
     const snapshot = await getDocs(menuRef);
 
-    menu = snapshot.docs.map((item) => {
-      const data = item.data();
-
-      return {
+    menu = snapshot.docs
+      .map((item) => ({
         id: item.id,
+        ...item.data()
+      }))
+      .filter((item) => item.available !== false);
 
-        n: field(data, "name", field(data, "Name", "Food Item")),
-
-        c: field(data, "category", field(data, "Category", "Other")),
-
-        p: Number(field(data, "price", field(data, "Price", 0))),
-
-        d: field(data, "description", field(data, "Description", "")),
-
-        e: field(data, "emoji", field(data, "Emoji", "🍽️")),
-
-        foodType: field(
-          data,
-          "foodType",
-          field(data, "FoodType", "Veg")
-        ),
-
-        available: field(
-          data,
-          "available",
-          field(data, "Available", false)
-        )
-      };
-    }).filter((item) => {
-      return item.available === true && Number.isFinite(item.p);
-    });
-
-    render();
-    update();
+    renderCategories();
+    renderMenu();
 
   } catch (error) {
     console.error("Menu loading error:", error);
 
     if (products) {
-      products.innerHTML = `
-        <p>Menu load nahi ho paya. Please dobara try karein.</p>
-        <button id="retryMenu">Retry</button>
-      `;
-
-      $("retryMenu")?.addEventListener(
-        "click",
-        loadSelectedRestaurantMenu
-      );
+      products.innerHTML = "<p>Menu load nahi ho paya. Please retry.</p>";
     }
-
-    toast("Menu loading error");
   }
 }
 
-// RENDER MENU
-function render() {
+function renderCategories() {
+  const cats = $("cats");
+  if (!cats) return;
+
+  const categories = [
+    "All",
+    ...new Set(menu.map((item) => item.category).filter(Boolean))
+  ];
+
+  cats.innerHTML = "";
+
+  categories.forEach((cat) => {
+    const button = document.createElement("button");
+    button.textContent = cat;
+    button.className = category === cat ? "active" : "";
+
+    button.addEventListener("click", () => {
+      category = cat;
+      renderCategories();
+      renderMenu();
+    });
+
+    cats.appendChild(button);
+  });
+}
+
+function renderMenu() {
   const products = $("products");
   const empty = $("empty");
 
   if (!products) return;
 
+  products.innerHTML = "";
+
   const searchText = ($("search")?.value || "").toLowerCase();
 
   const filtered = menu.filter((item) => {
-    const itemCategory = String(item.c || "").toLowerCase();
+    const matchesCategory =
+      category === "All" || item.category === category;
 
-    const categoryMatch =
-      category === "All" ||
-      itemCategory === category.toLowerCase();
+    const matchesSearch =
+      (item.name || "").toLowerCase().includes(searchText);
 
-    const searchMatch =
-      String(item.n).toLowerCase().includes(searchText) ||
-      itemCategory.includes(searchText);
-
-    return categoryMatch && searchMatch;
+    return matchesCategory && matchesSearch;
   });
 
-  products.innerHTML = "";
-
-  if (filtered.length === 0) {
-    if (empty) empty.hidden = false;
-
-    products.innerHTML = "<p>No menu items available.</p>";
+  if (!filtered.length) {
+    if (empty) empty.style.display = "block";
+    else products.innerHTML = "<p>No menu items available.</p>";
     return;
   }
 
-  if (empty) empty.hidden = true;
+  if (empty) empty.style.display = "none";
 
   filtered.forEach((item) => {
-    const quantity = cart[item.id] || 0;
-
     const card = document.createElement("div");
     card.className = "product-card";
 
+    const quantity = getQuantity(item.id);
+
     card.innerHTML = `
-      <div class="product-emoji">
-        ${escapeHTML(item.e)}
-      </div>
-
+      <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
       <div class="product-info">
-        <h3>${escapeHTML(item.n)}</h3>
-        <p>${escapeHTML(item.d)}</p>
-        <strong>₹${item.p}</strong>
+        <h3>${escapeHTML(item.name || "Food Item")}</h3>
+        <p>${escapeHTML(item.description || "")}</p>
+        <strong>${money(item.price)}</strong>
       </div>
-
-      <button class="add-btn" data-add="${escapeHTML(item.id)}">
-        ${quantity > 0 ? quantity + " Added" : "ADD +"}
+      <button class="add-button">
+        ${quantity > 0 ? "Added " + quantity : "ADD +"}
       </button>
     `;
+
+    card.querySelector(".add-button").addEventListener("click", () => {
+      addToCart(item);
+    });
 
     products.appendChild(card);
   });
 }
 
-// CART HELPERS
-function qty() {
-  return Object.values(cart).reduce(
-    (sum, value) => sum + value,
+// ------------------------------
+// CART
+// ------------------------------
+
+function getQuantity(id) {
+  const item = cart.find((product) => product.id === id);
+  return item ? item.quantity : 0;
+}
+
+function addToCart(item) {
+  const existing = cart.find((product) => product.id === item.id);
+
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({
+      id: item.id,
+      name: item.name,
+      price: Number(item.price) || 0,
+      quantity: 1
+    });
+  }
+
+  renderMenu();
+  renderCart();
+  showToast("Item added to cart");
+}
+
+function changeQuantity(id, amount) {
+  const item = cart.find((product) => product.id === id);
+  if (!item) return;
+
+  item.quantity += amount;
+
+  if (item.quantity <= 0) {
+    cart = cart.filter((product) => product.id !== id);
+  }
+
+  renderCart();
+  renderMenu();
+}
+
+function getTotal() {
+  return cart.reduce(
+    (sum, item) => sum + item.price * item.quantity,
     0
   );
 }
 
-function total() {
-  return menu.reduce((sum, item) => {
-    return sum + item.p * (cart[item.id] || 0);
-  }, 0);
-}
-
-function update() {
-  const count = qty();
-
-  if ($("count")) {
-    $("count").textContent = count;
-  }
-
-  if ($("navCart")) {
-    $("navCart").textContent = count;
-  }
-
-  if ($("total")) {
-    $("total").textContent = "₹" + total();
-  }
-
-  renderCart();
-}
-
-// RENDER CART
 function renderCart() {
   const lines = $("cartLines");
+  const count = $("count");
+  const total = $("total");
+
+  const totalQuantity = cart.reduce(
+    (sum, item) => sum + item.quantity,
+    0
+  );
+
+  if (count) count.textContent = totalQuantity;
+  if (total) total.textContent = money(getTotal());
+
   if (!lines) return;
 
   lines.innerHTML = "";
 
-  const selectedItems = menu.filter(
-    (item) => cart[item.id] > 0
-  );
-
-  if (selectedItems.length === 0) {
+  if (!cart.length) {
     lines.innerHTML = "<p>Your cart is empty.</p>";
     return;
   }
 
-  selectedItems.forEach((item) => {
+  cart.forEach((item) => {
     const row = document.createElement("div");
     row.className = "cart-item";
 
     row.innerHTML = `
       <div>
-        <strong>${escapeHTML(item.n)}</strong>
-        <p>₹${item.p} × ${cart[item.id]}</p>
+        <strong>${escapeHTML(item.name)}</strong>
+        <p>${money(item.price)} × ${item.quantity}</p>
       </div>
-
-      <div class="cart-quantity">
-        <button data-minus="${escapeHTML(item.id)}">−</button>
-        <span>${cart[item.id]}</span>
-        <button data-plus="${escapeHTML(item.id)}">+</button>
+      <div class="quantity-controls">
+        <button class="minus">−</button>
+        <span>${item.quantity}</span>
+        <button class="plus">+</button>
       </div>
     `;
+
+    row.querySelector(".minus").addEventListener("click", () => {
+      changeQuantity(item.id, -1);
+    });
+
+    row.querySelector(".plus").addEventListener("click", () => {
+      changeQuantity(item.id, 1);
+    });
 
     lines.appendChild(row);
   });
 }
 
-// ADD TO CART
-$("products")?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-add]");
-  if (!button) return;
+// ------------------------------
+// CART OPEN / CLOSE
+// ------------------------------
 
-  const id = button.dataset.add;
-
-  cart[id] = (cart[id] || 0) + 1;
-
-  update();
-  render();
-
-  toast("Added to cart");
-});
-
-// CART QUANTITY
-$("cartLines")?.addEventListener("click", (event) => {
-  const plus = event.target.closest("[data-plus]");
-  const minus = event.target.closest("[data-minus]");
-
-  if (plus) {
-    const id = plus.dataset.plus;
-    cart[id] = (cart[id] || 0) + 1;
-  }
-
-  if (minus) {
-    const id = minus.dataset.minus;
-    cart[id] = (cart[id] || 0) - 1;
-
-    if (cart[id] <= 0) {
-      delete cart[id];
-    }
-  }
-
-  update();
-  render();
-});
-
-// SEARCH
-$("search")?.addEventListener("input", render);
-
-// CATEGORY FILTER
-$("cats")?.addEventListener("click", (event) => {
-  const button = event.target.closest("button");
-  if (!button) return;
-
-  category = button.dataset.category || button.textContent.trim();
-
-  document.querySelectorAll("#cats button").forEach((item) => {
-    item.classList.remove("active");
-  });
-
-  button.classList.add("active");
-
-  render();
-});
-
-// OPEN / CLOSE CART
 function openCart() {
-  $("shade")?.classList.add("show");
-  $("cart")?.classList.add("show");
+  if (!$("shade")) return;
+
+  $("shade").classList.add("show");
+}
+
+function closeCart() {
+  $("shade")?.classList.remove("show");
+  $("cart")?.classList.remove("show");
 }
 
 $("openCart")?.addEventListener("click", openCart);
-
 $("viewCart")?.addEventListener("click", openCart);
+$("navCart")?.addEventListener("click", openCart);
 
-$("close")?.addEventListener("click", () => {
-  $("shade")?.classList.remove("show");
-  $("cart")?.classList.remove("show");
+$("close")?.addEventListener("click", closeCart);
+
+// IMPORTANT FIX:
+// Cart ke andar click karne par cart band nahi hoga.
+// Sirf dark background par click karne se band hoga.
+
+$("shade")?.addEventListener("click", (event) => {
+  if (event.target !== $("shade")) return;
+  closeCart();
 });
 
-$("shade")?.addEventListener("click", () => {
-  $("shade")?.classList.remove("show");
-  $("cart")?.classList.remove("show");
-});
-
+// ------------------------------
 // CHECKOUT FORM
-$("checkout")?.addEventListener("click", () => {
-  if (!selectedRestaurant) {
-    toast("Please select a restaurant");
-    return;
-  }
+// ------------------------------
 
-  if (qty() === 0) {
-    toast("Your cart is empty");
-    return;
-  }
-
+function createCheckoutForm() {
   if ($("checkoutForm")) {
-    $("checkoutForm").scrollIntoView({ behavior: "smooth" });
+    $("checkoutForm").scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
     return;
   }
+
+  const lines = $("cartLines");
+  if (!lines) return;
 
   const form = document.createElement("div");
   form.id = "checkoutForm";
+  form.className = "checkout-form";
 
   form.innerHTML = `
-    <h3>Order Details</h3>
+    <h3>Delivery Details</h3>
 
+    <label for="customerName">Your Name</label>
     <input
       id="customerName"
       type="text"
-      placeholder="Your name"
-      required
+      placeholder="Enter your name"
+      autocomplete="name"
     >
 
+    <label for="customerPhone">Mobile Number</label>
     <input
       id="customerPhone"
       type="tel"
-      placeholder="Mobile number"
+      inputmode="numeric"
       maxlength="10"
-      required
+      placeholder="10 digit mobile number"
+      autocomplete="tel"
     >
 
+    <label for="orderType">Order Type</label>
     <select id="orderType">
       <option value="Pickup">Pickup</option>
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
-    <textarea
-      id="customerAddress"
-      placeholder="Delivery address"
-    ></textarea>
+    <div id="addressBox" style="display:none;">
+      <label for="customerAddress">Delivery Address</label>
+      <textarea
+        id="customerAddress"
+        placeholder="Enter your full address"
+      ></textarea>
 
-    <button type="button" id="getLocation">
-      📍 Use my current location
-    </button>
-
-    <p id="locationStatus"></p>
+      <button type="button" id="getLocation">
+        📍 Use My Current Location
+      </button>
+    </div>
 
     <button type="button" id="placeOrder">
       Place Order
     </button>
   `;
 
-  $("cartLines")?.appendChild(form);
+  lines.appendChild(form);
 
-  $("getLocation")?.addEventListener(
-    "click",
-    getCurrentLocation
-  );
+  const orderType = $("orderType");
+  const addressBox = $("addressBox");
 
-  $("orderType")?.addEventListener("change", () => {
-    const address = $("customerAddress");
-
-    if (address) {
-      address.required =
-        $("orderType").value === "Home Delivery";
-    }
+  orderType.addEventListener("change", () => {
+    addressBox.style.display =
+      orderType.value === "Home Delivery" ? "block" : "none";
   });
 
-  $("placeOrder")?.addEventListener("click", placeOrder);
+  $("getLocation").addEventListener("click", getCurrentLocation);
 
-  form.scrollIntoView({ behavior: "smooth" });
-});
+  $("placeOrder").addEventListener("click", placeOrder);
 
-// GET GPS LOCATION
-function getCurrentLocation() {
-  const status = $("locationStatus");
+  form.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
 
-  if (!navigator.geolocation) {
-    if (status) {
-      status.textContent = "Location support nahi hai.";
-    }
+$("checkout")?.addEventListener("click", () => {
+  if (!selectedRestaurant) {
+    showToast("Please select a restaurant first");
     return;
   }
 
-  if (status) {
-    status.textContent = "Location mil rahi hai...";
+  if (!cart.length) {
+    showToast("Your cart is empty");
+    return;
   }
+
+  createCheckoutForm();
+});
+
+// ------------------------------
+// GPS LOCATION
+// ------------------------------
+
+async function getCurrentLocation() {
+  if (!navigator.geolocation) {
+    showToast("Location is not supported on this device");
+    return;
+  }
+
+  showToast("Getting your location...");
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+
       userLocation = {
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude
+        latitude,
+        longitude
       };
 
-      const mapLink =
-        `https://www.google.com/maps?q=${userLocation.latitude},${userLocation.longitude}`;
+      const addressField = $("customerAddress");
 
-      if (status) {
-        status.innerHTML =
-          `<a href="${mapLink}" target="_blank" rel="noopener">Location captured</a>`;
+      if (addressField) {
+        addressField.value =
+          `https://www.google.com/maps?q=${latitude},${longitude}`;
       }
 
       try {
-        const response = await fetch(
-          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${userLocation.latitude}&lon=${userLocation.longitude}`
-        );
+        const url =
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
 
+        const response = await fetch(url);
         const data = await response.json();
 
-        if (data.display_name && $("customerAddress")) {
-          $("customerAddress").value = data.display_name;
+        if (data.display_name && addressField) {
+          addressField.value =
+            data.display_name +
+            `\nhttps://www.google.com/maps?q=${latitude},${longitude}`;
         }
-
       } catch (error) {
         console.log("Address lookup unavailable:", error);
       }
-    },
 
+      showToast("Location added");
+    },
     (error) => {
-      console.error(error);
-
-      if (status) {
-        status.textContent =
-          "Location nahi mil paayi. Address manually likhein.";
-      }
+      console.error("GPS error:", error);
+      showToast("Location permission allow kijiye");
     },
-
     {
       enableHighAccuracy: true,
       timeout: 15000
@@ -658,135 +574,144 @@ function getCurrentLocation() {
   );
 }
 
+// ------------------------------
 // PLACE ORDER
-async function placeOrder() {
-  const name = $("customerName")?.value.trim();
-  const phone = $("customerPhone")?.value.trim();
-  const orderType = $("orderType")?.value;
-  const address = $("customerAddress")?.value.trim();
+// ------------------------------
 
-  if (!name || !phone) {
-    toast("Name aur mobile number bhariye");
+async function placeOrder() {
+  const name = $("customerName")?.value.trim() || "";
+  const phone = $("customerPhone")?.value.trim() || "";
+  const orderType = $("orderType")?.value || "Pickup";
+  const address = $("customerAddress")?.value.trim() || "";
+
+  if (!name) {
+    showToast("Please enter your name");
+    $("customerName")?.focus();
     return;
   }
 
   if (!/^[6-9]\d{9}$/.test(phone)) {
-    toast("Valid 10 digit mobile number bhariye");
+    showToast("Please enter a valid 10 digit mobile number");
+    $("customerPhone")?.focus();
     return;
   }
 
   if (orderType === "Home Delivery" && !address) {
-    toast("Delivery address bhariye");
+    showToast("Please enter your delivery address");
+    $("customerAddress")?.focus();
     return;
   }
 
-  if (!selectedRestaurant || qty() === 0) {
-    toast("Cart empty hai ya restaurant select nahi hai");
+  if (!selectedRestaurant || !cart.length) {
+    showToast("Your cart is empty");
     return;
   }
 
-  const orderItems = menu
-    .filter((item) => cart[item.id] > 0)
-    .map((item) => ({
-      id: item.id,
-      name: item.n,
-      price: item.p,
-      quantity: cart[item.id],
-      subtotal: item.p * cart[item.id]
-    }));
+  const placeButton = $("placeOrder");
 
-  const orderTotal = total();
-
-  const mapLink = userLocation
-    ? `https://www.google.com/maps?q=${userLocation.latitude},${userLocation.longitude}`
-    : "";
-
-  const button = $("placeOrder");
-
-  if (button) {
-    button.disabled = true;
-    button.textContent = "Placing Order...";
+  if (placeButton) {
+    placeButton.disabled = true;
+    placeButton.textContent = "Placing Order...";
   }
+
+  const orderItems = cart.map((item) => ({
+    id: item.id,
+    name: item.name,
+    price: item.price,
+    quantity: item.quantity,
+    subtotal: item.price * item.quantity
+  }));
+
+  const orderData = {
+    customerName: name,
+    customerPhone: phone,
+    orderType,
+    address: orderType === "Home Delivery" ? address : "",
+    restaurantId: selectedRestaurant.id,
+    restaurantName: selectedRestaurant.name,
+    items: orderItems,
+    total: getTotal(),
+    status: "New",
+    createdAt: serverTimestamp()
+  };
 
   try {
-    const orderData = {
-      customerName: name,
-      phone: phone,
-      orderType: orderType,
-      address: address,
+    const orderRef = await addDoc(
+      collection(db, "orders"),
+      orderData
+    );
 
-      latitude: userLocation?.latitude ?? null,
-      longitude: userLocation?.longitude ?? null,
-      mapLink: mapLink,
+    let message = `*NEW ZAIKABOX ORDER*%0A`;
+    message += `Order ID: ${orderRef.id}%0A`;
+    message += `Restaurant: ${selectedRestaurant.name}%0A`;
+    message += `Name: ${name}%0A`;
+    message += `Mobile: ${phone}%0A`;
+    message += `Order Type: ${orderType}%0A`;
 
-      items: orderItems,
-      total: orderTotal,
-
-      restaurantId: selectedRestaurant.id,
-      restaurantName: selectedRestaurant.name || "Restaurant",
-
-      paymentMethod: "Cash",
-      status: "New",
-      createdAt: serverTimestamp()
-    };
-
-    await addDoc(collection(db, "orders"), orderData);
-
-    const whatsappNumber =
-      selectedRestaurant.whatsappNumber ||
-      DEFAULT_WHATSAPP_NUMBER;
-
-    let message = `*NEW ORDER - ZAIKABOX*\n\n`;
-
-    message += `Restaurant: ${selectedRestaurant.name}\n`;
-    message += `Customer: ${name}\n`;
-    message += `Phone: ${phone}\n`;
-    message += `Order Type: ${orderType}\n`;
-    message += `Address: ${address || "Pickup"}\n\n`;
-
-    message += `*ORDER ITEMS*\n`;
-
-    orderItems.forEach((item) => {
-      message +=
-        `${item.name} × ${item.quantity} = ₹${item.subtotal}\n`;
-    });
-
-    message += `\n*TOTAL: ₹${orderTotal}*\n`;
-    message += `Payment: Cash`;
-
-    if (mapLink) {
-      message += `\nLocation: ${mapLink}`;
+    if (orderType === "Home Delivery") {
+      message += `Address: ${address}%0A`;
     }
 
-    cart = {};
-    update();
+    message += `%0A*ITEMS*%0A`;
 
-    toast("Order saved successfully!");
+    orderItems.forEach((item) => {
+      message += `${item.name} × ${item.quantity} = ₹${item.subtotal}%0A`;
+    });
 
-    $("checkoutForm")?.remove();
+    message += `%0A*TOTAL: ₹${getTotal()}*`;
 
     const whatsappURL =
-      `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+      `https://wa.me/${DEFAULT_WHATSAPP_NUMBER}?text=${message}`;
 
-    window.open(whatsappURL, "_blank");
+    showToast("Order placed successfully!");
+
+    cart = [];
+    renderCart();
+    closeCart();
+
+    window.location.href = whatsappURL;
 
   } catch (error) {
-    console.error("Order error:", error);
+    console.error("Order placement error:", error);
 
-    toast("Order place nahi hua. Please dobara try karein.");
+    showToast("Order place nahi hua. Please try again.");
 
-    if (button) {
-      button.disabled = false;
-      button.textContent = "Place Order";
+    if (placeButton) {
+      placeButton.disabled = false;
+      placeButton.textContent = "Place Order";
     }
   }
 }
 
+// ------------------------------
+// SEARCH
+// ------------------------------
+
+$("search")?.addEventListener("input", renderMenu);
+
+// ------------------------------
+// BACK TO RESTAURANTS
+// ------------------------------
+
+$("backRestaurants")?.addEventListener("click", () => {
+  selectedRestaurant = null;
+  menu = [];
+  cart = [];
+  category = "All";
+
+  const restaurantSection = $("restaurantGrid") || $("restaurants");
+  const menuSection = $("menu");
+
+  if (menuSection) menuSection.style.display = "none";
+  if (restaurantSection) restaurantSection.style.display = "grid";
+
+  renderCart();
+  renderRestaurants();
+});
+
+// ------------------------------
 // START APP
-update();
+// ------------------------------
 
-if ($("restaurantStatus")) {
-  $("restaurantStatus").textContent = "Restaurants loading...";
-}
-
+renderCart();
 loadRestaurants();
