@@ -35,7 +35,7 @@ let cart = {};
 
 const $ = id => document.getElementById(id);
 
-// FIELD HELPER: CAPITAL / SMALL LETTER SUPPORT
+// FIELD HELPER
 function field(data, lower, upper) {
   return data[lower] !== undefined ? data[lower] : data[upper];
 }
@@ -127,7 +127,7 @@ async function loadSelectedRestaurantMenu() {
 
     const menuRef = collection(
       db,
-      "Restaurant",
+      "restaurants",
       selectedRestaurant.id,
       "menuItems"
     );
@@ -170,7 +170,7 @@ async function loadSelectedRestaurantMenu() {
   }
 }
 
-// LOAD SNAP KITCHEN DIRECTLY
+// LOAD SNAP KITCHEN
 async function loadRestaurants() {
   try {
     $("products").innerHTML = "<p>Loading restaurant...</p>";
@@ -179,7 +179,7 @@ async function loadRestaurants() {
 
     const restaurantRef = doc(
       db,
-      "Restaurant",
+      "restaurants",
       "snap-kitchen"
     );
 
@@ -188,7 +188,7 @@ async function loadRestaurants() {
     console.log("Document exists:", restaurantSnapshot.exists());
 
     if (!restaurantSnapshot.exists()) {
-      showError("Restaurant/snap-kitchen document Firebase mein nahi mila.");
+      showError("restaurants/snap-kitchen document Firebase mein nahi mila.");
       return;
     }
 
@@ -199,7 +199,7 @@ async function loadRestaurants() {
     const active = field(data, "active", "Active");
 
     if (active !== true) {
-      showError("Restaurant mila, lekin Active field Boolean true nahi hai.");
+      showError("Restaurant mila, lekin active field Boolean true nahi hai.");
       return;
     }
 
@@ -213,7 +213,6 @@ async function loadRestaurants() {
       ...data
     }];
 
-    // Ensure normalized name remains available
     restaurants[0].name =
       field(data, "name", "Name") || "Snap Kitchen";
 
