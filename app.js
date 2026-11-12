@@ -4,7 +4,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebas
 import {
   getFirestore,
   collection,
-  doc,
   getDocs,
   addDoc,
   serverTimestamp
@@ -35,8 +34,9 @@ let category = "All";
 let cart = {};
 let userLocation = null;
 
+// HELPERS
 function field(data, name, fallback = "") {
-  return data[name] ?? fallback;
+  return data?.[name] ?? fallback;
 }
 
 function escapeHTML(value) {
@@ -47,15 +47,6 @@ function escapeHTML(value) {
     '"': "&quot;",
     "'": "&#039;"
   })[char]);
-}
-
-function showError(message) {
-  if ($("restaurantStatus")) {
-    $("restaurantStatus").textContent = message;
-  }
-  if ($("products")) {
-    $("products").innerHTML = `<p>${escapeHTML(message)}</p>`;
-  }
 }
 
 function toast(message) {
@@ -83,22 +74,33 @@ async function loadRestaurants() {
 
     restaurants = snapshot.docs
       .map((item) => ({
-        id: item.id,
-        ...item.data()
+        ...item.data(),
+        id: item.id
       }))
-      .filter((restaurant) =>
-        field(restaurant, "active", field(restaurant, "Active", false)) === true
-      );
+      .filter((restaurant) => {
+        return field(
+          restaurant,
+          "active",
+          field(restaurant, "Active", false)
+        ) === true;
+      });
 
     renderRestaurantCards();
 
   } catch (error) {
     console.error("Restaurant loading error:", error);
+
     if (status) {
-      status.textContent = "Restaurants load nahi ho paaye. Please Retry karein.";
+      status.textContent = "Restaurants load nahi ho paaye.";
     }
+
     if (grid) {
-      grid.innerHTML = `<button id="retryRestaurants">Retry</button>`;
+      grid.innerHTML = `
+        <button class="restaurant-card" id="retryRestaurants">
+          🔄 Retry
+        </button>
+      `;
+
       $("retryRestaurants")?.addEventListener("click", loadRestaurants);
     }
   }
@@ -114,16 +116,25 @@ function renderRestaurantCards() {
   grid.innerHTML = "";
 
   if (restaurants.length === 0) {
-    if (status) status.textContent = "Abhi koi active restaurant available nahi hai.";
+    if (status) {
+      status.textContent = "Abhi koi active restaurant available nahi hai.";
+    }
     return;
   }
 
-  if (status) status.textContent = `${restaurants.length} restaurants available`;
+  if (status) {
+    status.textContent = `${restaurants.length} restaurants available`;
+  }
 
   restaurants.forEach((restaurant) => {
     const name = field(restaurant, "name", "Restaurant");
-    const city = field(restaurant, "city", "Jagdalpur");
-    const description = field(restaurant, "description", "Delicious food awaits you");
+    const city = String(field(restaurant, "city", "Jagdalpur")).trim();
+    const description = field(
+      restaurant,
+      "description",
+      "Delicious food awaits you"
+    );
+
     const isPureVeg = field(restaurant, "isPureVeg", false);
 
     const card = document.createElement("button");
@@ -133,9 +144,13 @@ function renderRestaurantCards() {
 
     card.innerHTML = `
       <div class="restaurant-icon">🍽️</div>
+
       <h3>${escapeHTML(name)}</h3>
+
       <p>${escapeHTML(description)}</p>
+
       <span>${escapeHTML(city)}</span>
+
       <div class="restaurant-tag">
         ${isPureVeg ? "🟢 Pure Veg" : "🍽️ Veg & Non-Veg"}
       </div>
@@ -157,25 +172,39 @@ $("restaurantGrid")?.addEventListener("click", (event) => {
   if (!restaurant) return;
 
   selectedRestaurant = restaurant;
+
+  // Har restaurant ka alag cart
+  cart = {};
   menu = [];
   category = "All";
-  cart = {};
   userLocation = null;
 
   update();
 
-  if ($("restaurants")) $("restaurants").hidden = true;
-  if ($("menu")) $("menu").hidden = false;
-
-  if ($("selectedRestaurantName")) {
-    $("selectedRestaurantName").textContent = restaurant.name || "Restaurant";
+  if ($("restaurants")) {
+    $("restaurants").hidden = true;
   }
 
-  if ($("search")) $("search").value = "";
+  if ($("menu")) {
+    $("menu").hidden = false;
+  }
+
+  if ($("selectedRestaurantName")) {
+    $("selectedRestaurantName").textContent =
+      restaurant.name || "Restaurant";
+  }
+
+  if ($("search")) {
+    $("search").value = "";
+  }
 
   document.querySelectorAll("#cats button").forEach((button) => {
     button.classList.remove("active");
-    if (button.textContent.trim().toLowerCase() === "all") {
+
+    if (
+      (button.dataset.category || button.textContent.trim())
+        .toLowerCase() === "all"
+    ) {
       button.classList.add("active");
     }
   });
@@ -187,10 +216,17 @@ $("restaurantGrid")?.addEventListener("click", (event) => {
 
 // BACK TO RESTAURANTS
 $("backRestaurants")?.addEventListener("click", () => {
-  if ($("menu")) $("menu").hidden = true;
-  if ($("restaurants")) $("restaurants").hidden = false;
+  if ($("menu")) {
+    $("menu").hidden = true;
+  }
 
-  if ($("search")) $("search").value = "";
+  if ($("restaurants")) {
+    $("restaurants").hidden = false;
+  }
+
+  if ($("search")) {
+    $("search").value = "";
+  }
 
   $("restaurants")?.scrollIntoView({ behavior: "smooth" });
 });
@@ -202,8 +238,13 @@ async function loadSelectedRestaurantMenu() {
   const products = $("products");
   const empty = $("empty");
 
-  if (products) products.innerHTML = "<p>Loading menu...</p>";
-  if (empty) empty.hidden = true;
+  if (products) {
+    products.innerHTML = "<p>Loading menu...</p>";
+  }
+
+  if (empty) {
+    empty.hidden = true;
+  }
 
   try {
     const menuRef = collection(
@@ -220,24 +261,51 @@ async function loadSelectedRestaurantMenu() {
 
       return {
         id: item.id,
+
         n: field(data, "name", field(data, "Name", "Food Item")),
+
         c: field(data, "category", field(data, "Category", "Other")),
+
         p: Number(field(data, "price", field(data, "Price", 0))),
+
         d: field(data, "description", field(data, "Description", "")),
+
         e: field(data, "emoji", field(data, "Emoji", "🍽️")),
-        foodType: field(data, "foodType", field(data, "FoodType", "Veg")),
-        available: field(data, "available", field(data, "Available", false))
+
+        foodType: field(
+          data,
+          "foodType",
+          field(data, "FoodType", "Veg")
+        ),
+
+        available: field(
+          data,
+          "available",
+          field(data, "Available", false)
+        )
       };
-    }).filter((item) => item.available === true);
+    }).filter((item) => {
+      return item.available === true && Number.isFinite(item.p);
+    });
 
     render();
     update();
 
   } catch (error) {
     console.error("Menu loading error:", error);
+
     if (products) {
-      products.innerHTML = "<p>Menu load nahi ho paya. Please Retry karein.</p>";
+      products.innerHTML = `
+        <p>Menu load nahi ho paya. Please dobara try karein.</p>
+        <button id="retryMenu">Retry</button>
+      `;
+
+      $("retryMenu")?.addEventListener(
+        "click",
+        loadSelectedRestaurantMenu
+      );
     }
+
     toast("Menu loading error");
   }
 }
@@ -252,12 +320,15 @@ function render() {
   const searchText = ($("search")?.value || "").toLowerCase();
 
   const filtered = menu.filter((item) => {
+    const itemCategory = String(item.c || "").toLowerCase();
+
     const categoryMatch =
-      category === "All" || item.c.toLowerCase() === category.toLowerCase();
+      category === "All" ||
+      itemCategory === category.toLowerCase();
 
     const searchMatch =
-      item.n.toLowerCase().includes(searchText) ||
-      item.c.toLowerCase().includes(searchText);
+      String(item.n).toLowerCase().includes(searchText) ||
+      itemCategory.includes(searchText);
 
     return categoryMatch && searchMatch;
   });
@@ -266,6 +337,7 @@ function render() {
 
   if (filtered.length === 0) {
     if (empty) empty.hidden = false;
+
     products.innerHTML = "<p>No menu items available.</p>";
     return;
   }
@@ -279,12 +351,16 @@ function render() {
     card.className = "product-card";
 
     card.innerHTML = `
-      <div class="product-emoji">${escapeHTML(item.e)}</div>
+      <div class="product-emoji">
+        ${escapeHTML(item.e)}
+      </div>
+
       <div class="product-info">
         <h3>${escapeHTML(item.n)}</h3>
         <p>${escapeHTML(item.d)}</p>
         <strong>₹${item.p}</strong>
       </div>
+
       <button class="add-btn" data-add="${escapeHTML(item.id)}">
         ${quantity > 0 ? quantity + " Added" : "ADD +"}
       </button>
@@ -296,7 +372,10 @@ function render() {
 
 // CART HELPERS
 function qty() {
-  return Object.values(cart).reduce((sum, value) => sum + value, 0);
+  return Object.values(cart).reduce(
+    (sum, value) => sum + value,
+    0
+  );
 }
 
 function total() {
@@ -308,20 +387,31 @@ function total() {
 function update() {
   const count = qty();
 
-  if ($("count")) $("count").textContent = count;
-  if ($("navCart")) $("navCart").textContent = count;
-  if ($("total")) $("total").textContent = "₹" + total();
+  if ($("count")) {
+    $("count").textContent = count;
+  }
+
+  if ($("navCart")) {
+    $("navCart").textContent = count;
+  }
+
+  if ($("total")) {
+    $("total").textContent = "₹" + total();
+  }
 
   renderCart();
 }
 
+// RENDER CART
 function renderCart() {
   const lines = $("cartLines");
   if (!lines) return;
 
   lines.innerHTML = "";
 
-  const selectedItems = menu.filter((item) => cart[item.id] > 0);
+  const selectedItems = menu.filter(
+    (item) => cart[item.id] > 0
+  );
 
   if (selectedItems.length === 0) {
     lines.innerHTML = "<p>Your cart is empty.</p>";
@@ -337,6 +427,7 @@ function renderCart() {
         <strong>${escapeHTML(item.n)}</strong>
         <p>₹${item.p} × ${cart[item.id]}</p>
       </div>
+
       <div class="cart-quantity">
         <button data-minus="${escapeHTML(item.id)}">−</button>
         <span>${cart[item.id]}</span>
@@ -354,10 +445,12 @@ $("products")?.addEventListener("click", (event) => {
   if (!button) return;
 
   const id = button.dataset.add;
+
   cart[id] = (cart[id] || 0) + 1;
 
   update();
   render();
+
   toast("Added to cart");
 });
 
@@ -375,7 +468,9 @@ $("cartLines")?.addEventListener("click", (event) => {
     const id = minus.dataset.minus;
     cart[id] = (cart[id] || 0) - 1;
 
-    if (cart[id] <= 0) delete cart[id];
+    if (cart[id] <= 0) {
+      delete cart[id];
+    }
   }
 
   update();
@@ -397,6 +492,7 @@ $("cats")?.addEventListener("click", (event) => {
   });
 
   button.classList.add("active");
+
   render();
 });
 
@@ -407,11 +503,14 @@ function openCart() {
 }
 
 $("openCart")?.addEventListener("click", openCart);
+
 $("viewCart")?.addEventListener("click", openCart);
+
 $("close")?.addEventListener("click", () => {
   $("shade")?.classList.remove("show");
   $("cart")?.classList.remove("show");
 });
+
 $("shade")?.addEventListener("click", () => {
   $("shade")?.classList.remove("show");
   $("cart")?.classList.remove("show");
@@ -440,33 +539,60 @@ $("checkout")?.addEventListener("click", () => {
   form.innerHTML = `
     <h3>Order Details</h3>
 
-    <input id="customerName" type="text" placeholder="Your name" required>
-    <input id="customerPhone" type="tel" placeholder="Mobile number" maxlength="10" required>
+    <input
+      id="customerName"
+      type="text"
+      placeholder="Your name"
+      required
+    >
+
+    <input
+      id="customerPhone"
+      type="tel"
+      placeholder="Mobile number"
+      maxlength="10"
+      required
+    >
 
     <select id="orderType">
       <option value="Pickup">Pickup</option>
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
-    <textarea id="customerAddress" placeholder="Delivery address"></textarea>
+    <textarea
+      id="customerAddress"
+      placeholder="Delivery address"
+    ></textarea>
 
-    <button type="button" id="getLocation">📍 Use my current location</button>
+    <button type="button" id="getLocation">
+      📍 Use my current location
+    </button>
+
     <p id="locationStatus"></p>
 
-    <button type="button" id="placeOrder">Place Order</button>
+    <button type="button" id="placeOrder">
+      Place Order
+    </button>
   `;
 
   $("cartLines")?.appendChild(form);
 
-  $("getLocation")?.addEventListener("click", getCurrentLocation);
+  $("getLocation")?.addEventListener(
+    "click",
+    getCurrentLocation
+  );
+
   $("orderType")?.addEventListener("change", () => {
     const address = $("customerAddress");
+
     if (address) {
-      address.required = $("orderType").value === "Home Delivery";
+      address.required =
+        $("orderType").value === "Home Delivery";
     }
   });
 
   $("placeOrder")?.addEventListener("click", placeOrder);
+
   form.scrollIntoView({ behavior: "smooth" });
 });
 
@@ -475,11 +601,15 @@ function getCurrentLocation() {
   const status = $("locationStatus");
 
   if (!navigator.geolocation) {
-    if (status) status.textContent = "Location support nahi hai.";
+    if (status) {
+      status.textContent = "Location support nahi hai.";
+    }
     return;
   }
 
-  if (status) status.textContent = "Location mil rahi hai...";
+  if (status) {
+    status.textContent = "Location mil rahi hai...";
+  }
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
@@ -492,7 +622,8 @@ function getCurrentLocation() {
         `https://www.google.com/maps?q=${userLocation.latitude},${userLocation.longitude}`;
 
       if (status) {
-        status.innerHTML = `<a href="${mapLink}" target="_blank">Location captured</a>`;
+        status.innerHTML =
+          `<a href="${mapLink}" target="_blank" rel="noopener">Location captured</a>`;
       }
 
       try {
@@ -505,15 +636,25 @@ function getCurrentLocation() {
         if (data.display_name && $("customerAddress")) {
           $("customerAddress").value = data.display_name;
         }
+
       } catch (error) {
         console.log("Address lookup unavailable:", error);
       }
     },
+
     (error) => {
       console.error(error);
-      if (status) status.textContent = "Location nahi mil paayi. Address manually likhein.";
+
+      if (status) {
+        status.textContent =
+          "Location nahi mil paayi. Address manually likhein.";
+      }
     },
-    { enableHighAccuracy: true, timeout: 15000 }
+
+    {
+      enableHighAccuracy: true,
+      timeout: 15000
+    }
   );
 }
 
@@ -561,6 +702,7 @@ async function placeOrder() {
     : "";
 
   const button = $("placeOrder");
+
   if (button) {
     button.disabled = true;
     button.textContent = "Placing Order...";
@@ -572,13 +714,17 @@ async function placeOrder() {
       phone: phone,
       orderType: orderType,
       address: address,
+
       latitude: userLocation?.latitude ?? null,
       longitude: userLocation?.longitude ?? null,
       mapLink: mapLink,
+
       items: orderItems,
       total: orderTotal,
+
       restaurantId: selectedRestaurant.id,
       restaurantName: selectedRestaurant.name || "Restaurant",
+
       paymentMethod: "Cash",
       status: "New",
       createdAt: serverTimestamp()
@@ -587,18 +733,22 @@ async function placeOrder() {
     await addDoc(collection(db, "orders"), orderData);
 
     const whatsappNumber =
-      selectedRestaurant.whatsappNumber || DEFAULT_WHATSAPP_NUMBER;
+      selectedRestaurant.whatsappNumber ||
+      DEFAULT_WHATSAPP_NUMBER;
 
     let message = `*NEW ORDER - ZAIKABOX*\n\n`;
+
     message += `Restaurant: ${selectedRestaurant.name}\n`;
     message += `Customer: ${name}\n`;
     message += `Phone: ${phone}\n`;
     message += `Order Type: ${orderType}\n`;
     message += `Address: ${address || "Pickup"}\n\n`;
+
     message += `*ORDER ITEMS*\n`;
 
     orderItems.forEach((item) => {
-      message += `${item.name} × ${item.quantity} = ₹${item.subtotal}\n`;
+      message +=
+        `${item.name} × ${item.quantity} = ₹${item.subtotal}\n`;
     });
 
     message += `\n*TOTAL: ₹${orderTotal}*\n`;
@@ -622,6 +772,7 @@ async function placeOrder() {
 
   } catch (error) {
     console.error("Order error:", error);
+
     toast("Order place nahi hua. Please dobara try karein.");
 
     if (button) {
@@ -633,4 +784,9 @@ async function placeOrder() {
 
 // START APP
 update();
+
+if ($("restaurantStatus")) {
+  $("restaurantStatus").textContent = "Restaurants loading...";
+}
+
 loadRestaurants();
