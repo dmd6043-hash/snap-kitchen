@@ -6,6 +6,7 @@ import {
   collection,
   doc,
   getDoc,
+  getDocs,
   addDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
@@ -33,6 +34,11 @@ let category = "All";
 let cart = {};
 
 const $ = id => document.getElementById(id);
+
+// FIELD HELPER: CAPITAL / SMALL LETTER SUPPORT
+function field(data, lower, upper) {
+  return data[lower] !== undefined ? data[lower] : data[upper];
+}
 
 // ERROR DISPLAY
 function showError(message) {
@@ -121,7 +127,7 @@ async function loadSelectedRestaurantMenu() {
 
     const menuRef = collection(
       db,
-      "restaurants",
+      "Restaurant",
       selectedRestaurant.id,
       "menuItems"
     );
@@ -135,13 +141,13 @@ async function loadSelectedRestaurantMenu() {
 
       return {
         id: itemDoc.id,
-        n: data.name || "Unnamed item",
-        c: data.category || "Other",
-        p: Number(data.price || 0),
-        d: data.description || "",
-        e: data.emoji || "🍽️",
-        foodType: data.foodType || "veg",
-        available: data.available === true
+        n: field(data, "name", "Name") || "Unnamed item",
+        c: field(data, "category", "Category") || "Other",
+        p: Number(field(data, "price", "Price") || 0),
+        d: field(data, "description", "Description") || "",
+        e: field(data, "emoji", "Emoji") || "🍽️",
+        foodType: field(data, "foodType", "FoodType") || "veg",
+        available: field(data, "available", "Available") === true
       };
     }).filter(item => item.available);
 
@@ -173,7 +179,7 @@ async function loadRestaurants() {
 
     const restaurantRef = doc(
       db,
-      "restaurants",
+      "Restaurant",
       "snap-kitchen"
     );
 
@@ -182,7 +188,7 @@ async function loadRestaurants() {
     console.log("Document exists:", restaurantSnapshot.exists());
 
     if (!restaurantSnapshot.exists()) {
-      showError("snap-kitchen document Firebase mein nahi mila.");
+      showError("Restaurant/snap-kitchen document Firebase mein nahi mila.");
       return;
     }
 
@@ -190,17 +196,26 @@ async function loadRestaurants() {
 
     console.log("Restaurant data:", data);
 
-    if (data.active !== true) {
-      showError(
-        "Restaurant mila, lekin active field Boolean true nahi hai."
-      );
+    const active = field(data, "active", "Active");
+
+    if (active !== true) {
+      showError("Restaurant mila, lekin Active field Boolean true nahi hai.");
       return;
     }
 
     restaurants = [{
       id: restaurantSnapshot.id,
+      name: field(data, "name", "Name") || "Snap Kitchen",
+      city: field(data, "city", "City") || "Jagdalpur",
+      description: field(data, "description", "Description") || "",
+      isPureVeg: field(data, "isPureVeg", "IsPureVeg") === true,
+      whatsappNumber: data.whatsappNumber || data.WhatsappNumber || "",
       ...data
     }];
+
+    // Ensure normalized name remains available
+    restaurants[0].name =
+      field(data, "name", "Name") || "Snap Kitchen";
 
     selectedRestaurant = restaurants[0];
 
@@ -313,7 +328,6 @@ function openCart() {
 // TOAST
 function toast(message) {
   $("toast").textContent = message;
-
   $("toast").classList.add("show");
 
   setTimeout(() => {
@@ -356,7 +370,9 @@ $("products").addEventListener("click", e => {
 
 // CART BUTTONS
 ["openCart", "navCart", "viewCart"].forEach(id => {
-  $(id).addEventListener("click", openCart);
+  if ($(id)) {
+    $(id).addEventListener("click", openCart);
+  }
 });
 
 // CLOSE CART
@@ -527,9 +543,7 @@ $("checkout").addEventListener("click", () => {
         longitude = null;
         mapLink = "";
 
-        locationButton.textContent =
-          "📍 Use Current Location";
-
+        locationButton.textContent = "📍 Use Current Location";
         locationButton.disabled = false;
 
         locationStatus.textContent =
