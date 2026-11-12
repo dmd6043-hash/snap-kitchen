@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <meta name="theme-color" content="#180d2e">
 <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box!">
 <title>ZaikaBox | Food Delivery</title>
@@ -21,7 +21,15 @@
 *{box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{margin:0;background:var(--bg);color:white;font-family:'DM Sans',sans-serif;padding-bottom:85px}
-button,input,textarea{font:inherit}button{cursor:pointer}
+button,input,textarea,select{font:inherit}
+button{
+cursor:pointer;
+touch-action:manipulation;
+-webkit-tap-highlight-color:transparent;
+-webkit-user-select:none;
+user-select:none;
+}
+button:active{opacity:.85}
 header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;padding:14px 5%;background:#10091ef2;backdrop-filter:blur(15px);border-bottom:1px solid #ffffff12}
 .brand{display:flex;align-items:center;gap:10px;color:white;text-decoration:none}
 .logo{width:43px;height:43px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#a75bff,#6e35d9);font-family:Outfit;font-size:20px}
@@ -84,10 +92,75 @@ nav a,nav button{color:#d9c8ed;background:none;border:0;text-decoration:none;tex
 nav small{display:block;font-size:10px;margin-top:4px}
 .shade{display:none;position:fixed;inset:0;z-index:50;background:#000a;align-items:flex-end;justify-content:center}
 .shade.show{display:flex}
-.sheet{width:min(550px,100%);max-height:85vh;overflow:auto;padding:25px;background:#211432;border-radius:24px 24px 0 0}
+.sheet{width:min(550px,100%);max-height:85vh;overflow-y:auto;padding:25px;background:#211432;border-radius:24px 24px 0 0;overscroll-behavior:contain}
 .close{float:right;background:#ffffff15;color:white;border:0;padding:10px;border-radius:10px}
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#6e35d9;color:white;padding:12px 18px;border-radius:12px;z-index:100;display:none}
 #toast.show{display:block}
+
+/* CHECKOUT FORM */
+#checkoutForm{
+display:block;
+width:100%;
+margin-top:22px;
+padding:16px;
+background:#2a1a40;
+border:1px solid #ffffff20;
+border-radius:16px;
+scroll-margin-top:20px;
+}
+#checkoutForm h3{margin-top:0}
+#checkoutForm label{
+display:block;
+margin:14px 0 7px;
+color:#e8d9fa;
+font-size:14px;
+font-weight:700;
+}
+#checkoutForm input,
+#checkoutForm textarea,
+#checkoutForm select{
+display:block;
+width:100%;
+min-height:48px;
+padding:13px;
+border:1px solid #ffffff35;
+border-radius:11px;
+background:#180d2e;
+color:white;
+outline:none;
+font-size:16px;
+-webkit-appearance:none;
+appearance:none;
+}
+#checkoutForm textarea{
+min-height:90px;
+resize:vertical;
+}
+#checkoutForm input:focus,
+#checkoutForm textarea:focus,
+#checkoutForm select:focus{
+border-color:#b98aff;
+box-shadow:0 0 0 2px #9b5cff30;
+}
+#checkoutForm button{
+display:block;
+width:100%;
+min-height:50px;
+margin-top:14px;
+padding:13px 16px;
+border:0;
+border-radius:12px;
+background:linear-gradient(100deg,#c99aff,#9b5cff);
+color:#210d36;
+font-weight:800;
+font-size:16px;
+touch-action:manipulation;
+-webkit-tap-highlight-color:transparent;
+}
+#checkoutForm button:disabled{
+opacity:.6;
+cursor:wait;
+}
 #orderForm label{display:block;margin:12px 0 5px}
 #orderForm input,#orderForm textarea{width:100%;padding:12px;border:1px solid #ffffff30;border-radius:10px;background:#180d2e;color:white}
 @media(min-width:700px){.products{grid-template-columns:repeat(3,minmax(0,1fr))}.restaurant-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
@@ -189,11 +262,11 @@ nav small{display:block;font-size:10px;margin-top:4px}
 <div id="cartLines">Your cart is empty.</div>
 <h3>Total: <b id="total">₹0</b></h3>
 <button class="btn" id="checkout">Continue →</button>
-<small>Checkout connection will be updated in the next step.</small>
+<small>Review your items and enter your order details.</small>
 </div>
 </div>
 
 <div id="toast"></div>
-<script type="module" src="app.js?v=7"></script>
+<script type="module" src="app.js?v=8"></script>
 </body>
 </html>
