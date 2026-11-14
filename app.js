@@ -9,10 +9,7 @@ import {
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
-// ======================================
 // FIREBASE CONFIG
-// ======================================
-
 const firebaseConfig = {
   apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
   authDomain: "snap-kitchen-b8a73.firebaseapp.com",
@@ -38,10 +35,7 @@ let category = "All";
 let userLocation = null;
 let isOpeningRestaurant = false;
 
-// ======================================
 // HELPERS
-// ======================================
-
 function showToast(message) {
   const toast = $("toast");
 
@@ -53,9 +47,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2500);
+  setTimeout(() => toast.classList.remove("show"), 2500);
 }
 
 function money(value) {
@@ -72,10 +64,7 @@ function escapeHTML(value) {
   }[char]));
 }
 
-// ======================================
 // LOAD RESTAURANTS
-// ======================================
-
 async function loadRestaurants() {
   const grid = $("restaurantGrid") || $("restaurants");
   const status = $("restaurantStatus");
@@ -86,9 +75,7 @@ async function loadRestaurants() {
       grid.innerHTML = "<p>Loading restaurants...</p>";
     }
 
-    if (status) {
-      status.textContent = "Loading restaurants...";
-    }
+    if (status) status.textContent = "Loading restaurants...";
 
     const snapshot = await getDocs(collection(db, "restaurants"));
 
@@ -100,29 +87,19 @@ async function loadRestaurants() {
       .filter((item) => item.active === true || item.Active === true);
 
     if (!restaurants.length) {
-      if (grid) {
-        grid.innerHTML = "<p>Abhi koi active restaurant nahi mila.</p>";
-      }
-
-      if (status) {
-        status.textContent = "No active restaurants found.";
-      }
-
+      if (grid) grid.innerHTML = "<p>Abhi koi active restaurant nahi mila.</p>";
+      if (status) status.textContent = "No active restaurants found.";
       return;
     }
 
-    if (status) {
-      status.textContent = "";
-    }
+    if (status) status.textContent = "";
 
     renderRestaurants();
 
   } catch (error) {
     console.error("Restaurant loading error:", error);
 
-    if (status) {
-      status.textContent = "Restaurant load nahi ho paya.";
-    }
+    if (status) status.textContent = "Restaurant load nahi ho paya.";
 
     if (grid) {
       grid.innerHTML = `
@@ -135,10 +112,7 @@ async function loadRestaurants() {
   }
 }
 
-// ======================================
 // DISPLAY RESTAURANTS
-// ======================================
-
 function renderRestaurants() {
   const grid = $("restaurantGrid") || $("restaurants");
   if (!grid) return;
@@ -151,8 +125,6 @@ function renderRestaurants() {
 
     card.type = "button";
     card.className = "restaurant-card";
-
-    // Mobile touch support
     card.style.display = "flex";
     card.style.width = "100%";
     card.style.textAlign = "left";
@@ -166,11 +138,7 @@ function renderRestaurants() {
 
       <div class="restaurant-info">
         <h3>${escapeHTML(restaurant.name || "Restaurant")}</h3>
-
-        <p>${escapeHTML(
-          restaurant.description || "Fresh food and local favourites"
-        )}</p>
-
+        <p>${escapeHTML(restaurant.description || "Fresh food and local favourites")}</p>
         <small>${escapeHTML(restaurant.city || "Jagdalpur")}</small>
 
         ${
@@ -181,7 +149,6 @@ function renderRestaurants() {
       </div>
     `;
 
-    // Normal mobile tap and mouse click
     card.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
@@ -192,10 +159,7 @@ function renderRestaurants() {
   });
 }
 
-// ======================================
-// OPEN SELECTED RESTAURANT
-// ======================================
-
+// OPEN RESTAURANT
 async function openRestaurant(restaurant) {
   if (isOpeningRestaurant) return;
 
@@ -209,9 +173,7 @@ async function openRestaurant(restaurant) {
   const restaurantSection = $("restaurantGrid") || $("restaurants");
   const menuSection = $("menu");
 
-  if (restaurantSection) {
-    restaurantSection.style.display = "none";
-  }
+  if (restaurantSection) restaurantSection.style.display = "none";
 
   if (menuSection) {
     menuSection.hidden = false;
@@ -219,8 +181,7 @@ async function openRestaurant(restaurant) {
   }
 
   if ($("selectedRestaurantName")) {
-    $("selectedRestaurantName").textContent =
-      restaurant.name || "Restaurant";
+    $("selectedRestaurantName").textContent = restaurant.name || "Restaurant";
   }
 
   if ($("backRestaurants")) {
@@ -238,25 +199,19 @@ async function openRestaurant(restaurant) {
         block: "start"
       });
     }
-
   } finally {
     isOpeningRestaurant = false;
   }
 }
 
-// ======================================
-// LOAD MENU ITEMS
-// ======================================
-
+// LOAD MENU FROM FIREBASE
 async function loadSelectedRestaurantMenu() {
   const products = $("products");
 
   if (!selectedRestaurant) return;
 
   try {
-    if (products) {
-      products.innerHTML = "<p>Loading menu...</p>";
-    }
+    if (products) products.innerHTML = "<p>Loading menu...</p>";
 
     const menuRef = collection(
       db,
@@ -268,11 +223,23 @@ async function loadSelectedRestaurantMenu() {
     const snapshot = await getDocs(menuRef);
 
     menu = snapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }))
-      .filter((item) => item.available !== false);
+      .map((doc) => {
+        const data = doc.data();
+
+        return {
+          id: doc.id,
+          ...data,
+          name: data.name || data.Name || "Food Item",
+          price: data.price ?? data.Price ?? 0,
+          category: data.category || data.Category || "Other",
+          description: data.description || "",
+          emoji: data.emoji || "🍽️",
+          available: data.available ?? data.Available ?? true
+        };
+      })
+      .filter((item) => item.available === true);
+
+    console.log("Firebase menu loaded:", menu);
 
     renderCategories();
     renderMenu();
@@ -286,29 +253,19 @@ async function loadSelectedRestaurantMenu() {
         <button type="button" id="retryMenu">Retry Menu</button>
       `;
 
-      $("retryMenu")?.addEventListener(
-        "click",
-        loadSelectedRestaurantMenu
-      );
+      $("retryMenu")?.addEventListener("click", loadSelectedRestaurantMenu);
     }
   }
 }
 
-// ======================================
 // MENU CATEGORIES
-// ======================================
-
 function renderCategories() {
   const cats = $("cats");
   if (!cats) return;
 
   const categories = [
     "All",
-    ...new Set(
-      menu
-        .map((item) => item.category)
-        .filter(Boolean)
-    )
+    ...new Set(menu.map((item) => item.category).filter(Boolean))
   ];
 
   cats.innerHTML = "";
@@ -331,10 +288,7 @@ function renderCategories() {
   });
 }
 
-// ======================================
-// DISPLAY MENU
-// ======================================
-
+// DISPLAY MENU WITH FIREBASE EMOJI
 function renderMenu() {
   const products = $("products");
   const empty = $("empty");
@@ -361,28 +315,24 @@ function renderMenu() {
     } else {
       products.innerHTML = "<p>No menu items available.</p>";
     }
-
     return;
   }
 
-  if (empty) {
-    empty.style.display = "none";
-  }
+  if (empty) empty.style.display = "none";
 
   filtered.forEach((item) => {
     const card = document.createElement("div");
     card.className = "product-card";
 
     const quantity = getQuantity(item.id);
+    const foodEmoji = item.emoji || "🍽️";
 
     card.innerHTML = `
-      <div class="product-emoji">
-        ${escapeHTML(item.emoji || "🍽️")}
-      </div>
+      <div class="product-emoji">${escapeHTML(foodEmoji)}</div>
 
       <div class="product-info">
-        <h3>${escapeHTML(item.name || "Food Item")}</h3>
-        <p>${escapeHTML(item.description || "")}</p>
+        <h3>${escapeHTML(item.name)}</h3>
+        <p>${escapeHTML(item.description)}</p>
         <strong>${money(item.price)}</strong>
       </div>
 
@@ -400,10 +350,7 @@ function renderMenu() {
   });
 }
 
-// ======================================
 // CART FUNCTIONS
-// ======================================
-
 function getQuantity(id) {
   const item = cart.find((product) => product.id === id);
   return item ? item.quantity : 0;
@@ -425,7 +372,6 @@ function addToCart(item) {
 
   renderMenu();
   renderCart();
-
   showToast("Item added to cart");
 }
 
@@ -444,33 +390,19 @@ function changeQuantity(id, amount) {
 }
 
 function getTotal() {
-  return cart.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
-  );
+  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 }
 
-// ======================================
 // DISPLAY CART
-// ======================================
-
 function renderCart() {
   const lines = $("cartLines");
   const count = $("count");
   const total = $("total");
 
-  const totalQuantity = cart.reduce(
-    (sum, item) => sum + item.quantity,
-    0
-  );
+  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
 
-  if (count) {
-    count.textContent = totalQuantity;
-  }
-
-  if (total) {
-    total.textContent = money(getTotal());
-  }
+  if (count) count.textContent = totalQuantity;
+  if (total) total.textContent = money(getTotal());
 
   if (!lines) return;
 
@@ -498,22 +430,14 @@ function renderCart() {
       </div>
     `;
 
-    row.querySelector(".minus").addEventListener("click", () => {
-      changeQuantity(item.id, -1);
-    });
-
-    row.querySelector(".plus").addEventListener("click", () => {
-      changeQuantity(item.id, 1);
-    });
+    row.querySelector(".minus").addEventListener("click", () => changeQuantity(item.id, -1));
+    row.querySelector(".plus").addEventListener("click", () => changeQuantity(item.id, 1));
 
     lines.appendChild(row);
   });
 }
 
-// ======================================
 // CART OPEN / CLOSE
-// ======================================
-
 function openCart() {
   if (!$("shade")) return;
 
@@ -532,21 +456,16 @@ $("navCart")?.addEventListener("click", openCart);
 $("close")?.addEventListener("click", closeCart);
 
 $("shade")?.addEventListener("click", (event) => {
-  if (event.target !== $("shade")) return;
-  closeCart();
+  if (event.target === $("shade")) closeCart();
 });
 
-// ======================================
 // CHECKOUT FORM
-// ======================================
-
 function createCheckoutForm() {
   if ($("checkoutForm")) {
     $("checkoutForm").scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-
     return;
   }
 
@@ -554,7 +473,6 @@ function createCheckoutForm() {
   if (!lines) return;
 
   const form = document.createElement("div");
-
   form.id = "checkoutForm";
   form.className = "checkout-form";
 
@@ -562,59 +480,31 @@ function createCheckoutForm() {
     <h3>Delivery Details</h3>
 
     <label for="customerName">Your Name</label>
-
-    <input
-      id="customerName"
-      type="text"
-      placeholder="Enter your name"
-      autocomplete="name"
-    >
+    <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name">
 
     <label for="customerPhone">Mobile Number</label>
-
-    <input
-      id="customerPhone"
-      type="tel"
-      inputmode="numeric"
-      maxlength="10"
-      placeholder="10 digit mobile number"
-      autocomplete="tel"
-    >
+    <input id="customerPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
 
     <label for="orderType">Order Type</label>
-
     <select id="orderType">
       <option value="Pickup">Pickup</option>
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
     <div id="addressBox" style="display:none;">
-
       <label for="customerAddress">Delivery Address</label>
-
-      <textarea
-        id="customerAddress"
-        placeholder="Enter your full address"
-      ></textarea>
-
-      <button type="button" id="getLocation">
-        📍 Use My Current Location
-      </button>
-
+      <textarea id="customerAddress" placeholder="Enter your full address"></textarea>
+      <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
 
-    <button type="button" id="placeOrder">
-      Place Order
-    </button>
+    <button type="button" id="placeOrder">Place Order</button>
   `;
 
   lines.appendChild(form);
 
   $("orderType").addEventListener("change", () => {
     $("addressBox").style.display =
-      $("orderType").value === "Home Delivery"
-        ? "block"
-        : "none";
+      $("orderType").value === "Home Delivery" ? "block" : "none";
   });
 
   $("getLocation").addEventListener("click", getCurrentLocation);
@@ -640,10 +530,7 @@ $("checkout")?.addEventListener("click", () => {
   createCheckoutForm();
 });
 
-// ======================================
 // GPS LOCATION
-// ======================================
-
 async function getCurrentLocation() {
   if (!navigator.geolocation) {
     showToast("Location is not supported on this device");
@@ -657,10 +544,7 @@ async function getCurrentLocation() {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
 
-      userLocation = {
-        latitude,
-        longitude
-      };
+      userLocation = { latitude, longitude };
 
       const addressField = $("customerAddress");
 
@@ -681,7 +565,6 @@ async function getCurrentLocation() {
             data.display_name +
             `\nhttps://www.google.com/maps?q=${latitude},${longitude}`;
         }
-
       } catch (error) {
         console.log("Address lookup unavailable:", error);
       }
@@ -701,10 +584,7 @@ async function getCurrentLocation() {
   );
 }
 
-// ======================================
 // PLACE ORDER
-// ======================================
-
 async function placeOrder() {
   const name = $("customerName")?.value.trim() || "";
   const phone = $("customerPhone")?.value.trim() || "";
@@ -765,12 +645,9 @@ async function placeOrder() {
   };
 
   try {
-    const orderRef = await addDoc(
-      collection(db, "orders"),
-      orderData
-    );
+    const orderRef = await addDoc(collection(db, "orders"), orderData);
 
-    let message = `*NEW ZAIKABOX ORDER*\n`;
+    let message = "*NEW ZAIKABOX ORDER*\n";
     message += `Order ID: ${orderRef.id}\n`;
     message += `Restaurant: ${selectedRestaurant.name}\n`;
     message += `Name: ${name}\n`;
@@ -781,7 +658,7 @@ async function placeOrder() {
       message += `Address: ${address}\n`;
     }
 
-    message += `\n*ITEMS*\n`;
+    message += "\n*ITEMS*\n";
 
     orderItems.forEach((item) => {
       message += `${item.name} × ${item.quantity} = ₹${item.subtotal}\n`;
@@ -802,7 +679,6 @@ async function placeOrder() {
 
   } catch (error) {
     console.error("Order placement error:", error);
-
     showToast("Order place nahi hua. Please try again.");
 
     if (placeButton) {
@@ -812,16 +688,10 @@ async function placeOrder() {
   }
 }
 
-// ======================================
 // SEARCH
-// ======================================
-
 $("search")?.addEventListener("input", renderMenu);
 
-// ======================================
 // BACK TO RESTAURANTS
-// ======================================
-
 $("backRestaurants")?.addEventListener("click", () => {
   selectedRestaurant = null;
   menu = [];
@@ -836,9 +706,7 @@ $("backRestaurants")?.addEventListener("click", () => {
     menuSection.style.display = "none";
   }
 
-  if (restaurantSection) {
-    restaurantSection.style.display = "grid";
-  }
+  if (restaurantSection) restaurantSection.style.display = "grid";
 
   if ($("backRestaurants")) {
     $("backRestaurants").style.display = "none";
@@ -848,9 +716,6 @@ $("backRestaurants")?.addEventListener("click", () => {
   renderRestaurants();
 });
 
-// ======================================
 // START APP
-// ======================================
-
 renderCart();
 loadRestaurants();
