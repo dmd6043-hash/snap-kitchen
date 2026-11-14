@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
@@ -134,12 +135,10 @@ function renderRestaurants() {
 
     card.innerHTML = `
       <div class="restaurant-emoji">🍽️</div>
-
       <div class="restaurant-info">
         <h3>${escapeHTML(restaurant.name || "Restaurant")}</h3>
         <p>${escapeHTML(restaurant.description || "Fresh food and local favourites")}</p>
         <small>${escapeHTML(restaurant.city || "Jagdalpur")}</small>
-
         ${
           restaurant.isPureVeg
             ? '<span class="veg-label">PURE VEG</span>'
@@ -230,26 +229,18 @@ async function loadSelectedRestaurantMenu() {
         return {
           id: doc.id,
           ...data,
-
           name: String(data.name || data.Name || "Food Item").trim(),
-
           price: data.price ?? data.Price ?? 0,
-
-          category: String(
-            data.category || data.Category || "Other"
-          ).trim(),
-
+          category: String(data.category || data.Category || "Other").trim(),
           description: data.description || data.Description || "",
-
-          // Firebase emoji field
-          emoji: String(
-            data.emoji || data.Emoji || "🍽️"
-          ).trim() || "🍽️",
-
+          emoji: String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
           available: data.available ?? data.Available ?? true
         };
       })
-      .filter((item) => item.available === true);
+      .filter((item) =>
+        item.available === true &&
+        item.id !== "paneer-chilli"
+      );
 
     console.log("Firebase menu loaded:", menu);
 
@@ -300,7 +291,7 @@ function renderCategories() {
   });
 }
 
-// DISPLAY MENU WITH FIREBASE EMOJI
+// DISPLAY MENU
 function renderMenu() {
   const products = $("products");
   const empty = $("empty");
@@ -345,13 +336,11 @@ function renderMenu() {
 
     card.innerHTML = `
       <div class="product-emoji">${escapeHTML(foodEmoji)}</div>
-
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
         <p>${escapeHTML(item.description)}</p>
         <strong>${money(item.price)}</strong>
       </div>
-
       <button type="button" class="add-button">
         ${quantity > 0 ? "Added " + quantity : "ADD +"}
       </button>
@@ -438,7 +427,6 @@ function renderCart() {
         <strong>${escapeHTML(item.name)}</strong>
         <p>${money(item.price)} × ${item.quantity}</p>
       </div>
-
       <div class="quantity-controls">
         <button type="button" class="minus">−</button>
         <span>${item.quantity}</span>
@@ -494,25 +482,20 @@ function createCheckoutForm() {
 
   form.innerHTML = `
     <h3>Delivery Details</h3>
-
     <label for="customerName">Your Name</label>
     <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name">
-
     <label for="customerPhone">Mobile Number</label>
     <input id="customerPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
-
     <label for="orderType">Order Type</label>
     <select id="orderType">
       <option value="Pickup">Pickup</option>
       <option value="Home Delivery">Home Delivery</option>
     </select>
-
     <div id="addressBox" style="display:none;">
       <label for="customerAddress">Delivery Address</label>
       <textarea id="customerAddress" placeholder="Enter your full address"></textarea>
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
-
     <button type="button" id="placeOrder">Place Order</button>
   `;
 
