@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
@@ -188,6 +187,8 @@ async function openRestaurant(restaurant) {
     $("backRestaurants").style.display = "inline-flex";
   }
 
+  if ($("search")) $("search").value = "";
+
   renderCart();
 
   try {
@@ -229,11 +230,22 @@ async function loadSelectedRestaurantMenu() {
         return {
           id: doc.id,
           ...data,
-          name: data.name || data.Name || "Food Item",
+
+          name: String(data.name || data.Name || "Food Item").trim(),
+
           price: data.price ?? data.Price ?? 0,
-          category: data.category || data.Category || "Other",
-          description: data.description || "",
-          emoji: data.emoji || "🍽️",
+
+          category: String(
+            data.category || data.Category || "Other"
+          ).trim(),
+
+          description: data.description || data.Description || "",
+
+          // Firebase emoji field
+          emoji: String(
+            data.emoji || data.Emoji || "🍽️"
+          ).trim() || "🍽️",
+
           available: data.available ?? data.Available ?? true
         };
       })
@@ -311,6 +323,7 @@ function renderMenu() {
 
   if (!filtered.length) {
     if (empty) {
+      empty.hidden = false;
       empty.style.display = "block";
     } else {
       products.innerHTML = "<p>No menu items available.</p>";
@@ -318,7 +331,10 @@ function renderMenu() {
     return;
   }
 
-  if (empty) empty.style.display = "none";
+  if (empty) {
+    empty.hidden = true;
+    empty.style.display = "none";
+  }
 
   filtered.forEach((item) => {
     const card = document.createElement("div");
