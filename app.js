@@ -225,22 +225,22 @@ async function loadSelectedRestaurantMenu() {
     menu = snapshot.docs
       .map((doc) => {
         const data = doc.data();
+        const isPaneerChilli = doc.id === "paneer-chilli";
 
         return {
           id: doc.id,
           ...data,
           name: String(data.name || data.Name || "Food Item").trim(),
-          price: data.price ?? data.Price ?? 0,
+          price: isPaneerChilli ? 60 : (data.price ?? data.Price ?? 0),
           category: String(data.category || data.Category || "Other").trim(),
           description: data.description || data.Description || "",
-          emoji: String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
+          emoji: isPaneerChilli
+            ? "🌶️"
+            : String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
           available: data.available ?? data.Available ?? true
         };
       })
-      .filter((item) =>
-        item.available === true &&
-        item.id !== "paneer-chilli"
-      );
+      .filter((item) => item.available === true);
 
     console.log("Firebase menu loaded:", menu);
 
