@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800;900&display=swap" rel="stylesheet">
 
-<link rel="stylesheet" href="styles.css?v=100">
+<link rel="stylesheet" href="styles.css?v=101">
 
 <style>
 :root {
@@ -27,7 +27,6 @@
 }
 
 * { box-sizing:border-box; }
-
 html { scroll-behavior:smooth; }
 
 body {
@@ -360,7 +359,10 @@ h2 {
   gap:12px;
 }
 
-.promo label { color:#ffb27e;font-weight:800; }
+.promo label {
+  color:#ffb27e;
+  font-weight:800;
+}
 
 .promo p,.reward p {
   color:var(--muted);
@@ -379,7 +381,10 @@ h2 {
   font-size:24px;
 }
 
-.seal b { font-size:11px;text-align:center; }
+.seal b {
+  font-size:11px;
+  text-align:center;
+}
 
 .outline {
   padding:11px 15px;
@@ -568,17 +573,21 @@ nav small {
 
 @media(max-width:480px) {
   .hero { padding:23px 17px; }
+
   .food {
     width:95px;
     height:95px;
     font-size:48px;
     min-width:95px;
   }
+
   .hero h1 { font-size:39px; }
   .info span { font-size:11px; }
+
   .products,.restaurant-grid {
     grid-template-columns:repeat(2,minmax(0,1fr));
   }
+
   .promo { padding:17px; }
   .seal { width:75px;height:75px; }
 }
@@ -700,7 +709,7 @@ nav small {
 
 <div id="toast"></div>
 
-<script type="module" src="app.js?v=100"></script>
+<script type="module" src="app.js?v=101"></script>
 
 </body>
 </html>
