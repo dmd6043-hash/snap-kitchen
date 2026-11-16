@@ -30,6 +30,7 @@ button:disabled{opacity:.5}
 </head>
 
 <body>
+
 <header>
 <h2>ZAIKABOX</h2>
 <p>Delivery Partner App</p>
@@ -39,40 +40,53 @@ button:disabled{opacity:.5}
 
 <div id="loginBox" class="card">
 <h3>Delivery Partner Login</h3>
-<input id="email" type="email" placeholder="Email address">
-<input id="password" type="password" placeholder="Password">
+
+<input id="email" type="email" placeholder="Email address" autocomplete="username">
+
+<input id="password" type="password" placeholder="Password" autocomplete="current-password">
+
 <button id="loginBtn">LOGIN</button>
+
 <p id="loginMessage"></p>
 </div>
 
 <div id="appBox" class="hidden">
+
 <div class="card">
 <h3>Welcome, Delivery Partner</h3>
+
 <p id="userEmail" class="muted"></p>
+
 <div class="gps">
 <strong>LIVE GPS TRACKING</strong>
 <p id="gpsMessage">Location sharing abhi band hai.</p>
 </div>
+
 <button id="logoutBtn" class="blue">LOGOUT</button>
 </div>
 
 <h3>My Assigned Orders</h3>
-<p id="message">Loading orders...</p>
-<div id="orders"></div>
-</div>
 
+<p id="message">Loading orders...</p>
+
+<div id="orders"></div>
+
+</div>
 </div>
 
 <script type="module">
 
-import {initializeApp}
-from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import {
+initializeApp
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
 getAuth,
 signInWithEmailAndPassword,
 onAuthStateChanged,
-signOut
+signOut,
+setPersistence,
+browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 import {
@@ -88,6 +102,9 @@ setDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
+
+// FIREBASE CONFIG
+
 const firebaseConfig = {
 apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
 authDomain: "snap-kitchen-b8a73.firebaseapp.com",
@@ -98,68 +115,128 @@ appId: "1:1060475241392:web:c3751859ecb085830b8c75",
 measurementId: "G-KRFFRFJY5X"
 };
 
+
+// INITIALIZE
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+
+// ELEMENTS
+
 const loginBox = document.getElementById("loginBox");
 const appBox = document.getElementById("appBox");
+
 const loginMessage = document.getElementById("loginMessage");
 const message = document.getElementById("message");
+
 const ordersDiv = document.getElementById("orders");
 const loginBtn = document.getElementById("loginBtn");
+
 const gpsMessage = document.getElementById("gpsMessage");
 
+
+// GLOBAL VARIABLES
+
 let unsubscribeOrders = null;
-let checkingUser = false;
 let gpsWatchId = null;
 let activeTrackingKey = null;
 
+// Every new auth callback gets a new number.
+// Old async checks cannot overwrite the latest state.
+let authCheckVersion = 0;
+
+
+// HELPERS
+
 function normalizeRole(value){
+
 return String(value ?? "")
 .replace(/[\u200B-\u200D\uFEFF]/g,"")
 .trim()
 .toLowerCase();
+
 }
+
+
+function stopOrdersListener(){
+
+if(unsubscribeOrders){
+
+unsubscribeOrders();
+unsubscribeOrders = null;
+
+}
+
+}
+
 
 function stopLocationSharing(){
+
 if(gpsWatchId !== null){
+
 navigator.geolocation.clearWatch(gpsWatchId);
 gpsWatchId = null;
+
 }
+
 activeTrackingKey = null;
+
 gpsMessage.textContent = "Location sharing band hai.";
+
 }
+
 
 // LIVE GPS LOCATION
-function startLocationSharing(orderId, trackingCode){
+
+function startLocationSharing(orderId,trackingCode){
 
 if(!trackingCode){
+
 gpsMessage.textContent =
-"Is order mein tracking code nahi hai. GPS map available nahi hoga.";
+"Is order mein tracking code nahi hai.";
+
 return;
+
 }
 
 if(!navigator.geolocation){
-gpsMessage.textContent = "Is browser mein GPS supported nahi hai.";
+
+gpsMessage.textContent =
+"Is browser mein GPS supported nahi hai.";
+
 return;
+
 }
 
 const cleanCode = String(trackingCode)
 .replace(/[\s-]/g,"")
 .toUpperCase();
 
-if(activeTrackingKey === cleanCode && gpsWatchId !== null){
+if(
+activeTrackingKey === cleanCode &&
+gpsWatchId !== null
+){
+
 return;
+
 }
 
 stopLocationSharing();
 
 activeTrackingKey = cleanCode;
-gpsMessage.textContent = "GPS permission aur location ka wait ho raha hai...";
+
+gpsMessage.textContent =
+"GPS permission aur location ka wait ho raha hai...";
+
 
 gpsWatchId = navigator.geolocation.watchPosition(
+
 async(position)=>{
+
+// Ignore old GPS callbacks.
+if(activeTrackingKey !== cleanCode) return;
 
 const latitude = position.coords.latitude;
 const longitude = position.coords.longitude;
@@ -170,11 +247,11 @@ try{
 await setDoc(
 doc(db,"deliveryLocations",cleanCode),
 {
-orderId: orderId,
-latitude: latitude,
-longitude: longitude,
-accuracy: accuracy,
-updatedAt: serverTimestamp()
+orderId:orderId,
+latitude:latitude,
+longitude:longitude,
+accuracy:accuracy,
+updatedAt:serverTimestamp()
 },
 {merge:true}
 );
@@ -189,11 +266,13 @@ gpsMessage.textContent =
 console.error("GPS Firebase error:",error);
 
 gpsMessage.textContent =
-"GPS save error: "+error.code+" - "+error.message;
+"GPS save error: "+
+error.code+" - "+error.message;
 
 }
 
 },
+
 (error)=>{
 
 console.error("GPS error:",error);
@@ -201,129 +280,142 @@ console.error("GPS error:",error);
 let reason = error.message;
 
 if(error.code === 1){
-reason = "Location permission denied. Browser settings mein location allow kijiye.";
+
+reason =
+"Location permission denied. Browser settings mein location allow kijiye.";
+
 }
 
 if(error.code === 2){
-reason = "GPS location available nahi hai. GPS ON kijiye.";
+
+reason =
+"GPS location available nahi hai. GPS ON kijiye.";
+
 }
 
 if(error.code === 3){
-reason = "GPS timeout. Dobara location try karein.";
+
+reason =
+"GPS timeout. Dobara location try karein.";
+
 }
 
 gpsMessage.textContent = "GPS ERROR: "+reason;
 
 if(error.code === 1){
+
 stopLocationSharing();
+
 }
 
 },
+
 {
 enableHighAccuracy:true,
 maximumAge:5000,
 timeout:20000
 }
+
 );
 
 }
 
+
 // LOGIN
+
 loginBtn.addEventListener("click",async()=>{
 
-const email = document.getElementById("email").value.trim();
-const password = document.getElementById("password").value;
+const email =
+document.getElementById("email").value.trim();
+
+const password =
+document.getElementById("password").value;
 
 if(!email || !password){
-loginMessage.textContent = "Email aur password bhariye.";
+
+loginMessage.textContent =
+"Email aur password bhariye.";
+
 return;
+
 }
 
 loginBtn.disabled = true;
 loginBtn.textContent = "LOGGING IN...";
-loginMessage.textContent = "Login checking...";
+
+loginMessage.textContent =
+"Secure login checking...";
 
 try{
-await signInWithEmailAndPassword(auth,email,password);
-}catch(error){
+
+// Explicitly save Firebase login on this browser.
+await setPersistence(
+auth,
+browserLocalPersistence
+);
+
+await signInWithEmailAndPassword(
+auth,
+email,
+password
+);
+
 loginMessage.textContent =
-"Login error: "+error.code+" - "+error.message;
+"Login successful. Account checking...";
+
+}catch(error){
+
+console.error("Login error:",error);
+
+loginMessage.textContent =
+"Login error: "+
+error.code+" - "+error.message;
+
 }finally{
+
 loginBtn.disabled = false;
 loginBtn.textContent = "LOGIN";
+
 }
 
 });
+
 
 // LOGOUT
-document.getElementById("logoutBtn").addEventListener("click",async()=>{
+
+document.getElementById("logoutBtn")
+.addEventListener("click",async()=>{
+
 stopLocationSharing();
+stopOrdersListener();
+
 try{
+
 await signOut(auth);
+
 }catch(error){
-alert("Logout error: "+error.message);
+
+console.error("Logout error:",error);
+
+alert(
+"Logout error: "+error.message
+);
+
 }
+
 });
 
-// AUTH STATE
-onAuthStateChanged(auth,async(user)=>{
 
-if(unsubscribeOrders){
-unsubscribeOrders();
-unsubscribeOrders = null;
-}
+// LOAD ASSIGNED ORDERS
 
-stopLocationSharing();
+function loadAssignedOrders(user){
+
+stopOrdersListener();
+
 ordersDiv.innerHTML = "";
 
-if(!user){
-checkingUser = false;
-loginBox.classList.remove("hidden");
-appBox.classList.add("hidden");
-loginMessage.textContent = "";
-return;
-}
-
-if(checkingUser) return;
-checkingUser = true;
-
-loginBox.classList.remove("hidden");
-appBox.classList.add("hidden");
-loginMessage.textContent = "Checking delivery account...";
-
-try{
-
-const userRef = doc(db,"users",user.uid);
-const userSnap = await getDoc(userRef);
-
-if(!userSnap.exists()){
-loginMessage.textContent =
-"ERROR: Delivery user document nahi mila. UID: "+user.uid;
-return;
-}
-
-const data = userSnap.data();
-const cleanRole = normalizeRole(data.role);
-
-if(cleanRole !== "delivery"){
-loginMessage.textContent =
-"ROLE ERROR: "+JSON.stringify(data.role);
-return;
-}
-
-if(data.active !== true){
-loginMessage.textContent =
-"ACTIVE ERROR: Account active nahi hai.";
-return;
-}
-
-loginBox.classList.add("hidden");
-appBox.classList.remove("hidden");
-
-document.getElementById("userEmail").textContent =
-user.email || "";
-
-message.textContent = "Loading assigned orders...";
+message.textContent =
+"Loading assigned orders...";
 
 const ordersQuery = query(
 collection(db,"orders"),
@@ -331,25 +423,34 @@ where("assignedTo","==",user.uid)
 );
 
 unsubscribeOrders = onSnapshot(
+
 ordersQuery,
+
 (snapshot)=>{
 
 ordersDiv.innerHTML = "";
 
 if(snapshot.empty){
+
 message.textContent =
 "Abhi aapko koi order assign nahi hua hai.";
+
 stopLocationSharing();
+
 return;
+
 }
 
 message.textContent =
 snapshot.size+" assigned order(s)";
 
-// Find an active delivery
+
+// Find active delivery order
+
 let activeOrder = null;
 
 snapshot.forEach((orderDoc)=>{
+
 const order = orderDoc.data();
 
 if(
@@ -357,100 +458,172 @@ if(
 order.status === "Out for Delivery" &&
 order.trackingCode
 ){
+
 activeOrder = {
 id:orderDoc.id,
 trackingCode:order.trackingCode
 };
+
 }
+
 });
 
 if(activeOrder){
+
 startLocationSharing(
 activeOrder.id,
 activeOrder.trackingCode
 );
+
 }else{
+
 stopLocationSharing();
+
 }
+
+
+// RENDER ORDERS
 
 snapshot.forEach((orderDoc)=>{
 
 const order = orderDoc.data();
 const orderId = orderDoc.id;
 
+
+// ITEMS
+
 const itemText = Array.isArray(order.items)
+
 ? order.items.map(item=>{
+
 if(typeof item === "string") return item;
+
 return (item.name || item.title || "Item")+
 " x "+(item.quantity || item.qty || 1);
+
 }).join(", ")
+
 : "Details unavailable";
+
+
+// CARD
 
 const card = document.createElement("div");
 card.className = "card order";
 
 const heading = document.createElement("h3");
-heading.textContent = "Order #"+orderId;
+
+heading.textContent =
+"Order #"+orderId;
 
 const details = document.createElement("p");
 
 details.textContent =
-"Customer: "+(order.customerName || order.name || "N/A")+
-"\nPhone: "+(order.phone || "N/A")+
-"\nAddress: "+(order.address || "N/A")+
-"\nItems: "+itemText+
-"\nTotal: ₹"+(order.total ?? order.grandTotal ?? "N/A")+
-"\nStatus: "+(order.status || "New");
+
+"Customer: "+
+(order.customerName || order.name || "N/A")+
+
+"\nPhone: "+
+(order.phone || "N/A")+
+
+"\nAddress: "+
+(order.address || "N/A")+
+
+"\nItems: "+
+itemText+
+
+"\nTotal: ₹"+
+(order.total ?? order.grandTotal ?? "N/A")+
+
+"\nStatus: "+
+(order.status || "New");
 
 card.append(heading,details);
 
+
 // CALL CUSTOMER
+
 if(order.phone){
+
 const call = document.createElement("a");
+
 call.className = "map-btn blue";
-call.href = "tel:"+String(order.phone).replace(/[^\d+]/g,"");
+
+call.href =
+"tel:"+String(order.phone)
+.replace(/[^\d+]/g,"");
+
 call.textContent = "CALL CUSTOMER";
+
 card.appendChild(call);
+
 }
+
 
 // GOOGLE MAPS
+
 const mapLink = order.mapLink ||
 order.googleMapsLink ||
+
 (order.latitude != null && order.longitude != null
+
 ? "https://www.google.com/maps?q="+
-encodeURIComponent(order.latitude+","+order.longitude)
+encodeURIComponent(
+order.latitude+","+order.longitude
+)
+
 : "");
 
+
 if(mapLink){
+
 const map = document.createElement("a");
+
 map.className = "map-btn";
+
 map.href = mapLink;
+
 map.target = "_blank";
+
 map.rel = "noopener";
+
 map.textContent = "OPEN GOOGLE MAPS";
+
 card.appendChild(map);
+
 }
 
+
 // DELIVERY STATUS
-if(order.status === "Preparing" ||
-order.status === "Out for Delivery"){
+
+if(
+order.status === "Preparing" ||
+order.status === "Out for Delivery"
+){
 
 const nextStatus =
 order.status === "Preparing"
 ? "Out for Delivery"
 : "Delivered";
 
-const updateButton = document.createElement("button");
+
+const updateButton =
+document.createElement("button");
 
 updateButton.className =
-nextStatus === "Delivered" ? "green" : "";
+nextStatus === "Delivered"
+? "green"
+: "";
 
 updateButton.textContent =
 nextStatus === "Delivered"
 ? "MARK DELIVERED"
 : "START DELIVERY";
 
-updateButton.addEventListener("click",async()=>{
+
+updateButton.addEventListener(
+"click",
+async()=>{
 
 const confirmed = confirm(
 "Order status "+nextStatus+" karna hai?"
@@ -459,26 +632,38 @@ const confirmed = confirm(
 if(!confirmed) return;
 
 updateButton.disabled = true;
+
 updateButton.textContent = "UPDATING...";
 
 try{
 
 const batch = writeBatch(db);
 
+
+// Update order
+
 batch.update(
 doc(db,"orders",orderId),
-{status:nextStatus}
+{
+status:nextStatus
+}
 );
+
+
+// Update tracking document
 
 if(order.trackingCode){
 
-const trackingCode = String(order.trackingCode)
+const trackingCode =
+String(order.trackingCode)
 .replace(/[\s-]/g,"")
 .toUpperCase();
 
 batch.update(
 doc(db,"orderTracking",trackingCode),
-{status:nextStatus}
+{
+status:nextStatus
+}
 );
 
 }
@@ -486,14 +671,21 @@ doc(db,"orderTracking",trackingCode),
 await batch.commit();
 
 if(nextStatus === "Delivered"){
+
 stopLocationSharing();
+
 }
 
-alert("Order status updated: "+nextStatus);
+alert(
+"Order status updated: "+nextStatus
+);
 
 }catch(error){
 
-console.error("Delivery status error:",error);
+console.error(
+"Delivery status error:",
+error
+);
 
 alert(
 "Status update error: "+
@@ -501,6 +693,7 @@ error.code+" - "+error.message
 );
 
 updateButton.disabled = false;
+
 updateButton.textContent =
 nextStatus === "Delivered"
 ? "MARK DELIVERED"
@@ -515,48 +708,173 @@ card.appendChild(updateButton);
 }else if(order.status === "Delivered"){
 
 const done = document.createElement("p");
+
 done.textContent = "✓ Delivery completed";
+
 done.style.color = "#4ade80";
+
 card.appendChild(done);
 
 }else{
 
 const waiting = document.createElement("p");
+
 waiting.textContent =
 "Restaurant ke Preparing status ka wait karein.";
+
 waiting.className = "muted";
+
 card.appendChild(waiting);
 
 }
+
 
 ordersDiv.appendChild(card);
 
 });
 
 },
+
 (error)=>{
 
-message.textContent =
-"Orders error: "+error.code+" - "+error.message;
+console.error("Orders listener error:",error);
 
-console.error(error);
+message.textContent =
+"Orders error: "+
+error.code+" - "+error.message;
 
 }
+
 );
+
+}
+
+
+// AUTH STATE LISTENER
+
+onAuthStateChanged(auth,async(user)=>{
+
+// Each callback invalidates older pending checks.
+
+const currentCheck = ++authCheckVersion;
+
+stopOrdersListener();
+stopLocationSharing();
+
+ordersDiv.innerHTML = "";
+
+if(!user){
+
+loginBox.classList.remove("hidden");
+appBox.classList.add("hidden");
+
+loginMessage.textContent =
+"Please login to continue.";
+
+return;
+
+}
+
+
+// Show checking screen while verifying account.
+
+loginBox.classList.remove("hidden");
+appBox.classList.add("hidden");
+
+loginMessage.textContent =
+"Checking delivery account...";
+
+
+try{
+
+const userRef = doc(db,"users",user.uid);
+
+const userSnap = await getDoc(userRef);
+
+
+// Ignore an old result if auth changed meanwhile.
+
+if(currentCheck !== authCheckVersion) return;
+
+
+if(!userSnap.exists()){
+
+loginMessage.textContent =
+"ERROR: Delivery user document nahi mila. UID: "+
+user.uid;
+
+return;
+
+}
+
+const data = userSnap.data();
+
+const cleanRole = normalizeRole(data.role);
+
+
+if(cleanRole !== "delivery"){
+
+loginMessage.textContent =
+"ROLE ERROR: Account role delivery nahi hai. Found: "+
+JSON.stringify(data.role);
+
+return;
+
+}
+
+
+if(data.active !== true){
+
+loginMessage.textContent =
+"ACTIVE ERROR: Account active nahi hai.";
+
+return;
+
+}
+
+
+// Account verified successfully.
+
+loginBox.classList.add("hidden");
+appBox.classList.remove("hidden");
+
+loginMessage.textContent = "";
+
+document.getElementById("userEmail").textContent =
+user.email || "";
+
+message.textContent =
+"Loading assigned orders...";
+
+
+// Load orders
+
+loadAssignedOrders(user);
+
 
 }catch(error){
 
+console.error(
+"Delivery verification error:",
+error
+);
+
+if(currentCheck !== authCheckVersion) return;
+
+loginBox.classList.remove("hidden");
+appBox.classList.add("hidden");
+
 loginMessage.textContent =
-"FIREBASE ERROR: "+error.code+" - "+error.message;
+"FIREBASE ERROR: "+
+(error.code || "")+
+" - "+
+(error.message || error);
 
-console.error("Delivery verification error:",error);
-
-}finally{
-checkingUser = false;
 }
 
 });
 
 </script>
+
 </body>
 </html>
