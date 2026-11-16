@@ -6,7 +6,8 @@ import {
   collection,
   getDocs,
   addDoc,
-  serverTimestamp
+  serverTimestamp,
+  onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 // FIREBASE CONFIG
@@ -34,6 +35,7 @@ let cart = [];
 let category = "All";
 let userLocation = null;
 let isOpeningRestaurant = false;
+let unsubscribeMenu = null;
 
 // HELPERS
 function showToast(message) {
@@ -163,6 +165,12 @@ async function openRestaurant(restaurant) {
 
   isOpeningRestaurant = true;
 
+  // Stop previous restaurant menu listener
+  if (unsubscribeMenu) {
+    unsubscribeMenu();
+    unsubscribeMenu = null;
+  }
+
   selectedRestaurant = restaurant;
   menu = [];
   cart = [];
@@ -191,7 +199,7 @@ async function openRestaurant(restaurant) {
   renderCart();
 
   try {
-    await loadSelectedRestaurantMenu();
+    loadSelectedRestaurantMenu();
 
     if (menuSection) {
       menuSection.scrollIntoView({
@@ -204,61 +212,87 @@ async function openRestaurant(restaurant) {
   }
 }
 
-// LOAD MENU FROM FIREBASE
-async function loadSelectedRestaurantMenu() {
+// LOAD LIVE MENU FROM FIREBASE
+function loadSelectedRestaurantMenu() {
   const products = $("products");
 
   if (!selectedRestaurant) return;
 
-  try {
-    if (products) products.innerHTML = "<p>Loading menu...</p>";
-
-    const menuRef = collection(
-      db,
-      "restaurants",
-      selectedRestaurant.id,
-      "menuItems"
-    );
-
-    const snapshot = await getDocs(menuRef);
-
-    menu = snapshot.docs
-      .map((doc) => {
-        const data = doc.data();
-        const isPaneerChilli = doc.id === "paneer-chilli";
-
-        return {
-          id: doc.id,
-          ...data,
-          name: String(data.name || data.Name || "Food Item").trim(),
-          price: isPaneerChilli ? 60 : (data.price ?? data.Price ?? 0),
-          category: String(data.category || data.Category || "Other").trim(),
-          description: data.description || data.Description || "",
-          emoji: isPaneerChilli
-            ? "🌶️"
-            : String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
-          available: data.available ?? data.Available ?? true
-        };
-      })
-      .filter((item) => item.available === true);
-
-    console.log("Firebase menu loaded:", menu);
-
-    renderCategories();
-    renderMenu();
-
-  } catch (error) {
-    console.error("Menu loading error:", error);
-
-    if (products) {
-      products.innerHTML = `
-        <p>Menu load nahi ho paya.</p>
-        <button type="button" id="retryMenu">Retry Menu</button>
-      `;
-
-      $("retryMenu")?.addEventListener("click", loadSelectedRestaurantMenu);
-    }
+  if (unsubscribeMenu) {
+    unsubscribeMenu();
+    unsubscribeMenu = null;
   }
+
+  if (products) products.innerHTML = "<p>Loading menu...</p>";
+
+  const menuRef = collection(
+    db,
+    "restaurants",
+    selectedRestaurant.id,
+    "menuItems"
+  );
+
+  unsubscribeMenu = onSnapshot(
+    menuRef,
+
+    (snapshot) => {
+      menu = snapshot.docs
+        .map((doc) => {
+          const data = doc.data();
+
+          return {
+            id: doc.id,
+            ...data,
+            name: String(data.name || data.Name || "Food Item").trim(),
+            price: Number(data.price ?? data.Price ?? 0),
+            category: String(data.category || data.Category || "Other").trim(),
+            description: data.description || data.Description || "",
+            emoji: String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
+            available: data.available ?? data.Available ?? true
+          };
+        })
+        .filter((item) => item.available === true);
+
+      // Remove unavailable items from cart
+      cart = cart.filter((cartItem) =>
+        menu.some((menuItem) => menuItem.id === cartItem.id)
+      );
+
+      // Update cart prices if partner changes prices
+      cart = cart.map((cartItem) => {
+        const updatedItem = menu.find(
+          (menuItem) => menuItem.id === cartItem.id
+        );
+
+        return updatedItem
+          ? {
+              ...cartItem,
+              name: updatedItem.name,
+              price: updatedItem.price
+            }
+          : cartItem;
+      });
+
+      console.log("Live Firebase menu:", menu);
+
+      renderCategories();
+      renderMenu();
+      renderCart();
+    },
+
+    (error) => {
+      console.error("Menu loading error:", error);
+
+      if (products) {
+        products.innerHTML = `
+          <p>Menu load nahi ho paya.</p>
+          <button type="button" id="retryMenu">Retry Menu</button>
+        `;
+
+        $("retryMenu")?.addEventListener("click", loadSelectedRestaurantMenu);
+      }
+    }
+  );
 }
 
 // MENU CATEGORIES
@@ -270,6 +304,10 @@ function renderCategories() {
     "All",
     ...new Set(menu.map((item) => item.category).filter(Boolean))
   ];
+
+  if (!categories.includes(category)) {
+    category = "All";
+  }
 
   cats.innerHTML = "";
 
@@ -692,6 +730,11 @@ $("search")?.addEventListener("input", renderMenu);
 
 // BACK TO RESTAURANTS
 $("backRestaurants")?.addEventListener("click", () => {
+  if (unsubscribeMenu) {
+    unsubscribeMenu();
+    unsubscribeMenu = null;
+  }
+
   selectedRestaurant = null;
   menu = [];
   cart = [];
