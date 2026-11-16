@@ -544,21 +544,25 @@ function createCheckoutForm() {
   form.className = "checkout-form";
 
   form.innerHTML = `
-    <h3>Delivery Details</h3>
+    <h3>Order Details</h3>
     <label for="customerName">Your Name</label>
     <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name">
+
     <label for="customerPhone">Mobile Number</label>
     <input id="customerPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
+
     <label for="orderType">Order Type</label>
     <select id="orderType">
       <option value="Pickup">Pickup</option>
       <option value="Home Delivery">Home Delivery</option>
     </select>
+
     <div id="addressBox" style="display:none;">
       <label for="customerAddress">Delivery Address</label>
       <textarea id="customerAddress" placeholder="Enter your full address"></textarea>
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
+
     <button type="button" id="placeOrder">Place Order</button>
   `;
 
@@ -816,15 +820,16 @@ async function placeOrder() {
       createdAt: serverTimestamp()
     };
 
+    // Tracking record now also stores orderType
     const trackingData = {
       orderId: orderRef.id,
       restaurantId: selectedRestaurant.id,
       restaurantName: selectedRestaurant.name,
+      orderType: orderType,
       status: "New",
       createdAt: serverTimestamp()
     };
 
-    // Save order and tracking record together
     const batch = writeBatch(db);
     batch.set(orderRef, orderData);
     batch.set(trackingRef, trackingData);
@@ -895,23 +900,39 @@ function renderTrackingStatus(data) {
     return;
   }
 
-  const steps = [
-    "New",
-    "Accepted",
-    "Preparing",
-    "Out for Delivery",
-    "Delivered"
-  ];
+  // Identify Pickup or Home Delivery
+  const isPickup =
+    data.orderType === "Pickup" ||
+    status === "Ready for Pickup" ||
+    status === "Picked Up";
 
-  const currentIndex = steps.indexOf(status);
+  const steps = isPickup
+    ? [
+        "New",
+        "Accepted",
+        "Preparing",
+        "Ready for Pickup",
+        "Picked Up"
+      ]
+    : [
+        "New",
+        "Accepted",
+        "Preparing",
+        "Out for Delivery",
+        "Delivered"
+      ];
 
   const labels = {
     "New": "Order Received",
     "Accepted": "Order Accepted",
     "Preparing": "Food is Being Prepared",
+    "Ready for Pickup": "Ready for Pickup",
+    "Picked Up": "Order Picked Up",
     "Out for Delivery": "Out for Delivery",
     "Delivered": "Delivered"
   };
+
+  const currentIndex = steps.indexOf(status);
 
   const timeline = steps.map((step, index) => {
     const completed = currentIndex >= index;
@@ -929,11 +950,13 @@ function renderTrackingStatus(data) {
     `;
   }).join("");
 
+  const currentLabel = labels[status] || status;
+
   result.innerHTML = `
     <div class="tracking-status">
-      <h3>📦 Your Order Status</h3>
+      <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
-      <p><strong>Current Status:</strong> ${escapeHTML(status)}</p>
+      <p><strong>Current Status:</strong> ${escapeHTML(currentLabel)}</p>
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Status automatically refresh hota rahega.</p>
     </div>
