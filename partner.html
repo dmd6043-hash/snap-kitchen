@@ -193,7 +193,8 @@ import {
   doc,
   query,
   where,
-  serverTimestamp
+  serverTimestamp,
+  writeBatch
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
@@ -281,6 +282,9 @@ onAuthStateChanged(auth, async user => {
 
   if (!user) {
     currentRestaurantId = null;
+    window.partnerOrders = [];
+    window.partnerMenuItems = [];
+
     $("loginBox").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
     $("menuList").textContent = "";
@@ -294,9 +298,11 @@ onAuthStateChanged(auth, async user => {
   showMessage("message", "Checking partner account...");
 
   try {
-    const accountRef = doc(db, "accounts", user.uid);
     const accountSnapshot = await getDocs(
-      query(collection(db, "accounts"), where("__name__", "==", user.uid))
+      query(
+        collection(db, "accounts"),
+        where("__name__", "==", user.uid)
+      )
     );
 
     if (accountSnapshot.empty) {
@@ -315,11 +321,6 @@ onAuthStateChanged(auth, async user => {
 
     currentRestaurantId = account.restaurantId;
 
-    const restaurantRef = doc(
-      db, "restaurants", currentRestaurantId
-    );
-
-    // Restaurant details are loaded from public restaurant data.
     const restaurantSnapshot = await getDocs(
       query(
         collection(db, "restaurants"),
@@ -382,6 +383,7 @@ async function loadMenu() {
     if (!items.length) {
       $("menuList").innerHTML =
         '<p class="small">Abhi menu item nahi hai. Upar se add karein.</p>';
+      window.partnerMenuItems = [];
       return;
     }
 
@@ -423,7 +425,6 @@ async function loadMenu() {
       `;
     }).join("");
 
-    // Store current menu for edit buttons.
     window.partnerMenuItems = items;
 
   } catch (error) {
@@ -593,6 +594,9 @@ async function loadOrders() {
       return bt - at;
     });
 
+    // Keep loaded orders available for status updates.
+    window.partnerOrders = orders;
+
     if (!orders.length) {
       $("ordersList").innerHTML =
         '<p class="small">Abhi koi order nahi hai.</p>';
@@ -646,7 +650,7 @@ async function loadOrders() {
   }
 }
 
-// UPDATE ORDER STATUS
+// UPDATE ORDER + TRACKING STATUS TOGETHER
 $("ordersList").addEventListener("click", async event => {
   const button = event.target.closest("button[data-order]");
   if (!button || !currentRestaurantId) return;
@@ -654,12 +658,58 @@ $("ordersList").addEventListener("click", async event => {
   const orderId = button.dataset.order;
   const status = button.dataset.status;
 
+  const order = (window.partnerOrders || []).find(
+    item => item.id === orderId
+  );
+
+  if (!order) {
+    alert("Order details nahi mile. Orders refresh kijiye.");
+    return;
+  }
+
   try {
     button.disabled = true;
+    button.textContent = "UPDATING...";
 
-    await updateDoc(doc(db, "orders", orderId), {
+    const batch = writeBatch(db);
+
+    const orderRef = doc(db, "orders", orderId);
+
+    // Main order status update
+    batch.update(orderRef, {
       status
     });
+
+    // New orders also have a tracking code.
+    // Older orders without trackingCode are updated normally.
+    if (order.trackingCode) {
+      const trackingCode = String(order.trackingCode)
+        .toUpperCase()
+        .replace(/[\s-]/g, "");
+
+      if (!/^[A-Z2-9]{20}$/.test(trackingCode)) {
+        throw new Error("Order ka Tracking Code invalid hai.");
+      }
+
+      const trackingRef = doc(
+        db,
+        "orderTracking",
+        trackingCode
+      );
+
+      // Customer's live tracking status update
+      batch.update(trackingRef, {
+        status
+      });
+    }
+
+    // Both updates succeed together or neither is applied.
+    await batch.commit();
+
+    showMessage(
+      "partnerMessage",
+      "Order #" + orderId.slice(0,8) + " status updated: " + status
+    );
 
     await loadOrders();
 
@@ -668,6 +718,11 @@ $("ordersList").addEventListener("click", async event => {
     alert("Order status update nahi hua: " + error.message);
   } finally {
     button.disabled = false;
+    button.textContent = status === "Accepted"
+      ? "ACCEPT"
+      : status === "Rejected"
+        ? "REJECT"
+        : "PREPARING";
   }
 });
 
