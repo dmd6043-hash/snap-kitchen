@@ -445,8 +445,6 @@ h2 {
   text-align:center;
 }
 
-/* PROMO AND REWARDS */
-
 .promo,.reward,.offer {
   border:1px solid #a66aff30;
   border-radius:20px;
@@ -560,8 +558,6 @@ h2 {
 
 .last h2 {font-size:23px}
 
-/* ORDER TRACKING */
-
 #trackOrder {
   scroll-margin-top:85px;
 }
@@ -652,8 +648,6 @@ h2 {
   line-height:1.8;
 }
 
-/* BOTTOM NAV */
-
 nav {
   position:fixed;
   z-index:30;
@@ -684,8 +678,6 @@ nav small {
   margin-top:4px;
   font-size:9px;
 }
-
-/* CART */
 
 .shade {
   position:fixed;
@@ -757,8 +749,6 @@ nav small {
 }
 
 #toast.show {display:block}
-
-/* CHECKOUT */
 
 #checkoutForm {
   display:block;
@@ -850,132 +840,122 @@ nav small {
       <small>HAR CRAVING KA APNA BOX!</small>
     </span>
   </a>
-
   <button id="openCart">🛒 <b id="count">0</b></button>
 </header>
 
 <main>
 
-  <section class="hero">
-    <div>
-      <label>✦ FOOD • MOOD • MAGIC</label>
-      <p class="eyebrow">JAGDALPUR, GET READY!</p>
-      <h1>Good food.<br><em>Good mood.</em></h1>
-      <p>Your favourite food, from your favourite places.</p>
-      <a class="btn" href="#restaurants">Explore restaurants ↗</a>
-    </div>
-    <div class="food">🍔<small>YUMMY!</small></div>
-  </section>
+<section class="hero">
+  <div>
+    <label>✦ FOOD • MOOD • MAGIC</label>
+    <p class="eyebrow">JAGDALPUR, GET READY!</p>
+    <h1>Good food.<br><em>Good mood.</em></h1>
+    <p>Your favourite food, from your favourite places.</p>
+    <a class="btn" href="#restaurants">Explore restaurants ↗</a>
+  </div>
+  <div class="food">🍔<small>YUMMY!</small></div>
+</section>
 
-  <div class="info">
-    <span>🍽️ <b>Local food</b><small>Discover favourites</small></span>
-    <span>🛵 <b>Home delivery</b><small>Order from home</small></span>
-    <span>💜 <b>Made with love</b><small>For every craving</small></span>
+<div class="info">
+  <span>🍽️ <b>Local food</b><small>Discover favourites</small></span>
+  <span>🛵 <b>Home delivery</b><small>Order from home</small></span>
+  <span>💜 <b>Made with love</b><small>For every craving</small></span>
+</div>
+
+<section id="restaurants">
+  <p class="eyebrow">DISCOVER JAGDALPUR</p>
+  <h2>Choose your restaurant</h2>
+  <p>Your city. Your food. Your favourites. 💜</p>
+  <div id="restaurantStatus">Loading restaurants...</div>
+  <div id="restaurantGrid" class="restaurant-grid"></div>
+</section>
+
+<section id="menu" hidden>
+  <button id="backRestaurants">← All Restaurants</button>
+  <p class="eyebrow">EXPLORE THE MENU</p>
+  <h2 id="selectedRestaurantName">Restaurant Menu</h2>
+  <input id="search" placeholder="Search momos, rolls, fries...">
+
+  <div class="cats" id="cats">
+    <button class="active" data-cat="All">✨ All</button>
+    <button data-cat="Momos">🥟 Momos</button>
+    <button data-cat="Chinese">🍜 Chinese</button>
+    <button data-cat="Rolls">🌯 Rolls</button>
+    <button data-cat="Snacks">🍟 Snacks</button>
   </div>
 
-  <section id="restaurants">
-    <p class="eyebrow">DISCOVER JAGDALPUR</p>
-    <h2>Choose your restaurant</h2>
-    <p>Your city. Your food. Your favourites. 💜</p>
-    <div id="restaurantStatus">Loading restaurants...</div>
-    <div id="restaurantGrid" class="restaurant-grid"></div>
-  </section>
+  <div id="products" class="products"></div>
+  <p id="empty" hidden>No items found.</p>
+</section>
 
-  <section id="menu" hidden>
-    <button id="backRestaurants">← All Restaurants</button>
-    <p class="eyebrow">EXPLORE THE MENU</p>
-    <h2 id="selectedRestaurantName">Restaurant Menu</h2>
-    <input id="search" placeholder="Search momos, rolls, fries...">
+<section id="trackOrder">
+  <p class="eyebrow">ORDER UPDATES</p>
+  <h2>Track your order</h2>
+  <p style="color:var(--muted);font-size:13px;line-height:1.6;">
+    Apna Order ID aur secret Tracking Code daalkar order status dekhein.
+  </p>
 
-    <div class="cats" id="cats">
-      <button class="active" data-cat="All">✨ All</button>
-      <button data-cat="Momos">🥟 Momos</button>
-      <button data-cat="Chinese">🍜 Chinese</button>
-      <button data-cat="Rolls">🌯 Rolls</button>
-      <button data-cat="Snacks">🍟 Snacks</button>
-    </div>
+  <div class="tracking-form">
+    <label for="trackingOrderId">Order ID</label>
+    <input id="trackingOrderId" type="text"
+      placeholder="Enter your Order ID" autocomplete="off">
 
-    <div id="products" class="products"></div>
-    <p id="empty" hidden>No items found.</p>
-  </section>
+    <label for="trackingCode">Tracking Code</label>
+    <input id="trackingCode" type="text"
+      placeholder="Enter your Tracking Code" autocomplete="off">
 
-  <!-- ORDER TRACKING -->
-  <section id="trackOrder">
-    <p class="eyebrow">ORDER UPDATES</p>
-    <h2>Track your order</h2>
-    <p style="color:var(--muted);font-size:13px;line-height:1.6;">
-      Apna Order ID aur secret Tracking Code daalkar order status dekhein.
+    <button class="btn" id="trackOrderBtn" type="button">
+      Track Order →
+    </button>
+
+    <p class="tracking-help">
+      Order ID aur Tracking Code order place hone ke baad milenge.
+      Tracking Code ko kisi ke saath share na karein.
     </p>
+  </div>
 
-    <div class="tracking-form">
-      <label for="trackingOrderId">Order ID</label>
-      <input
-        id="trackingOrderId"
-        type="text"
-        placeholder="Enter your Order ID"
-        autocomplete="off"
-      >
+  <div id="trackingResult" hidden></div>
+</section>
 
-      <label for="trackingCode">Tracking Code</label>
-      <input
-        id="trackingCode"
-        type="text"
-        placeholder="Enter your Tracking Code"
-        autocomplete="off"
-      >
+<section class="promo">
+  <div>
+    <label>💜 ZAIKABOX REWARDS</label>
+    <h2>Every order<br>brings a surprise.</h2>
+    <p>Order, collect stamps and unlock exciting rewards.</p>
+    <button class="outline" id="rewardJump">View rewards ↗</button>
+  </div>
+  <div class="seal">✦<b>ZAIKA<br>REWARDS</b>♡</div>
+</section>
 
-      <button class="btn" id="trackOrderBtn" type="button">
-        Track Order →
-      </button>
-
-      <p class="tracking-help">
-        Order ID aur Tracking Code order place hone ke baad milenge.
-        Tracking Code ko kisi ke saath share na karein.
-      </p>
+<section id="rewards">
+  <p class="eyebrow">A LITTLE EXTRA LOVE</p>
+  <h2>Your rewards</h2>
+  <div class="reward">
+    <small>YOUR STAMP CARD</small>
+    <h3>Order & Collect <b>0 / 6</b></h3>
+    <div class="stamps">
+      <i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i>
     </div>
+    <p>Rewards will be managed by ZaikaBox.</p>
+  </div>
 
-    <div id="trackingResult" hidden></div>
-  </section>
+  <div class="offer">
+    🎁
+    <span>
+      <b>Offers & updates</b>
+      <small>Exciting deals coming soon.</small>
+    </span>
+    →
+  </div>
+</section>
 
-  <section class="promo">
-    <div>
-      <label>💜 ZAIKABOX REWARDS</label>
-      <h2>Every order<br>brings a surprise.</h2>
-      <p>Order, collect stamps and unlock exciting rewards.</p>
-      <button class="outline" id="rewardJump">View rewards ↗</button>
-    </div>
-    <div class="seal">✦<b>ZAIKA<br>REWARDS</b>♡</div>
-  </section>
-
-  <section id="rewards">
-    <p class="eyebrow">A LITTLE EXTRA LOVE</p>
-    <h2>Your rewards</h2>
-    <div class="reward">
-      <small>YOUR STAMP CARD</small>
-      <h3>Order & Collect <b>0 / 6</b></h3>
-      <div class="stamps">
-        <i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i>
-      </div>
-      <p>Rewards will be managed by ZaikaBox.</p>
-    </div>
-
-    <div class="offer">
-      🎁
-      <span>
-        <b>Offers & updates</b>
-        <small>Exciting deals coming soon.</small>
-      </span>
-      →
-    </div>
-  </section>
-
-  <section class="last">
-    <div>
-      <p class="eyebrow">READY WHEN YOU ARE</p>
-      <h2>Your next favourite<br>is one tap away.</h2>
-    </div>
-    <button class="btn" id="viewCart">View cart →</button>
-  </section>
+<section class="last">
+  <div>
+    <p class="eyebrow">READY WHEN YOU ARE</p>
+    <h2>Your next favourite<br>is one tap away.</h2>
+  </div>
+  <button class="btn" id="viewCart">View cart →</button>
+</section>
 
 </main>
 
@@ -1001,6 +981,7 @@ nav small {
 
 <div id="toast"></div>
 
+<!-- Latest app.js version -->
 <script type="module" src="app.js?v=20261116"></script>
 
 </body>
