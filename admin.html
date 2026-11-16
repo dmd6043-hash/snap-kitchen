@@ -10,38 +10,23 @@
 <style>
 *{box-sizing:border-box}
 body{
-  margin:0;
-  background:#10091e;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  padding:16px;
+  margin:0;background:#10091e;color:#fff;
+  font-family:Arial,sans-serif;padding:16px;
 }
 .wrap{max-width:850px;margin:auto}
 h1{color:#c5a3ff}
 .card{
-  background:#211536;
-  border:1px solid #392653;
-  padding:17px;
-  border-radius:15px;
-  margin:14px 0;
+  background:#211536;border:1px solid #392653;
+  padding:17px;border-radius:15px;margin:14px 0;
 }
 input,select{
-  width:100%;
-  padding:13px;
-  margin:8px 0;
-  border:1px solid #594276;
-  border-radius:9px;
-  background:#160e25;
-  color:#fff;
-  font-size:15px;
+  width:100%;padding:13px;margin:8px 0;
+  border:1px solid #594276;border-radius:9px;
+  background:#160e25;color:#fff;font-size:15px;
 }
 button{
-  padding:11px 15px;
-  border:0;
-  border-radius:9px;
-  font-weight:bold;
-  margin:5px;
-  cursor:pointer;
+  padding:11px 15px;border:0;border-radius:9px;
+  font-weight:bold;margin:5px;cursor:pointer;
 }
 button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:#b68cff;color:#180d2e}
@@ -52,28 +37,24 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .small{color:#c8bad9;font-size:13px;overflow-wrap:anywhere}
 .hidden{display:none!important}
 .order{
-  border:1px solid #594276;
-  border-radius:12px;
-  padding:14px;
-  margin:12px 0;
-  overflow-wrap:anywhere;
+  border:1px solid #594276;border-radius:12px;
+  padding:14px;margin:12px 0;overflow-wrap:anywhere;
 }
 .order h3{margin-top:0;color:#d2b8ff}
 a{color:#c5a3ff}
 #message,#partnerMessage{color:#ffd27a;overflow-wrap:anywhere}
 .assignment-box{
-  background:#160e25;
-  border:1px solid #594276;
-  padding:12px;
-  border-radius:10px;
-  margin-top:12px;
+  background:#160e25;border:1px solid #594276;
+  padding:12px;border-radius:10px;margin-top:12px;
 }
 .tag{
-  display:inline-block;
-  background:#3a2854;
-  padding:5px 9px;
-  border-radius:20px;
-  font-size:12px;
+  display:inline-block;background:#3a2854;
+  padding:5px 9px;border-radius:20px;font-size:12px;
+}
+.order-type{
+  display:inline-block;padding:5px 9px;
+  border-radius:20px;background:#3a2854;
+  color:#e1ceff;font-size:12px;
 }
 </style>
 </head>
@@ -86,37 +67,27 @@ a{color:#c5a3ff}
 
 <div id="loginBox" class="card">
   <h2>Admin Login</h2>
-
   <input id="email" type="email"
     placeholder="Admin email" autocomplete="username">
-
   <input id="password" type="password"
     placeholder="Password" autocomplete="current-password">
-
-  <button class="primary" id="loginBtn" type="button">
-    LOGIN
-  </button>
-
+  <button class="primary" id="loginBtn" type="button">LOGIN</button>
   <p id="message"></p>
 </div>
 
 <div id="dashboard" class="hidden">
-
   <div class="card">
     <h2>Orders <span id="count">0</span></h2>
-
     <p class="small" id="adminEmail"></p>
 
     <button class="status" id="refreshBtn" type="button">
       REFRESH
     </button>
-
     <button class="reject" id="logoutBtn" type="button">
       LOGOUT
     </button>
 
     <hr>
-
     <p class="small">Delivery Partner Status</p>
     <p id="partnerMessage" class="small">
       Loading delivery partners...
@@ -124,8 +95,8 @@ a{color:#c5a3ff}
   </div>
 
   <div id="orders">Loading orders...</div>
-
 </div>
+
 </div>
 
 <script type="module">
@@ -140,7 +111,6 @@ import {
   doc,
   updateDoc,
   getDocs,
-  getDoc,
   query,
   where,
   writeBatch,
@@ -172,14 +142,13 @@ const auth = getAuth(app);
 
 const $ = id => document.getElementById(id);
 
+const ADMIN_UID = "RjDxrTXlLAgNfns668SgUWxBjBv1";
+
 let unsubscribeOrders = null;
 let deliveryPartners = [];
 let currentOrders = [];
 let loadingAdmin = false;
 
-const ADMIN_UID = "RjDxrTXlLAgNfns668SgUWxBjBv1";
-
-// SAFE HTML TEXT
 function safe(value){
   return String(value ?? "").replace(/[&<>"']/g,char=>({
     "&":"&amp;",
@@ -188,6 +157,17 @@ function safe(value){
     '"':"&quot;",
     "'":"&#039;"
   })[char]);
+}
+
+// ORDER TYPE CHECK
+function isHomeDelivery(order){
+  const type = String(order.orderType || "").toLowerCase();
+  return type.includes("delivery");
+}
+
+function isPickup(order){
+  const type = String(order.orderType || "").toLowerCase();
+  return type.includes("pickup");
 }
 
 // LOGIN
@@ -209,29 +189,23 @@ $("loginBtn").addEventListener("click",async()=>{
   try{
     await signInWithEmailAndPassword(auth,email,password);
     $("message").textContent = "";
-
   }catch(error){
     console.error("Admin login error:",error);
-
     $("message").textContent =
       "Login failed: "+error.code+" - "+error.message;
-
   }finally{
     $("loginBtn").disabled = false;
     $("loginBtn").textContent = "LOGIN";
   }
-
 });
 
 // LOGOUT
 $("logoutBtn").addEventListener("click",async()=>{
-
   try{
     await signOut(auth);
   }catch(error){
     alert("Logout failed: "+error.message);
   }
-
 });
 
 // AUTH CHECK
@@ -240,23 +214,18 @@ onAuthStateChanged(auth,async user=>{
   if(loadingAdmin) return;
 
   if(!user){
-
     cleanupDashboard();
-
     $("loginBox").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
-
     return;
   }
 
   loadingAdmin = true;
-
   $("loginBox").classList.add("hidden");
   $("dashboard").classList.add("hidden");
 
   try{
 
-    // Verify admin UID
     if(user.uid !== ADMIN_UID){
       throw new Error(
         "Ye account Admin account nahi hai. Admin UID match nahi hui."
@@ -274,15 +243,12 @@ onAuthStateChanged(auth,async user=>{
   }catch(error){
 
     console.error("Admin verification error:",error);
-
     alert(error.message);
-
     await signOut(auth);
 
   }finally{
     loadingAdmin = false;
   }
-
 });
 
 // CLEANUP
@@ -299,10 +265,9 @@ function cleanupDashboard(){
   $("orders").innerHTML = "";
   $("count").textContent = "0";
   $("partnerMessage").textContent = "";
-
 }
 
-// LOAD ACTIVE DELIVERY PARTNERS
+// LOAD DELIVERY PARTNERS
 async function loadDeliveryPartners(){
 
   $("partnerMessage").textContent =
@@ -310,7 +275,6 @@ async function loadDeliveryPartners(){
 
   try{
 
-    // Query only active delivery partners
     const partnerQuery = query(
       collection(db,"users"),
       where("role","==","delivery"),
@@ -324,18 +288,11 @@ async function loadDeliveryPartners(){
       ...item.data()
     }));
 
-    if(deliveryPartners.length === 0){
-
-      $("partnerMessage").textContent =
-        "No active delivery partners found.";
-
-    }else{
-
-      $("partnerMessage").textContent =
-        deliveryPartners.length+
-        " active delivery partner(s) available.";
-
-    }
+    $("partnerMessage").textContent =
+      deliveryPartners.length
+      ? deliveryPartners.length+
+        " active delivery partner(s) available."
+      : "No active delivery partners found.";
 
     renderOrders(currentOrders);
 
@@ -346,9 +303,7 @@ async function loadDeliveryPartners(){
     $("partnerMessage").textContent =
       "Delivery partner loading error: "+
       error.code+" - "+error.message;
-
   }
-
 }
 
 // LOAD ORDERS LIVE
@@ -377,7 +332,6 @@ function startOrdersListener(){
       });
 
       $("count").textContent = currentOrders.length;
-
       renderOrders(currentOrders);
 
     },
@@ -389,10 +343,8 @@ function startOrdersListener(){
       $("orders").textContent =
         "Orders load nahi hue: "+
         error.code+" - "+error.message;
-
     }
   );
-
 }
 
 // RENDER ORDERS
@@ -413,12 +365,12 @@ function renderOrders(list){
       order.customerPhone || order.phone || order.mobile || "";
 
     const type = order.orderType || "Not specified";
-
     const address = order.address || "Address not available";
-
     const total = order.total ?? order.grandTotal ?? 0;
-
     const status = order.status || "New";
+
+    const homeDelivery = isHomeDelivery(order);
+    const pickup = isPickup(order);
 
     const items = Array.isArray(order.items)
       ? order.items.map(item=>{
@@ -446,9 +398,7 @@ function renderOrders(list){
       ? order.createdAt.toDate().toLocaleString("en-IN")
       : "Time unavailable";
 
-    const isHomeDelivery =
-      String(type).toLowerCase().includes("delivery");
-
+    // DELIVERY PARTNER OPTIONS
     const selectedPartner = order.assignedTo || "";
 
     const partnerOptions = deliveryPartners.map(partner=>{
@@ -471,10 +421,10 @@ function renderOrders(list){
     const assignedPartner =
       deliveryPartners.find(p=>p.uid===selectedPartner);
 
-    const assignmentHTML = isHomeDelivery ? `
+    // ASSIGNMENT ONLY FOR HOME DELIVERY
+    const assignmentHTML = homeDelivery ? `
 
       <div class="assignment-box">
-
         <p><b>Delivery Partner Assignment</b></p>
 
         <select id="partner-${safe(order.id)}">
@@ -501,16 +451,88 @@ function renderOrders(list){
             ? "CHANGE DELIVERY PARTNER"
             : "ASSIGN DELIVERY"}
         </button>
-
       </div>
 
     ` : "";
+
+    // DIFFERENT BUTTONS FOR DIFFERENT ORDER TYPES
+    const statusButtons = homeDelivery ? `
+
+      <button class="primary"
+        data-id="${safe(order.id)}"
+        data-status="Accepted">ACCEPT</button>
+
+      <button class="reject"
+        data-id="${safe(order.id)}"
+        data-status="Rejected">REJECT</button>
+
+      <br>
+
+      <button class="status"
+        data-id="${safe(order.id)}"
+        data-status="Preparing">PREPARING</button>
+
+      <button class="status"
+        data-id="${safe(order.id)}"
+        data-status="Out for Delivery">OUT FOR DELIVERY</button>
+
+      <button class="success"
+        data-id="${safe(order.id)}"
+        data-status="Delivered">DELIVERED</button>
+
+    ` : pickup ? `
+
+      <button class="primary"
+        data-id="${safe(order.id)}"
+        data-status="Accepted">ACCEPT</button>
+
+      <button class="reject"
+        data-id="${safe(order.id)}"
+        data-status="Rejected">REJECT</button>
+
+      <br>
+
+      <button class="status"
+        data-id="${safe(order.id)}"
+        data-status="Preparing">PREPARING</button>
+
+      <button class="success"
+        data-id="${safe(order.id)}"
+        data-status="Ready for Pickup">READY FOR PICKUP</button>
+
+      <button class="assign"
+        data-id="${safe(order.id)}"
+        data-status="Picked Up">PICKED UP</button>
+
+    ` : `
+
+      <button class="primary"
+        data-id="${safe(order.id)}"
+        data-status="Accepted">ACCEPT</button>
+
+      <button class="reject"
+        data-id="${safe(order.id)}"
+        data-status="Rejected">REJECT</button>
+
+      <br>
+
+      <button class="status"
+        data-id="${safe(order.id)}"
+        data-status="Preparing">PREPARING</button>
+
+    `;
 
     return `
 
       <div class="order">
 
         <h3>Order #${safe(order.id.slice(0,8))}</h3>
+
+        <p>
+          <span class="order-type">
+            ${homeDelivery ? "HOME DELIVERY" : pickup ? "PICKUP" : safe(type)}
+          </span>
+        </p>
 
         <p><b>Name:</b> ${safe(name)}</p>
         <p><b>Phone:</b> ${safe(phone)}</p>
@@ -534,27 +556,7 @@ function renderOrders(list){
 
         <p class="small">${safe(date)}</p>
 
-        <button class="primary"
-          data-id="${safe(order.id)}"
-          data-status="Accepted">ACCEPT</button>
-
-        <button class="reject"
-          data-id="${safe(order.id)}"
-          data-status="Rejected">REJECT</button>
-
-        <br>
-
-        <button class="status"
-          data-id="${safe(order.id)}"
-          data-status="Preparing">PREPARING</button>
-
-        <button class="status"
-          data-id="${safe(order.id)}"
-          data-status="Out for Delivery">OUT FOR DELIVERY</button>
-
-        <button class="status"
-          data-id="${safe(order.id)}"
-          data-status="Delivered">DELIVERED</button>
+        ${statusButtons}
 
         ${assignmentHTML}
 
@@ -563,21 +565,19 @@ function renderOrders(list){
     `;
 
   }).join("");
-
 }
 
-// ASSIGN DELIVERY PARTNER
+// ORDER BUTTON ACTIONS
 $("orders").addEventListener("click",async event=>{
 
+  // ASSIGN DELIVERY PARTNER
   const assignButton =
     event.target.closest("button[data-assign]");
 
   if(assignButton){
 
     const orderId = assignButton.dataset.assign;
-
     const select = $("partner-"+orderId);
-
     const partnerUid = select?.value;
 
     if(!partnerUid){
@@ -596,8 +596,10 @@ $("orders").addEventListener("click",async event=>{
     const order =
       currentOrders.find(o=>o.id===orderId);
 
-    if(!order){
-      alert("Order nahi mila. Refresh kijiye.");
+    if(!order) return;
+
+    if(!isHomeDelivery(order)){
+      alert("Pickup order ko Delivery Partner assign nahi kar sakte.");
       return;
     }
 
@@ -633,13 +635,11 @@ $("orders").addEventListener("click",async event=>{
       );
 
     }finally{
-
       assignButton.disabled = false;
       assignButton.textContent =
         order.assignedTo
         ? "CHANGE DELIVERY PARTNER"
         : "ASSIGN DELIVERY";
-
     }
 
     return;
@@ -659,11 +659,39 @@ $("orders").addEventListener("click",async event=>{
 
   if(!order) return;
 
+  const homeDelivery = isHomeDelivery(order);
+  const pickup = isPickup(order);
+
+  // PREVENT WRONG ORDER TYPE STATUS
+  const deliveryStatuses = [
+    "Out for Delivery",
+    "Delivered"
+  ];
+
+  const pickupStatuses = [
+    "Ready for Pickup",
+    "Picked Up"
+  ];
+
+  if(homeDelivery && pickupStatuses.includes(nextStatus)){
+    alert("Ye status sirf Pickup orders ke liye hai.");
+    return;
+  }
+
+  if(pickup && deliveryStatuses.includes(nextStatus)){
+    alert("Pickup order mein Delivery wala status nahi laga sakte.");
+    return;
+  }
+
   if(
     nextStatus === "Out for Delivery" &&
     !order.assignedTo
   ){
     alert("Pehle Delivery Partner assign kijiye.");
+    return;
+  }
+
+  if(!confirm("Order status "+nextStatus+" karna hai?")){
     return;
   }
 
@@ -692,7 +720,6 @@ $("orders").addEventListener("click",async event=>{
         doc(db,"orderTracking",trackingCode),
         {status:nextStatus}
       );
-
     }
 
     await batch.commit();
@@ -707,20 +734,15 @@ $("orders").addEventListener("click",async event=>{
     );
 
   }finally{
-
     button.disabled = false;
-
   }
 
 });
 
 // REFRESH
 $("refreshBtn").addEventListener("click",async()=>{
-
   await loadDeliveryPartners();
-
   renderOrders(currentOrders);
-
 });
 
 </script>
