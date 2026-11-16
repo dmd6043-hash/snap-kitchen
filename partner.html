@@ -1,0 +1,678 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#180d2e">
+<title>ZaikaBox | Restaurant Partner</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  padding:16px;
+  background:#10091e;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+.wrap{max-width:850px;margin:auto}
+h1{color:#c5a3ff;margin-bottom:4px}
+h2{margin-top:0}
+.card{
+  background:#211536;
+  border:1px solid #392653;
+  border-radius:15px;
+  padding:17px;
+  margin:14px 0;
+}
+input,select,textarea{
+  width:100%;
+  padding:13px;
+  margin:7px 0 13px;
+  border:1px solid #594276;
+  border-radius:9px;
+  background:#160e25;
+  color:#fff;
+  font-size:15px;
+}
+label{font-size:13px;color:#d5c8e8}
+button{
+  padding:11px 15px;
+  margin:4px;
+  border:0;
+  border-radius:9px;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:disabled{opacity:.5}
+.primary{background:#b68cff;color:#180d2e}
+.secondary{background:#44315d;color:#fff}
+.danger{background:#e85d75;color:#fff}
+.success{background:#4cba86;color:#10251b}
+.hidden{display:none!important}
+.small{font-size:13px;color:#c8bad9}
+#message{color:#ffd27a;overflow-wrap:anywhere}
+.item,.order{
+  border:1px solid #594276;
+  border-radius:12px;
+  padding:13px;
+  margin:12px 0;
+  overflow-wrap:anywhere;
+}
+.item h3,.order h3{color:#d2b8ff;margin:0 0 8px}
+.row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.tag{
+  display:inline-block;
+  background:#3a2854;
+  padding:5px 9px;
+  border-radius:20px;
+  font-size:12px;
+}
+hr{border:0;border-top:1px solid #49365f;margin:16px 0}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+  <h1>ZAIKABOX</h1>
+  <p class="small">RESTAURANT PARTNER PANEL</p>
+
+  <div id="loginBox" class="card">
+    <h2>Partner Login</h2>
+
+    <label>Email</label>
+    <input id="email" type="email" placeholder="Partner email"
+      autocomplete="username">
+
+    <label>Password</label>
+    <input id="password" type="password" placeholder="Password"
+      autocomplete="current-password">
+
+    <button class="primary" id="loginBtn" type="button">
+      LOGIN
+    </button>
+
+    <p id="message"></p>
+  </div>
+
+  <div id="dashboard" class="hidden">
+
+    <div class="card">
+      <div class="row">
+        <div>
+          <h2 id="restaurantName">Restaurant</h2>
+          <p class="small">Restaurant Partner Dashboard</p>
+        </div>
+        <button class="secondary" id="logoutBtn">LOGOUT</button>
+      </div>
+      <p id="partnerMessage" class="small"></p>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <h2>Menu Management</h2>
+        <button class="secondary" id="refreshMenuBtn">REFRESH</button>
+      </div>
+
+      <form id="menuForm">
+        <input type="hidden" id="editItemId">
+
+        <label>Item Name</label>
+        <input id="itemName" required maxlength="80"
+          placeholder="Example: Veg Momos">
+
+        <label>Price (₹)</label>
+        <input id="itemPrice" type="number" required min="1"
+          step="1" placeholder="30">
+
+        <label>Category</label>
+        <input id="itemCategory" required maxlength="40"
+          placeholder="Example: Momos">
+
+        <label>Description</label>
+        <textarea id="itemDescription" rows="2"
+          maxlength="250" placeholder="Item details"></textarea>
+
+        <label>Emoji</label>
+        <input id="itemEmoji" maxlength="8" value="🍽️"
+          placeholder="🥟">
+
+        <label>Availability</label>
+        <select id="itemAvailable">
+          <option value="true">Available</option>
+          <option value="false">Unavailable</option>
+        </select>
+
+        <button class="primary" id="saveItemBtn" type="submit">
+          ADD MENU ITEM
+        </button>
+        <button class="secondary hidden" id="cancelEditBtn"
+          type="button">CANCEL EDIT</button>
+      </form>
+
+      <p id="menuMessage" class="small"></p>
+      <hr>
+      <h3>Your Menu Items</h3>
+      <div id="menuList">Loading menu...</div>
+    </div>
+
+    <div class="card">
+      <div class="row">
+        <h2>Your Orders</h2>
+        <button class="secondary" id="refreshOrdersBtn">
+          REFRESH
+        </button>
+      </div>
+      <p class="small">Only orders for your restaurant are shown.</p>
+      <div id="ordersList">Loading orders...</div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+
+import { initializeApp } from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  updateDoc,
+  deleteDoc,
+  doc,
+  query,
+  where,
+  serverTimestamp
+} from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from
+"https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+// FIREBASE CONFIG
+const firebaseConfig = {
+  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+  authDomain: "snap-kitchen-b8a73.firebaseapp.com",
+  projectId: "snap-kitchen-b8a73",
+  storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
+  messagingSenderId: "1060475241392",
+  appId: "1:1060475241392:web:c3751859ecb085830b8c75",
+  measurementId: "G-KRFFRFJY5X"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const auth = getAuth(app);
+
+const $ = id => document.getElementById(id);
+
+let currentRestaurantId = null;
+let currentRestaurantName = "Restaurant";
+let loadingAccount = false;
+
+// SAFE TEXT
+function safe(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&":"&amp;",
+    "<":"&lt;",
+    ">":"&gt;",
+    '"':"&quot;",
+    "'":"&#039;"
+  })[char]);
+}
+
+function showMessage(id, text) {
+  $(id).textContent = text;
+}
+
+// LOGIN
+$("loginBtn").addEventListener("click", async () => {
+  const email = $("email").value.trim();
+  const password = $("password").value;
+
+  if (!email || !password) {
+    showMessage("message", "Email aur password bhariye.");
+    return;
+  }
+
+  $("loginBtn").disabled = true;
+  $("loginBtn").textContent = "LOGGING IN...";
+  showMessage("message", "Please wait...");
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    console.error(error);
+    showMessage("message", "Login failed: " + error.message);
+  } finally {
+    $("loginBtn").disabled = false;
+    $("loginBtn").textContent = "LOGIN";
+  }
+});
+
+// LOGOUT
+$("logoutBtn").addEventListener("click", async () => {
+  try {
+    await signOut(auth);
+  } catch (error) {
+    alert("Logout failed: " + error.message);
+  }
+});
+
+// AUTH + PARTNER ACCOUNT CHECK
+onAuthStateChanged(auth, async user => {
+  if (loadingAccount) return;
+
+  if (!user) {
+    currentRestaurantId = null;
+    $("loginBox").classList.remove("hidden");
+    $("dashboard").classList.add("hidden");
+    $("menuList").textContent = "";
+    $("ordersList").textContent = "";
+    return;
+  }
+
+  loadingAccount = true;
+  $("loginBox").classList.add("hidden");
+  $("dashboard").classList.add("hidden");
+  showMessage("message", "Checking partner account...");
+
+  try {
+    const accountRef = doc(db, "accounts", user.uid);
+    const accountSnapshot = await getDocs(
+      query(collection(db, "accounts"), where("__name__", "==", user.uid))
+    );
+
+    if (accountSnapshot.empty) {
+      throw new Error("Partner account document nahi mila.");
+    }
+
+    const account = accountSnapshot.docs[0].data();
+
+    if (
+      account.role !== "restaurant" ||
+      account.active !== true ||
+      !account.restaurantId
+    ) {
+      throw new Error("Partner account inactive ya invalid hai.");
+    }
+
+    currentRestaurantId = account.restaurantId;
+
+    const restaurantRef = doc(
+      db, "restaurants", currentRestaurantId
+    );
+
+    // Restaurant details are loaded from public restaurant data.
+    const restaurantSnapshot = await getDocs(
+      query(
+        collection(db, "restaurants"),
+        where("__name__", "==", currentRestaurantId)
+      )
+    );
+
+    if (restaurantSnapshot.empty) {
+      throw new Error("Restaurant record nahi mila.");
+    }
+
+    const restaurant = restaurantSnapshot.docs[0].data();
+    currentRestaurantName = restaurant.name || "Restaurant";
+
+    $("restaurantName").textContent = currentRestaurantName;
+    $("partnerMessage").textContent =
+      "Logged in: " + user.email;
+
+    $("dashboard").classList.remove("hidden");
+
+    await loadMenu();
+    await loadOrders();
+
+  } catch (error) {
+    console.error("Partner verification error:", error);
+    showMessage("message", error.message);
+
+    currentRestaurantId = null;
+
+    await signOut(auth);
+  } finally {
+    loadingAccount = false;
+  }
+});
+
+// MENU COLLECTION
+function menuCollection() {
+  return collection(
+    db,
+    "restaurants",
+    currentRestaurantId,
+    "menuItems"
+  );
+}
+
+// LOAD MENU
+async function loadMenu() {
+  if (!currentRestaurantId) return;
+
+  $("menuList").textContent = "Loading menu...";
+
+  try {
+    const snapshot = await getDocs(menuCollection());
+
+    const items = snapshot.docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
+
+    if (!items.length) {
+      $("menuList").innerHTML =
+        '<p class="small">Abhi menu item nahi hai. Upar se add karein.</p>';
+      return;
+    }
+
+    items.sort((a,b) =>
+      String(a.name || "").localeCompare(String(b.name || ""))
+    );
+
+    $("menuList").innerHTML = items.map(item => {
+      const available = item.available ?? item.Available ?? true;
+
+      return `
+        <div class="item">
+          <div class="row">
+            <h3>${safe(item.emoji || "🍽️")} ${safe(item.name || "Food Item")}</h3>
+            <span class="tag">
+              ${available ? "AVAILABLE" : "UNAVAILABLE"}
+            </span>
+          </div>
+
+          <p>Price: <b>₹${safe(item.price ?? item.Price ?? 0)}</b></p>
+          <p class="small">Category: ${safe(item.category || "Other")}</p>
+          <p class="small">${safe(item.description || "")}</p>
+
+          <button class="primary"
+            data-action="edit"
+            data-id="${safe(item.id)}">EDIT</button>
+
+          <button class="secondary"
+            data-action="toggle"
+            data-id="${safe(item.id)}"
+            data-available="${available}">
+            ${available ? "MARK UNAVAILABLE" : "MAKE AVAILABLE"}
+          </button>
+
+          <button class="danger"
+            data-action="delete"
+            data-id="${safe(item.id)}">DELETE</button>
+        </div>
+      `;
+    }).join("");
+
+    // Store current menu for edit buttons.
+    window.partnerMenuItems = items;
+
+  } catch (error) {
+    console.error("Menu load error:", error);
+    $("menuList").textContent =
+      "Menu load nahi hua: " + error.message;
+  }
+}
+
+// RESET MENU FORM
+function resetMenuForm() {
+  $("menuForm").reset();
+  $("editItemId").value = "";
+  $("itemEmoji").value = "🍽️";
+  $("saveItemBtn").textContent = "ADD MENU ITEM";
+  $("cancelEditBtn").classList.add("hidden");
+}
+
+// ADD / EDIT MENU ITEM
+$("menuForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  if (!currentRestaurantId) return;
+
+  const name = $("itemName").value.trim();
+  const price = Number($("itemPrice").value);
+  const category = $("itemCategory").value.trim();
+  const description = $("itemDescription").value.trim();
+  const emoji = $("itemEmoji").value.trim() || "🍽️";
+  const available = $("itemAvailable").value === "true";
+  const editId = $("editItemId").value;
+
+  if (!name || !category || !Number.isFinite(price) || price <= 0) {
+    showMessage("menuMessage", "Name, category aur valid price bhariye.");
+    return;
+  }
+
+  $("saveItemBtn").disabled = true;
+  showMessage("menuMessage", "Saving menu item...");
+
+  const itemData = {
+    name,
+    price,
+    category,
+    description,
+    emoji,
+    available,
+    updatedAt: serverTimestamp()
+  };
+
+  try {
+    if (editId) {
+      await updateDoc(
+        doc(db, "restaurants", currentRestaurantId, "menuItems", editId),
+        itemData
+      );
+
+      showMessage("menuMessage", "Menu item updated!");
+    } else {
+      await addDoc(menuCollection(), {
+        ...itemData,
+        createdAt: serverTimestamp()
+      });
+
+      showMessage("menuMessage", "New menu item added!");
+    }
+
+    resetMenuForm();
+    await loadMenu();
+
+  } catch (error) {
+    console.error("Menu save error:", error);
+    showMessage("menuMessage", "Save nahi hua: " + error.message);
+  } finally {
+    $("saveItemBtn").disabled = false;
+  }
+});
+
+// MENU BUTTON ACTIONS
+$("menuList").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-action]");
+  if (!button || !currentRestaurantId) return;
+
+  const id = button.dataset.id;
+  const action = button.dataset.action;
+  const item = (window.partnerMenuItems || []).find(x => x.id === id);
+
+  if (!item) return;
+
+  try {
+    button.disabled = true;
+
+    const itemRef = doc(
+      db, "restaurants", currentRestaurantId, "menuItems", id
+    );
+
+    if (action === "edit") {
+      $("editItemId").value = item.id;
+      $("itemName").value = item.name || "";
+      $("itemPrice").value = item.price ?? item.Price ?? 0;
+      $("itemCategory").value = item.category || item.Category || "";
+      $("itemDescription").value =
+        item.description || item.Description || "";
+      $("itemEmoji").value = item.emoji || item.Emoji || "🍽️";
+      $("itemAvailable").value =
+        String(item.available ?? item.Available ?? true);
+
+      $("saveItemBtn").textContent = "SAVE CHANGES";
+      $("cancelEditBtn").classList.remove("hidden");
+
+      $("menuForm").scrollIntoView({
+        behavior: "smooth",
+        block: "start"
+      });
+
+    } else if (action === "toggle") {
+      const current = item.available ?? item.Available ?? true;
+
+      await updateDoc(itemRef, {
+        available: !current,
+        updatedAt: serverTimestamp()
+      });
+
+      await loadMenu();
+
+    } else if (action === "delete") {
+      if (!confirm("Is menu item ko delete karna hai?")) return;
+
+      await deleteDoc(itemRef);
+      await loadMenu();
+      showMessage("menuMessage", "Menu item deleted.");
+    }
+
+  } catch (error) {
+    console.error("Menu action error:", error);
+    alert("Action complete nahi hua: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$("cancelEditBtn").addEventListener("click", resetMenuForm);
+$("refreshMenuBtn").addEventListener("click", loadMenu);
+
+// LOAD RESTAURANT ORDERS
+async function loadOrders() {
+  if (!currentRestaurantId) return;
+
+  $("ordersList").textContent = "Loading orders...";
+
+  try {
+    const ordersQuery = query(
+      collection(db, "orders"),
+      where("restaurantId", "==", currentRestaurantId)
+    );
+
+    const snapshot = await getDocs(ordersQuery);
+
+    const orders = snapshot.docs.map(item => ({
+      id: item.id,
+      ...item.data()
+    }));
+
+    orders.sort((a,b) => {
+      const at = a.createdAt?.toMillis?.() || 0;
+      const bt = b.createdAt?.toMillis?.() || 0;
+      return bt - at;
+    });
+
+    if (!orders.length) {
+      $("ordersList").innerHTML =
+        '<p class="small">Abhi koi order nahi hai.</p>';
+      return;
+    }
+
+    $("ordersList").innerHTML = orders.map(order => {
+      const items = Array.isArray(order.items)
+        ? order.items.map(item =>
+            `${safe(item.name || "Item")} × ${safe(item.quantity || 1)}`
+          ).join("<br>")
+        : safe(order.items || "Items unavailable");
+
+      const date = order.createdAt?.toDate
+        ? order.createdAt.toDate().toLocaleString("en-IN")
+        : "Time unavailable";
+
+      const status = order.status || "New";
+
+      return `
+        <div class="order">
+          <h3>Order #${safe(order.id.slice(0,8))}</h3>
+          <p><b>Customer:</b> ${safe(order.customerName || "Customer")}</p>
+          <p><b>Phone:</b> ${safe(order.customerPhone || "")}</p>
+          <p><b>Type:</b> ${safe(order.orderType || "Not specified")}</p>
+          <p><b>Items:</b><br>${items}</p>
+          <p><b>Total:</b> ₹${safe(order.total ?? 0)}</p>
+          <p><b>Address:</b> ${safe(order.address || "Pickup")}</p>
+          <p><b>Status:</b> ${safe(status)}</p>
+          <p class="small">${safe(date)}</p>
+
+          <button class="success"
+            data-order="${safe(order.id)}"
+            data-status="Accepted">ACCEPT</button>
+
+          <button class="danger"
+            data-order="${safe(order.id)}"
+            data-status="Rejected">REJECT</button>
+
+          <button class="secondary"
+            data-order="${safe(order.id)}"
+            data-status="Preparing">PREPARING</button>
+        </div>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("Orders load error:", error);
+    $("ordersList").textContent =
+      "Orders load nahi hue: " + error.message;
+  }
+}
+
+// UPDATE ORDER STATUS
+$("ordersList").addEventListener("click", async event => {
+  const button = event.target.closest("button[data-order]");
+  if (!button || !currentRestaurantId) return;
+
+  const orderId = button.dataset.order;
+  const status = button.dataset.status;
+
+  try {
+    button.disabled = true;
+
+    await updateDoc(doc(db, "orders", orderId), {
+      status
+    });
+
+    await loadOrders();
+
+  } catch (error) {
+    console.error("Order update error:", error);
+    alert("Order status update nahi hua: " + error.message);
+  } finally {
+    button.disabled = false;
+  }
+});
+
+$("refreshOrdersBtn").addEventListener("click", loadOrders);
+
+</script>
+</body>
+</html>
