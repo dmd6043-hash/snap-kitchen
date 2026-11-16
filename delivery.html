@@ -4,26 +4,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#101010">
+<meta name="theme-color" content="#180d2e">
 <title>ZaikaBox - Delivery Partner</title>
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;font-family:Arial,sans-serif;background:#101010;color:white}
-header{background:#171717;padding:18px;text-align:center;border-bottom:2px solid #e53935}
-header h2{margin:0;color:#ff4545}
+body{margin:0;font-family:Arial,sans-serif;background:#10091e;color:white}
+header{background:#180d2e;padding:18px;text-align:center;border-bottom:2px solid #a855f7}
+header h2{margin:0;color:#c084fc}
 .container{max-width:650px;margin:auto;padding:16px}
-.card{background:#202020;padding:16px;border-radius:12px;margin-bottom:15px;border:1px solid #333}
-input{width:100%;padding:13px;margin:8px 0;border:1px solid #555;border-radius:8px;background:#111;color:white;font-size:16px}
-button,.map-btn{display:inline-block;border:0;padding:12px 15px;margin:5px 4px 5px 0;border-radius:8px;background:#e53935;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
+.card{background:#201532;padding:16px;border-radius:14px;margin-bottom:15px;border:1px solid #493264}
+input{width:100%;padding:13px;margin:8px 0;border:1px solid #60457d;border-radius:8px;background:#130d20;color:white;font-size:16px}
+button,.map-btn{display:inline-block;border:0;padding:12px 15px;margin:5px 4px 5px 0;border-radius:8px;background:#9333ea;color:white;font-weight:bold;text-decoration:none;cursor:pointer}
 button:disabled{opacity:.5}
 .green{background:#168b45}
 .blue{background:#1769aa}
 .muted{color:#bbb}
 .hidden{display:none}
 #loginMessage,#message{color:#ffcc80;overflow-wrap:anywhere;line-height:1.5}
-.order h3{margin-top:0;color:#ff6666}
+.order h3{margin-top:0;color:#d8b4fe}
 .order p{line-height:1.5;overflow-wrap:anywhere;white-space:pre-line}
+.gps{background:#17102a;border:1px solid #7541a5;padding:12px;border-radius:10px;margin-top:12px;font-size:14px;line-height:1.5}
+.gps strong{color:#c084fc}
 </style>
 </head>
 
@@ -47,6 +49,10 @@ button:disabled{opacity:.5}
 <div class="card">
 <h3>Welcome, Delivery Partner</h3>
 <p id="userEmail" class="muted"></p>
+<div class="gps">
+<strong>LIVE GPS TRACKING</strong>
+<p id="gpsMessage">Location sharing abhi band hai.</p>
+</div>
 <button id="logoutBtn" class="blue">LOGOUT</button>
 </div>
 
@@ -77,7 +83,9 @@ collection,
 query,
 where,
 onSnapshot,
-writeBatch
+writeBatch,
+setDoc,
+serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -100,15 +108,124 @@ const loginMessage = document.getElementById("loginMessage");
 const message = document.getElementById("message");
 const ordersDiv = document.getElementById("orders");
 const loginBtn = document.getElementById("loginBtn");
+const gpsMessage = document.getElementById("gpsMessage");
 
 let unsubscribeOrders = null;
 let checkingUser = false;
+let gpsWatchId = null;
+let activeTrackingKey = null;
 
 function normalizeRole(value){
 return String(value ?? "")
 .replace(/[\u200B-\u200D\uFEFF]/g,"")
 .trim()
 .toLowerCase();
+}
+
+function stopLocationSharing(){
+if(gpsWatchId !== null){
+navigator.geolocation.clearWatch(gpsWatchId);
+gpsWatchId = null;
+}
+activeTrackingKey = null;
+gpsMessage.textContent = "Location sharing band hai.";
+}
+
+// LIVE GPS LOCATION
+function startLocationSharing(orderId, trackingCode){
+
+if(!trackingCode){
+gpsMessage.textContent =
+"Is order mein tracking code nahi hai. GPS map available nahi hoga.";
+return;
+}
+
+if(!navigator.geolocation){
+gpsMessage.textContent = "Is browser mein GPS supported nahi hai.";
+return;
+}
+
+const cleanCode = String(trackingCode)
+.replace(/[\s-]/g,"")
+.toUpperCase();
+
+if(activeTrackingKey === cleanCode && gpsWatchId !== null){
+return;
+}
+
+stopLocationSharing();
+
+activeTrackingKey = cleanCode;
+gpsMessage.textContent = "GPS permission aur location ka wait ho raha hai...";
+
+gpsWatchId = navigator.geolocation.watchPosition(
+async(position)=>{
+
+const latitude = position.coords.latitude;
+const longitude = position.coords.longitude;
+const accuracy = position.coords.accuracy;
+
+try{
+
+await setDoc(
+doc(db,"deliveryLocations",cleanCode),
+{
+orderId: orderId,
+latitude: latitude,
+longitude: longitude,
+accuracy: accuracy,
+updatedAt: serverTimestamp()
+},
+{merge:true}
+);
+
+gpsMessage.textContent =
+"🟢 Live location sharing ON"+
+"\nAccuracy: "+Math.round(accuracy)+" metres"+
+"\nLocation successfully updated.";
+
+}catch(error){
+
+console.error("GPS Firebase error:",error);
+
+gpsMessage.textContent =
+"GPS save error: "+error.code+" - "+error.message;
+
+}
+
+},
+(error)=>{
+
+console.error("GPS error:",error);
+
+let reason = error.message;
+
+if(error.code === 1){
+reason = "Location permission denied. Browser settings mein location allow kijiye.";
+}
+
+if(error.code === 2){
+reason = "GPS location available nahi hai. GPS ON kijiye.";
+}
+
+if(error.code === 3){
+reason = "GPS timeout. Dobara location try karein.";
+}
+
+gpsMessage.textContent = "GPS ERROR: "+reason;
+
+if(error.code === 1){
+stopLocationSharing();
+}
+
+},
+{
+enableHighAccuracy:true,
+maximumAge:5000,
+timeout:20000
+}
+);
+
 }
 
 // LOGIN
@@ -140,6 +257,7 @@ loginBtn.textContent = "LOGIN";
 
 // LOGOUT
 document.getElementById("logoutBtn").addEventListener("click",async()=>{
+stopLocationSharing();
 try{
 await signOut(auth);
 }catch(error){
@@ -155,6 +273,7 @@ unsubscribeOrders();
 unsubscribeOrders = null;
 }
 
+stopLocationSharing();
 ordersDiv.innerHTML = "";
 
 if(!user){
@@ -174,7 +293,6 @@ loginMessage.textContent = "Checking delivery account...";
 
 try{
 
-// Existing delivery account check
 const userRef = doc(db,"users",user.uid);
 const userSnap = await getDoc(userRef);
 
@@ -207,7 +325,6 @@ user.email || "";
 
 message.textContent = "Loading assigned orders...";
 
-// Assigned orders
 const ordersQuery = query(
 collection(db,"orders"),
 where("assignedTo","==",user.uid)
@@ -222,11 +339,39 @@ ordersDiv.innerHTML = "";
 if(snapshot.empty){
 message.textContent =
 "Abhi aapko koi order assign nahi hua hai.";
+stopLocationSharing();
 return;
 }
 
 message.textContent =
 snapshot.size+" assigned order(s)";
+
+// Find an active delivery
+let activeOrder = null;
+
+snapshot.forEach((orderDoc)=>{
+const order = orderDoc.data();
+
+if(
+!activeOrder &&
+order.status === "Out for Delivery" &&
+order.trackingCode
+){
+activeOrder = {
+id:orderDoc.id,
+trackingCode:order.trackingCode
+};
+}
+});
+
+if(activeOrder){
+startLocationSharing(
+activeOrder.id,
+activeOrder.trackingCode
+);
+}else{
+stopLocationSharing();
+}
 
 snapshot.forEach((orderDoc)=>{
 
@@ -318,7 +463,6 @@ updateButton.textContent = "UPDATING...";
 
 try{
 
-// Update order and tracking together
 const batch = writeBatch(db);
 
 batch.update(
@@ -326,7 +470,6 @@ doc(db,"orders",orderId),
 {status:nextStatus}
 );
 
-// Update customer tracking record
 if(order.trackingCode){
 
 const trackingCode = String(order.trackingCode)
@@ -341,6 +484,10 @@ doc(db,"orderTracking",trackingCode),
 }
 
 await batch.commit();
+
+if(nextStatus === "Delivered"){
+stopLocationSharing();
+}
 
 alert("Order status updated: "+nextStatus);
 
