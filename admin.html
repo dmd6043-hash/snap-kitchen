@@ -5,393 +5,509 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101510">
-<title>Snap Kitchen Admin</title>
+<title>ZaikaBox Admin</title>
 
 <style>
 *{box-sizing:border-box}
-
-body{
-  margin:0;
-  background:#101510;
-  color:#fff;
-  font-family:Arial,sans-serif;
-  padding:18px;
-}
-
+body{margin:0;background:#101510;color:#fff;font-family:Arial,sans-serif;padding:18px}
 .wrap{max-width:850px;margin:auto}
 h1{color:#b8f36b}
-
-.card{
-  background:#1d271e;
-  padding:18px;
-  border-radius:15px;
-  margin:14px 0;
-}
-
-input{
-  width:100%;
-  padding:14px;
-  margin:8px 0;
-  border:0;
-  border-radius:9px;
-}
-
-button{
-  padding:11px 15px;
-  border:0;
-  border-radius:9px;
-  font-weight:bold;
-  margin:5px;
-  cursor:pointer;
-}
-
+.card{background:#1d271e;padding:18px;border-radius:15px;margin:14px 0}
+input,select{width:100%;padding:14px;margin:8px 0;border:0;border-radius:9px;background:#fff;color:#111;font-size:15px}
+button{padding:11px 15px;border:0;border-radius:9px;font-weight:bold;margin:5px;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
-
 .primary{background:#b8f36b;color:#101510}
 .reject{background:#ff6868;color:#fff}
 .status{background:#344333;color:white}
+.assign{background:#2679d8;color:white}
 .small{color:#c1c9bf;font-size:13px}
 .hidden{display:none}
 .order{border:1px solid #465344;border-radius:12px;padding:14px;margin:12px 0}
 .order h3{margin-top:0;color:#b8f36b}
 a{color:#b8f36b}
 #message{color:#ffd27a;overflow-wrap:anywhere}
+.assignment-box{background:#111b12;padding:12px;border-radius:10px;margin-top:12px}
 </style>
 </head>
 
 <body>
 <div class="wrap">
 
-<h1>SNAP KITCHEN</h1>
+<h1>ZAIKABOX</h1>
 <p class="small">ADMIN DASHBOARD</p>
 
 <div id="loginBox" class="card">
-  <h2>Admin Login</h2>
-
-  <input id="email" type="email"
-    placeholder="Admin email" autocomplete="username">
-
-  <input id="password" type="password"
-    placeholder="Password" autocomplete="current-password">
-
-  <button class="primary" id="loginBtn" type="button">
-    LOGIN
-  </button>
-
-  <p id="message"></p>
+<h2>Admin Login</h2>
+<input id="email" type="email" placeholder="Admin email" autocomplete="username">
+<input id="password" type="password" placeholder="Password" autocomplete="current-password">
+<button class="primary" id="loginBtn" type="button">LOGIN</button>
+<p id="message"></p>
 </div>
 
 <div id="dashboard" class="hidden">
-
-  <div class="card">
-    <h2>Orders <span id="count">0</span></h2>
-    <button class="status" id="logoutBtn" type="button">LOGOUT</button>
-    <p class="small">Live orders from Firebase</p>
-  </div>
-
-  <div id="orders">Loading orders...</div>
-
+<div class="card">
+<h2>Orders <span id="count">0</span></h2>
+<button class="status" id="logoutBtn" type="button">LOGOUT</button>
+<p class="small">Live orders from Firebase</p>
+<p class="small" id="partnerMessage">Loading delivery partners...</p>
 </div>
+<div id="orders">Loading orders...</div>
+</div>
+
 </div>
 
 <script type="module">
 
-import { initializeApp } from
+import {initializeApp} from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
-  getFirestore,
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc
+getFirestore,
+collection,
+onSnapshot,
+doc,
+updateDoc,
+getDocs,
+query,
+where,
+writeBatch
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+getAuth,
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-// FIREBASE CONFIG
-
 const firebaseConfig = {
-  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
-  authDomain: "snap-kitchen-b8a73.firebaseapp.com",
-  projectId: "snap-kitchen-b8a73",
-  storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
-  messagingSenderId: "1060475241392",
-  appId: "1:1060475241392:web:c3751859ecb085830b8c75",
-  measurementId: "G-KRFFRFJY5X"
+apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+authDomain: "snap-kitchen-b8a73.firebaseapp.com",
+projectId: "snap-kitchen-b8a73",
+storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
+messagingSenderId: "1060475241392",
+appId: "1:1060475241392:web:c3751859ecb085830b8c75",
+measurementId: "G-KRFFRFJY5X"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
 
-// ELEMENTS
-
 const loginBox = document.getElementById("loginBox");
 const dashboard = document.getElementById("dashboard");
 const message = document.getElementById("message");
 const ordersBox = document.getElementById("orders");
 const loginBtn = document.getElementById("loginBtn");
+const partnerMessage = document.getElementById("partnerMessage");
 
-// LOGIN
+let unsubscribeOrders = null;
+let deliveryPartners = [];
 
-loginBtn.addEventListener("click", async () => {
+loginBtn.addEventListener("click",async()=>{
 
-  const email = document.getElementById("email").value.trim();
-  const password = document.getElementById("password").value;
+const email = document.getElementById("email").value.trim();
+const password = document.getElementById("password").value;
 
-  if (!email || !password) {
-    message.textContent = "Email aur password dono bhariye.";
-    return;
-  }
+if(!email || !password){
+message.textContent = "Email aur password dono bhariye.";
+return;
+}
 
-  loginBtn.disabled = true;
-  loginBtn.textContent = "LOGGING IN...";
-  message.textContent = "Please wait...";
+loginBtn.disabled = true;
+loginBtn.textContent = "LOGGING IN...";
+message.textContent = "Please wait...";
 
-  try {
-
-    await signInWithEmailAndPassword(auth, email, password);
-
-    message.textContent = "";
-
-  } catch (error) {
-
-    console.error("Login error:", error);
-
-    message.textContent =
-      "Login failed: " + error.code + " - " + error.message;
-
-  } finally {
-
-    loginBtn.disabled = false;
-    loginBtn.textContent = "LOGIN";
-
-  }
+try{
+await signInWithEmailAndPassword(auth,email,password);
+message.textContent = "";
+}catch(error){
+message.textContent =
+"Login failed: "+error.code+" - "+error.message;
+}finally{
+loginBtn.disabled = false;
+loginBtn.textContent = "LOGIN";
+}
 
 });
 
-// LOGOUT
-
-document.getElementById("logoutBtn").addEventListener("click", async () => {
-
-  try {
-    await signOut(auth);
-  } catch (error) {
-    alert("Logout failed: " + error.message);
-  }
-
+document.getElementById("logoutBtn").addEventListener("click",async()=>{
+try{
+await signOut(auth);
+}catch(error){
+alert("Logout failed: "+error.message);
+}
 });
 
-// AUTH STATE
+onAuthStateChanged(auth,user=>{
 
-let unsubscribe = null;
+if(user){
 
-onAuthStateChanged(auth, user => {
+loginBox.classList.add("hidden");
+dashboard.classList.remove("hidden");
 
-  if (user) {
+loadDeliveryPartners();
+loadOrders();
 
-    loginBox.classList.add("hidden");
-    dashboard.classList.remove("hidden");
+}else{
 
-    loadOrders();
+if(unsubscribeOrders){
+unsubscribeOrders();
+unsubscribeOrders = null;
+}
 
-  } else {
-
-    if (unsubscribe) {
-      unsubscribe();
-      unsubscribe = null;
-    }
-
-    loginBox.classList.remove("hidden");
-    dashboard.classList.add("hidden");
-    ordersBox.innerHTML = "";
-
-  }
-
-});
-
-// SAFE TEXT
-
-function safe(value) {
-
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#039;"
-  })[char]);
+loginBox.classList.remove("hidden");
+dashboard.classList.add("hidden");
+ordersBox.innerHTML = "";
+deliveryPartners = [];
 
 }
 
+});
+
+function safe(value){
+return String(value ?? "").replace(/[&<>"']/g,char=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+})[char]);
+}
+
+// LOAD DELIVERY PARTNERS
+async function loadDeliveryPartners(){
+
+partnerMessage.textContent = "Loading delivery partners...";
+
+try{
+
+const snap = await getDocs(collection(db,"users"));
+
+deliveryPartners = snap.docs
+.map(item=>({
+uid:item.id,
+...item.data()
+}))
+.filter(user=>
+String(user.role || "").trim().toLowerCase() === "delivery"
+&& user.active === true
+);
+
+if(deliveryPartners.length === 0){
+partnerMessage.textContent =
+"No active delivery partners found in users collection.";
+}else{
+partnerMessage.textContent =
+deliveryPartners.length+" active delivery partner(s) available.";
+}
+
+renderOrdersCache();
+
+}catch(error){
+
+console.error("Delivery partner loading error:",error);
+
+partnerMessage.textContent =
+"Delivery partner loading error: "+error.code+" - "+error.message;
+
+}
+
+}
+
+let currentOrders = [];
+
+function renderOrdersCache(){
+if(currentOrders.length) renderOrders(currentOrders);
+}
+
 // LOAD ORDERS
+function loadOrders(){
 
-function loadOrders() {
+if(unsubscribeOrders) unsubscribeOrders();
 
-  if (unsubscribe) unsubscribe();
+ordersBox.textContent = "Loading orders...";
 
-  ordersBox.textContent = "Loading orders...";
+unsubscribeOrders = onSnapshot(
+collection(db,"orders"),
 
-  unsubscribe = onSnapshot(
-    collection(db, "orders"),
+snapshot=>{
 
-    snapshot => {
+currentOrders = snapshot.docs.map(item=>({
+id:item.id,
+...item.data()
+}));
 
-      const list = snapshot.docs.map(item => ({
-        id: item.id,
-        ...item.data()
-      }));
+currentOrders.sort((a,b)=>{
+const at = a.createdAt?.toMillis?.() || 0;
+const bt = b.createdAt?.toMillis?.() || 0;
+return bt-at;
+});
 
-      list.sort((a,b) => {
+document.getElementById("count").textContent =
+currentOrders.length;
 
-        const at = a.createdAt?.toMillis?.() || 0;
-        const bt = b.createdAt?.toMillis?.() || 0;
+renderOrders(currentOrders);
 
-        return bt - at;
+},
 
-      });
+error=>{
 
-      document.getElementById("count").textContent = list.length;
+console.error("Orders error:",error);
 
-      if (!list.length) {
+ordersBox.textContent =
+"Orders load nahi hue: "+error.code+" - "+error.message;
 
-        ordersBox.innerHTML =
-          '<div class="card">Abhi koi order nahi hai.</div>';
+}
 
-        return;
+);
 
-      }
+}
 
-      ordersBox.innerHTML = list.map(order => {
+// RENDER ORDERS
+function renderOrders(list){
 
-        const name = order.customerName || order.name || "Customer";
-        const phone = order.phone || order.mobile || "";
-        const type = order.orderType || "Not specified";
-        const address = order.address || "Address not available";
-        const total = order.total ?? order.grandTotal ?? 0;
-        const status = order.status || "New";
+if(!list.length){
+ordersBox.innerHTML =
+'<div class="card">Abhi koi order nahi hai.</div>';
+return;
+}
 
-        const items = Array.isArray(order.items)
-          ? order.items.map(item => {
+ordersBox.innerHTML = list.map(order=>{
 
-              if (typeof item === "string") {
-                return safe(item);
-              }
+const name = order.customerName || order.name || "Customer";
+const phone = order.phone || order.mobile || "";
+const type = order.orderType || "Not specified";
+const address = order.address || "Address not available";
+const total = order.total ?? order.grandTotal ?? 0;
+const status = order.status || "New";
 
-              return safe(item.name || item.title || "Item") +
-                " × " + safe(item.quantity || item.qty || 1);
+const items = Array.isArray(order.items)
+? order.items.map(item=>{
 
-            }).join("<br>")
-          : safe(order.items || "Items not available");
+if(typeof item === "string") return safe(item);
 
-        const map = order.mapLink || order.googleMapsLink ||
-          (order.latitude != null && order.longitude != null
-            ? `https://www.google.com/maps?q=${encodeURIComponent(order.latitude)},${encodeURIComponent(order.longitude)}`
-            : "");
+return safe(item.name || item.title || "Item")+
+" × "+safe(item.quantity || item.qty || 1);
 
-        const date = order.createdAt?.toDate
-          ? order.createdAt.toDate().toLocaleString("en-IN")
-          : "Time unavailable";
+}).join("<br>")
+: safe(order.items || "Items not available");
 
-        return `
-          <div class="order">
+const map = order.mapLink || order.googleMapsLink ||
+(order.latitude != null && order.longitude != null
+? "https://www.google.com/maps?q="+
+encodeURIComponent(order.latitude+","+order.longitude)
+: "");
 
-            <h3>Order #${safe(order.id.slice(0,8))}</h3>
+const date = order.createdAt?.toDate
+? order.createdAt.toDate().toLocaleString("en-IN")
+: "Time unavailable";
 
-            <p><b>Name:</b> ${safe(name)}</p>
-            <p><b>Phone:</b> ${safe(phone)}</p>
-            <p><b>Order Type:</b> ${safe(type)}</p>
-            <p><b>Items:</b><br>${items}</p>
-            <p><b>Total:</b> ₹${safe(total)}</p>
-            <p><b>Address:</b> ${safe(address)}</p>
+const isHomeDelivery =
+String(type).toLowerCase().includes("delivery");
 
-            ${map
-              ? `<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>`
-              : ""}
+const selectedPartner = order.assignedTo || "";
 
-            <p><b>Current Status:</b> ${safe(status)}</p>
-            <p class="small">${safe(date)}</p>
+const partnerOptions = deliveryPartners.map(partner=>{
 
-            <button class="primary"
-              data-id="${safe(order.id)}"
-              data-status="Accepted">ACCEPT</button>
+const partnerName =
+partner.name || partner.displayName || partner.email || partner.uid;
 
-            <button class="reject"
-              data-id="${safe(order.id)}"
-              data-status="Rejected">REJECT</button>
+return `
+<option value="${safe(partner.uid)}"
+${selectedPartner === partner.uid ? "selected" : ""}>
+${safe(partnerName)}
+</option>`;
 
-            <br>
+}).join("");
 
-            <button class="status"
-              data-id="${safe(order.id)}"
-              data-status="Preparing">PREPARING</button>
+const assignmentHTML = isHomeDelivery ? `
+<div class="assignment-box">
+<p><b>Delivery Partner Assignment</b></p>
+<select id="partner-${safe(order.id)}">
+<option value="">Select Delivery Partner</option>
+${partnerOptions}
+</select>
+<p class="small">
+${selectedPartner
+? "Currently assigned: "+safe(
+deliveryPartners.find(p=>p.uid===selectedPartner)?.name ||
+deliveryPartners.find(p=>p.uid===selectedPartner)?.email ||
+selectedPartner
+)
+: "Not assigned yet"}
+</p>
+<button class="assign"
+data-assign="${safe(order.id)}">
+${selectedPartner ? "CHANGE DELIVERY PARTNER" : "ASSIGN DELIVERY"}
+</button>
+</div>
+` : "";
 
-            <button class="status"
-              data-id="${safe(order.id)}"
-              data-status="Out for Delivery">OUT FOR DELIVERY</button>
+return `
+<div class="order">
 
-            <button class="status"
-              data-id="${safe(order.id)}"
-              data-status="Delivered">DELIVERED</button>
+<h3>Order #${safe(order.id.slice(0,8))}</h3>
 
-          </div>
-        `;
+<p><b>Name:</b> ${safe(name)}</p>
+<p><b>Phone:</b> ${safe(phone)}</p>
+<p><b>Order Type:</b> ${safe(type)}</p>
+<p><b>Items:</b><br>${items}</p>
+<p><b>Total:</b> ₹${safe(total)}</p>
+<p><b>Address:</b> ${safe(address)}</p>
 
-      }).join("");
+${map
+? `<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>`
+: ""}
 
-    },
+<p><b>Current Status:</b> ${safe(status)}</p>
+<p class="small">${safe(date)}</p>
 
-    error => {
+<button class="primary"
+data-id="${safe(order.id)}"
+data-status="Accepted">ACCEPT</button>
 
-      console.error("Orders error:", error);
+<button class="reject"
+data-id="${safe(order.id)}"
+data-status="Rejected">REJECT</button>
 
-      ordersBox.textContent =
-        "Orders load nahi hue: " + error.message;
+<br>
 
-    }
+<button class="status"
+data-id="${safe(order.id)}"
+data-status="Preparing">PREPARING</button>
 
-  );
+<button class="status"
+data-id="${safe(order.id)}"
+data-status="Out for Delivery">OUT FOR DELIVERY</button>
+
+<button class="status"
+data-id="${safe(order.id)}"
+data-status="Delivered">DELIVERED</button>
+
+${assignmentHTML}
+
+</div>
+`;
+
+}).join("");
+
+}
+
+// ASSIGN DELIVERY PARTNER
+ordersBox.addEventListener("click",async event=>{
+
+const assignButton = event.target.closest("button[data-assign]");
+
+if(assignButton){
+
+const orderId = assignButton.dataset.assign;
+const select = document.getElementById("partner-"+orderId);
+const partnerUid = select?.value;
+
+if(!partnerUid){
+alert("Pehle Delivery Partner select kijiye.");
+return;
+}
+
+const partner = deliveryPartners.find(p=>p.uid===partnerUid);
+
+if(!partner){
+alert("Selected delivery partner nahi mila.");
+return;
+}
+
+if(!confirm("Is order ko selected Delivery Partner ko assign karna hai?")){
+return;
+}
+
+assignButton.disabled = true;
+assignButton.textContent = "ASSIGNING...";
+
+try{
+
+await updateDoc(
+doc(db,"orders",orderId),
+{
+assignedTo: partnerUid,
+assignedToEmail: partner.email || "",
+assignedAt: new Date()
+}
+);
+
+alert("Delivery Partner successfully assigned!");
+
+}catch(error){
+
+console.error("Assignment error:",error);
+
+alert(
+"Assignment failed: "+error.code+" - "+error.message
+);
+
+}finally{
+
+assignButton.disabled = false;
+assignButton.textContent = "ASSIGN DELIVERY";
+
+}
+
+return;
 
 }
 
 // UPDATE ORDER STATUS
+const button = event.target.closest("button[data-id]");
 
-ordersBox.addEventListener("click", async event => {
+if(!button) return;
 
-  const button = event.target.closest("button[data-id]");
+const orderId = button.dataset.id;
+const nextStatus = button.dataset.status;
+const order = currentOrders.find(o=>o.id===orderId);
 
-  if (!button) return;
+button.disabled = true;
 
-  try {
+try{
 
-    button.disabled = true;
+if(order?.trackingCode){
 
-    await updateDoc(
-      doc(db, "orders", button.dataset.id),
-      {
-        status: button.dataset.status
-      }
-    );
+const trackingCode = String(order.trackingCode)
+.replace(/[\s-]/g,"")
+.toUpperCase();
 
-  } catch (error) {
+const batch = writeBatch(db);
 
-    console.error("Status update error:", error);
+batch.update(doc(db,"orders",orderId),{
+status:nextStatus
+});
 
-    alert("Status update nahi hua: " + error.message);
+batch.update(doc(db,"orderTracking",trackingCode),{
+status:nextStatus
+});
 
-  } finally {
+await batch.commit();
 
-    button.disabled = false;
+}else{
 
-  }
+await updateDoc(doc(db,"orders",orderId),{
+status:nextStatus
+});
+
+}
+
+}catch(error){
+
+console.error("Status update error:",error);
+
+alert("Status update nahi hua: "+error.code+" - "+error.message);
+
+}finally{
+
+button.disabled = false;
+
+}
 
 });
 
