@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#101010">
-<title>Snap Kitchen - Delivery</title>
+<title>ZaikaBox - Delivery Partner</title>
 
 <style>
 *{box-sizing:border-box}
@@ -23,21 +23,20 @@ button:disabled{opacity:.5}
 .hidden{display:none}
 #loginMessage,#message{color:#ffcc80;overflow-wrap:anywhere;line-height:1.5}
 .order h3{margin-top:0;color:#ff6666}
-.order p{line-height:1.5;overflow-wrap:anywhere}
+.order p{line-height:1.5;overflow-wrap:anywhere;white-space:pre-line}
 </style>
 </head>
 
 <body>
-
 <header>
-<h2>SNAP KITCHEN</h2>
+<h2>ZAIKABOX</h2>
 <p>Delivery Partner App</p>
 </header>
 
 <div class="container">
 
 <div id="loginBox" class="card">
-<h3>Delivery Boy Login</h3>
+<h3>Delivery Partner Login</h3>
 <input id="email" type="email" placeholder="Email address">
 <input id="password" type="password" placeholder="Password">
 <button id="loginBtn">LOGIN</button>
@@ -45,7 +44,6 @@ button:disabled{opacity:.5}
 </div>
 
 <div id="appBox" class="hidden">
-
 <div class="card">
 <h3>Welcome, Delivery Partner</h3>
 <p id="userEmail" class="muted"></p>
@@ -55,8 +53,8 @@ button:disabled{opacity:.5}
 <h3>My Assigned Orders</h3>
 <p id="message">Loading orders...</p>
 <div id="orders"></div>
-
 </div>
+
 </div>
 
 <script type="module">
@@ -79,10 +77,8 @@ collection,
 query,
 where,
 onSnapshot,
-updateDoc
+writeBatch
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
-
-// FIREBASE CONFIG
 
 const firebaseConfig = {
 apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
@@ -98,8 +94,6 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ELEMENTS
-
 const loginBox = document.getElementById("loginBox");
 const appBox = document.getElementById("appBox");
 const loginMessage = document.getElementById("loginMessage");
@@ -110,7 +104,6 @@ const loginBtn = document.getElementById("loginBtn");
 let unsubscribeOrders = null;
 let checkingUser = false;
 
-// ROLE NORMALIZATION
 function normalizeRole(value){
 return String(value ?? "")
 .replace(/[\u200B-\u200D\uFEFF]/g,"")
@@ -119,8 +112,7 @@ return String(value ?? "")
 }
 
 // LOGIN
-
-loginBtn.addEventListener("click", async () => {
+loginBtn.addEventListener("click",async()=>{
 
 const email = document.getElementById("email").value.trim();
 const password = document.getElementById("password").value;
@@ -135,37 +127,27 @@ loginBtn.textContent = "LOGGING IN...";
 loginMessage.textContent = "Login checking...";
 
 try{
-
 await signInWithEmailAndPassword(auth,email,password);
-
 }catch(error){
-
 loginMessage.textContent =
-"Login error: " + error.code + " - " + error.message;
-
+"Login error: "+error.code+" - "+error.message;
 }finally{
-
 loginBtn.disabled = false;
 loginBtn.textContent = "LOGIN";
-
 }
 
 });
 
 // LOGOUT
-
 document.getElementById("logoutBtn").addEventListener("click",async()=>{
-
 try{
 await signOut(auth);
 }catch(error){
 alert("Logout error: "+error.message);
 }
-
 });
 
 // AUTH STATE
-
 onAuthStateChanged(auth,async(user)=>{
 
 if(unsubscribeOrders){
@@ -176,12 +158,10 @@ unsubscribeOrders = null;
 ordersDiv.innerHTML = "";
 
 if(!user){
-
 checkingUser = false;
 loginBox.classList.remove("hidden");
 appBox.classList.add("hidden");
 loginMessage.textContent = "";
-
 return;
 }
 
@@ -194,67 +174,40 @@ loginMessage.textContent = "Checking delivery account...";
 
 try{
 
-// CHECK FIRESTORE DOCUMENT
-
+// Existing delivery account check
 const userRef = doc(db,"users",user.uid);
 const userSnap = await getDoc(userRef);
 
 if(!userSnap.exists()){
-
 loginMessage.textContent =
 "ERROR: Delivery user document nahi mila. UID: "+user.uid;
-
 return;
-
 }
 
 const data = userSnap.data();
-
-// NORMALIZE ROLE
-
-const rawRole = data.role;
-const cleanRole = normalizeRole(rawRole);
-
-console.log("Firestore role:",rawRole);
-console.log("Normalized role:",cleanRole);
-
-// CHECK ROLE
+const cleanRole = normalizeRole(data.role);
 
 if(cleanRole !== "delivery"){
-
 loginMessage.textContent =
-"ROLE ERROR: Received value = "+JSON.stringify(rawRole)+
-" | Normalized value = "+JSON.stringify(cleanRole);
-
+"ROLE ERROR: "+JSON.stringify(data.role);
 return;
-
 }
-
-// CHECK ACTIVE
 
 if(data.active !== true){
-
 loginMessage.textContent =
-"ACTIVE ERROR: Expected Boolean true. Received = "+
-JSON.stringify(data.active);
-
+"ACTIVE ERROR: Account active nahi hai.";
 return;
-
 }
-
-// ACCOUNT VERIFIED
 
 loginBox.classList.add("hidden");
 appBox.classList.remove("hidden");
 
-loginMessage.textContent = "";
 document.getElementById("userEmail").textContent =
 user.email || "";
 
 message.textContent = "Loading assigned orders...";
 
-// LOAD ASSIGNED ORDERS
-
+// Assigned orders
 const ordersQuery = query(
 collection(db,"orders"),
 where("assignedTo","==",user.uid)
@@ -262,18 +215,14 @@ where("assignedTo","==",user.uid)
 
 unsubscribeOrders = onSnapshot(
 ordersQuery,
-
 (snapshot)=>{
 
 ordersDiv.innerHTML = "";
 
 if(snapshot.empty){
-
 message.textContent =
 "Abhi aapko koi order assign nahi hua hai.";
-
 return;
-
 }
 
 message.textContent =
@@ -286,12 +235,9 @@ const orderId = orderDoc.id;
 
 const itemText = Array.isArray(order.items)
 ? order.items.map(item=>{
-
 if(typeof item === "string") return item;
-
 return (item.name || item.title || "Item")+
 " x "+(item.quantity || item.qty || 1);
-
 }).join(", ")
 : "Details unavailable";
 
@@ -311,26 +257,18 @@ details.textContent =
 "\nTotal: ₹"+(order.total ?? order.grandTotal ?? "N/A")+
 "\nStatus: "+(order.status || "New");
 
-details.style.whiteSpace = "pre-line";
-
 card.append(heading,details);
 
 // CALL CUSTOMER
-
 if(order.phone){
-
 const call = document.createElement("a");
-
 call.className = "map-btn blue";
 call.href = "tel:"+String(order.phone).replace(/[^\d+]/g,"");
 call.textContent = "CALL CUSTOMER";
-
 card.appendChild(call);
-
 }
 
 // GOOGLE MAPS
-
 const mapLink = order.mapLink ||
 order.googleMapsLink ||
 (order.latitude != null && order.longitude != null
@@ -339,27 +277,23 @@ encodeURIComponent(order.latitude+","+order.longitude)
 : "");
 
 if(mapLink){
-
 const map = document.createElement("a");
-
 map.className = "map-btn";
 map.href = mapLink;
 map.target = "_blank";
 map.rel = "noopener";
 map.textContent = "OPEN GOOGLE MAPS";
-
 card.appendChild(map);
-
 }
 
 // DELIVERY STATUS
-
-if(order.status !== "Delivered"){
+if(order.status === "Preparing" ||
+order.status === "Out for Delivery"){
 
 const nextStatus =
-order.status === "Out for Delivery"
-? "Delivered"
-: "Out for Delivery";
+order.status === "Preparing"
+? "Out for Delivery"
+: "Delivered";
 
 const updateButton = document.createElement("button");
 
@@ -373,25 +307,78 @@ nextStatus === "Delivered"
 
 updateButton.addEventListener("click",async()=>{
 
+const confirmed = confirm(
+"Order status "+nextStatus+" karna hai?"
+);
+
+if(!confirmed) return;
+
 updateButton.disabled = true;
+updateButton.textContent = "UPDATING...";
 
 try{
 
-await updateDoc(
+// Update order and tracking together
+const batch = writeBatch(db);
+
+batch.update(
 doc(db,"orders",orderId),
 {status:nextStatus}
 );
 
+// Update customer tracking record
+if(order.trackingCode){
+
+const trackingCode = String(order.trackingCode)
+.replace(/[\s-]/g,"")
+.toUpperCase();
+
+batch.update(
+doc(db,"orderTracking",trackingCode),
+{status:nextStatus}
+);
+
+}
+
+await batch.commit();
+
+alert("Order status updated: "+nextStatus);
+
 }catch(error){
 
-alert("Status update error: "+error.message);
+console.error("Delivery status error:",error);
+
+alert(
+"Status update error: "+
+error.code+" - "+error.message
+);
+
 updateButton.disabled = false;
+updateButton.textContent =
+nextStatus === "Delivered"
+? "MARK DELIVERED"
+: "START DELIVERY";
 
 }
 
 });
 
 card.appendChild(updateButton);
+
+}else if(order.status === "Delivered"){
+
+const done = document.createElement("p");
+done.textContent = "✓ Delivery completed";
+done.style.color = "#4ade80";
+card.appendChild(done);
+
+}else{
+
+const waiting = document.createElement("p");
+waiting.textContent =
+"Restaurant ke Preparing status ka wait karein.";
+waiting.className = "muted";
+card.appendChild(waiting);
 
 }
 
@@ -400,7 +387,6 @@ ordersDiv.appendChild(card);
 });
 
 },
-
 (error)=>{
 
 message.textContent =
@@ -419,14 +405,11 @@ loginMessage.textContent =
 console.error("Delivery verification error:",error);
 
 }finally{
-
 checkingUser = false;
-
 }
 
 });
 
 </script>
-
 </body>
 </html>
