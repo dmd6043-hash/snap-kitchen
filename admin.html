@@ -9,25 +9,12 @@
 
 <style>
 *{box-sizing:border-box}
-body{
-  margin:0;background:#10091e;color:#fff;
-  font-family:Arial,sans-serif;padding:16px;
-}
+body{margin:0;background:#10091e;color:#fff;font-family:Arial,sans-serif;padding:16px}
 .wrap{max-width:850px;margin:auto}
 h1{color:#c5a3ff}
-.card{
-  background:#211536;border:1px solid #392653;
-  padding:17px;border-radius:15px;margin:14px 0;
-}
-input,select{
-  width:100%;padding:13px;margin:8px 0;
-  border:1px solid #594276;border-radius:9px;
-  background:#160e25;color:#fff;font-size:15px;
-}
-button{
-  padding:11px 15px;border:0;border-radius:9px;
-  font-weight:bold;margin:5px;cursor:pointer;
-}
+.card{background:#211536;border:1px solid #392653;padding:17px;border-radius:15px;margin:14px 0}
+input,select{width:100%;padding:13px;margin:8px 0;border:1px solid #594276;border-radius:9px;background:#160e25;color:#fff;font-size:15px}
+button{padding:11px 15px;border:0;border-radius:9px;font-weight:bold;margin:5px;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:#b68cff;color:#180d2e}
 .reject{background:#e85d75;color:#fff}
@@ -36,26 +23,13 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .success{background:#4cba86;color:#10251b}
 .small{color:#c8bad9;font-size:13px;overflow-wrap:anywhere}
 .hidden{display:none!important}
-.order{
-  border:1px solid #594276;border-radius:12px;
-  padding:14px;margin:12px 0;overflow-wrap:anywhere;
-}
+.order{border:1px solid #594276;border-radius:12px;padding:14px;margin:12px 0;overflow-wrap:anywhere}
 .order h3{margin-top:0;color:#d2b8ff}
 a{color:#c5a3ff}
-#message,#partnerMessage{color:#ffd27a;overflow-wrap:anywhere}
-.assignment-box{
-  background:#160e25;border:1px solid #594276;
-  padding:12px;border-radius:10px;margin-top:12px;
-}
-.tag{
-  display:inline-block;background:#3a2854;
-  padding:5px 9px;border-radius:20px;font-size:12px;
-}
-.order-type{
-  display:inline-block;padding:5px 9px;
-  border-radius:20px;background:#3a2854;
-  color:#e1ceff;font-size:12px;
-}
+#message,#partnerMessage{color:#ffd27a;overflow-wrap:anywhere;line-height:1.5}
+.assignment-box{background:#160e25;border:1px solid #594276;padding:12px;border-radius:10px;margin-top:12px}
+.tag{display:inline-block;background:#3a2854;padding:5px 9px;border-radius:20px;font-size:12px}
+.order-type{display:inline-block;padding:5px 9px;border-radius:20px;background:#3a2854;color:#e1ceff;font-size:12px}
 </style>
 </head>
 
@@ -66,35 +40,28 @@ a{color:#c5a3ff}
 <p class="small">ADMIN DASHBOARD</p>
 
 <div id="loginBox" class="card">
-  <h2>Admin Login</h2>
-  <input id="email" type="email"
-    placeholder="Admin email" autocomplete="username">
-  <input id="password" type="password"
-    placeholder="Password" autocomplete="current-password">
-  <button class="primary" id="loginBtn" type="button">LOGIN</button>
-  <p id="message"></p>
+<h2>Admin Login</h2>
+<input id="email" type="email" placeholder="Admin email" autocomplete="username">
+<input id="password" type="password" placeholder="Password" autocomplete="current-password">
+<button class="primary" id="loginBtn" type="button">LOGIN</button>
+<p id="message"></p>
 </div>
 
 <div id="dashboard" class="hidden">
-  <div class="card">
-    <h2>Orders <span id="count">0</span></h2>
-    <p class="small" id="adminEmail"></p>
 
-    <button class="status" id="refreshBtn" type="button">
-      REFRESH
-    </button>
-    <button class="reject" id="logoutBtn" type="button">
-      LOGOUT
-    </button>
+<div class="card">
+<h2>Orders <span id="count">0</span></h2>
+<p class="small" id="adminEmail"></p>
 
-    <hr>
-    <p class="small">Delivery Partner Status</p>
-    <p id="partnerMessage" class="small">
-      Loading delivery partners...
-    </p>
-  </div>
+<button class="status" id="refreshBtn" type="button">REFRESH</button>
+<button class="reject" id="logoutBtn" type="button">LOGOUT</button>
 
-  <div id="orders">Loading orders...</div>
+<hr>
+<p class="small">Delivery Partner Status</p>
+<p id="partnerMessage" class="small">Loading delivery partners...</p>
+</div>
+
+<div id="orders">Loading orders...</div>
 </div>
 
 </div>
@@ -105,35 +72,39 @@ import {initializeApp} from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
-  getFirestore,
-  collection,
-  onSnapshot,
-  doc,
-  updateDoc,
-  getDocs,
-  query,
-  where,
-  writeBatch,
-  serverTimestamp
+getFirestore,
+collection,
+onSnapshot,
+doc,
+getDoc,
+getDocs,
+updateDoc,
+writeBatch,
+serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 import {
-  getAuth,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
+getAuth,
+signInWithEmailAndPassword,
+onAuthStateChanged,
+signOut,
+setPersistence,
+browserLocalPersistence
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
+
+// FIREBASE CONFIG
+
 const firebaseConfig = {
-  apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
-  authDomain: "snap-kitchen-b8a73.firebaseapp.com",
-  projectId: "snap-kitchen-b8a73",
-  storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
-  messagingSenderId: "1060475241392",
-  appId: "1:1060475241392:web:c3751859ecb085830b8c75",
-  measurementId: "G-KRFFRFJY5X"
+apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+authDomain: "snap-kitchen-b8a73.firebaseapp.com",
+projectId: "snap-kitchen-b8a73",
+storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
+messagingSenderId: "1060475241392",
+appId: "1:1060475241392:web:c3751859ecb085830b8c75",
+measurementId: "G-KRFFRFJY5X"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -142,607 +113,785 @@ const auth = getAuth(app);
 
 const $ = id => document.getElementById(id);
 
-const ADMIN_UID = "RjDxrTXlLAgNfns668SgUWxBjBv1";
+const ADMIN_UID = "RjDxrTXlLAgNfns668SgUWxBjBvB1";
+
+// Known delivery account, used only as a fallback
+// if the collection listing fails.
+const KNOWN_DELIVERY_UID = "Q4do4Aw3mnQrY6npmM2uBkbAT8i1";
 
 let unsubscribeOrders = null;
 let deliveryPartners = [];
 let currentOrders = [];
-let loadingAdmin = false;
+let authVersion = 0;
+let currentAdminUid = null;
+
+
+// HELPERS
 
 function safe(value){
-  return String(value ?? "").replace(/[&<>"']/g,char=>({
-    "&":"&amp;",
-    "<":"&lt;",
-    ">":"&gt;",
-    '"':"&quot;",
-    "'":"&#039;"
-  })[char]);
+return String(value ?? "").replace(/[&<>"']/g,char=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+})[char]);
 }
 
-// ORDER TYPE CHECK
+function normalize(value){
+return String(value ?? "")
+.replace(/[\u200B-\u200D\uFEFF]/g,"")
+.trim()
+.toLowerCase();
+}
+
 function isHomeDelivery(order){
-  const type = String(order.orderType || "").toLowerCase();
-  return type.includes("delivery");
+return normalize(order.orderType).includes("delivery");
 }
 
 function isPickup(order){
-  const type = String(order.orderType || "").toLowerCase();
-  return type.includes("pickup");
+return normalize(order.orderType).includes("pickup");
 }
+
+function partnerDisplayName(partner){
+return partner.name ||
+partner.displayName ||
+partner.email ||
+partner.uid;
+}
+
 
 // LOGIN
+
 $("loginBtn").addEventListener("click",async()=>{
 
-  const email = $("email").value.trim();
-  const password = $("password").value;
+const email = $("email").value.trim();
+const password = $("password").value;
 
-  if(!email || !password){
-    $("message").textContent =
-      "Email aur password dono bhariye.";
-    return;
-  }
+if(!email || !password){
+$("message").textContent =
+"Email aur password dono bhariye.";
+return;
+}
 
-  $("loginBtn").disabled = true;
-  $("loginBtn").textContent = "LOGGING IN...";
-  $("message").textContent = "Please wait...";
+$("loginBtn").disabled = true;
+$("loginBtn").textContent = "LOGGING IN...";
+$("message").textContent = "Please wait...";
 
-  try{
-    await signInWithEmailAndPassword(auth,email,password);
-    $("message").textContent = "";
-  }catch(error){
-    console.error("Admin login error:",error);
-    $("message").textContent =
-      "Login failed: "+error.code+" - "+error.message;
-  }finally{
-    $("loginBtn").disabled = false;
-    $("loginBtn").textContent = "LOGIN";
-  }
+try{
+
+await setPersistence(auth,browserLocalPersistence);
+
+await signInWithEmailAndPassword(auth,email,password);
+
+$("message").textContent = "";
+
+}catch(error){
+
+console.error("Admin login error:",error);
+
+$("message").textContent =
+"Login failed: "+error.code+" - "+error.message;
+
+}finally{
+
+$("loginBtn").disabled = false;
+$("loginBtn").textContent = "LOGIN";
+
+}
+
 });
+
 
 // LOGOUT
+
 $("logoutBtn").addEventListener("click",async()=>{
-  try{
-    await signOut(auth);
-  }catch(error){
-    alert("Logout failed: "+error.message);
-  }
+
+try{
+await signOut(auth);
+}catch(error){
+alert("Logout failed: "+error.message);
+}
+
 });
 
-// AUTH CHECK
-onAuthStateChanged(auth,async user=>{
-
-  if(loadingAdmin) return;
-
-  if(!user){
-    cleanupDashboard();
-    $("loginBox").classList.remove("hidden");
-    $("dashboard").classList.add("hidden");
-    return;
-  }
-
-  loadingAdmin = true;
-  $("loginBox").classList.add("hidden");
-  $("dashboard").classList.add("hidden");
-
-  try{
-
-    if(user.uid !== ADMIN_UID){
-      throw new Error(
-        "Ye account Admin account nahi hai. Admin UID match nahi hui."
-      );
-    }
-
-    $("adminEmail").textContent =
-      "Logged in: "+(user.email || "");
-
-    $("dashboard").classList.remove("hidden");
-
-    await loadDeliveryPartners();
-    startOrdersListener();
-
-  }catch(error){
-
-    console.error("Admin verification error:",error);
-    alert(error.message);
-    await signOut(auth);
-
-  }finally{
-    loadingAdmin = false;
-  }
-});
 
 // CLEANUP
+
 function cleanupDashboard(){
 
-  if(unsubscribeOrders){
-    unsubscribeOrders();
-    unsubscribeOrders = null;
-  }
-
-  currentOrders = [];
-  deliveryPartners = [];
-
-  $("orders").innerHTML = "";
-  $("count").textContent = "0";
-  $("partnerMessage").textContent = "";
+if(unsubscribeOrders){
+unsubscribeOrders();
+unsubscribeOrders = null;
 }
 
-// LOAD DELIVERY PARTNERS
-async function loadDeliveryPartners(){
+currentOrders = [];
+deliveryPartners = [];
+currentAdminUid = null;
 
-  $("partnerMessage").textContent =
-    "Loading active delivery partners...";
+$("orders").innerHTML = "";
+$("count").textContent = "0";
+$("partnerMessage").textContent = "";
 
-  try{
-
-    const partnerQuery = query(
-      collection(db,"users"),
-      where("role","==","delivery"),
-      where("active","==",true)
-    );
-
-    const snap = await getDocs(partnerQuery);
-
-    deliveryPartners = snap.docs.map(item=>({
-      uid:item.id,
-      ...item.data()
-    }));
-
-    $("partnerMessage").textContent =
-      deliveryPartners.length
-      ? deliveryPartners.length+
-        " active delivery partner(s) available."
-      : "No active delivery partners found.";
-
-    renderOrders(currentOrders);
-
-  }catch(error){
-
-    console.error("Delivery partner loading error:",error);
-
-    $("partnerMessage").textContent =
-      "Delivery partner loading error: "+
-      error.code+" - "+error.message;
-  }
 }
 
-// LOAD ORDERS LIVE
-function startOrdersListener(){
 
-  if(unsubscribeOrders){
-    unsubscribeOrders();
-  }
+// AUTH CHECK
 
-  $("orders").textContent = "Loading orders...";
+onAuthStateChanged(auth,async user=>{
 
-  unsubscribeOrders = onSnapshot(
-    collection(db,"orders"),
+const thisVersion = ++authVersion;
 
-    snapshot=>{
+if(!user){
 
-      currentOrders = snapshot.docs.map(item=>({
-        id:item.id,
-        ...item.data()
-      }));
+cleanupDashboard();
 
-      currentOrders.sort((a,b)=>{
-        const at = a.createdAt?.toMillis?.() || 0;
-        const bt = b.createdAt?.toMillis?.() || 0;
-        return bt-at;
-      });
+$("loginBox").classList.remove("hidden");
+$("dashboard").classList.add("hidden");
 
-      $("count").textContent = currentOrders.length;
-      renderOrders(currentOrders);
+$("message").textContent = "";
 
-    },
+return;
 
-    error=>{
-
-      console.error("Orders error:",error);
-
-      $("orders").textContent =
-        "Orders load nahi hue: "+
-        error.code+" - "+error.message;
-    }
-  );
 }
 
-// RENDER ORDERS
-function renderOrders(list){
+$("loginBox").classList.add("hidden");
+$("dashboard").classList.add("hidden");
 
-  if(!list.length){
-    $("orders").innerHTML =
-      '<div class="card">Abhi koi order nahi hai.</div>';
-    return;
-  }
+try{
 
-  $("orders").innerHTML = list.map(order=>{
+if(user.uid !== ADMIN_UID){
 
-    const name =
-      order.customerName || order.name || "Customer";
+throw new Error(
+"Ye account Admin account nahi hai. Admin UID match nahi hui."
+);
 
-    const phone =
-      order.customerPhone || order.phone || order.mobile || "";
-
-    const type = order.orderType || "Not specified";
-    const address = order.address || "Address not available";
-    const total = order.total ?? order.grandTotal ?? 0;
-    const status = order.status || "New";
-
-    const homeDelivery = isHomeDelivery(order);
-    const pickup = isPickup(order);
-
-    const items = Array.isArray(order.items)
-      ? order.items.map(item=>{
-
-          if(typeof item === "string"){
-            return safe(item);
-          }
-
-          return safe(item.name || item.title || "Item")+
-            " × "+safe(item.quantity || item.qty || 1);
-
-        }).join("<br>")
-      : safe(order.items || "Items not available");
-
-    const map = order.mapLink ||
-      order.googleMapsLink ||
-      (
-        order.latitude != null && order.longitude != null
-        ? "https://www.google.com/maps?q="+
-          encodeURIComponent(order.latitude+","+order.longitude)
-        : ""
-      );
-
-    const date = order.createdAt?.toDate
-      ? order.createdAt.toDate().toLocaleString("en-IN")
-      : "Time unavailable";
-
-    // DELIVERY PARTNER OPTIONS
-    const selectedPartner = order.assignedTo || "";
-
-    const partnerOptions = deliveryPartners.map(partner=>{
-
-      const partnerName =
-        partner.name ||
-        partner.displayName ||
-        partner.email ||
-        partner.uid;
-
-      return `
-        <option value="${safe(partner.uid)}"
-          ${selectedPartner === partner.uid ? "selected" : ""}>
-          ${safe(partnerName)}
-        </option>
-      `;
-
-    }).join("");
-
-    const assignedPartner =
-      deliveryPartners.find(p=>p.uid===selectedPartner);
-
-    // ASSIGNMENT ONLY FOR HOME DELIVERY
-    const assignmentHTML = homeDelivery ? `
-
-      <div class="assignment-box">
-        <p><b>Delivery Partner Assignment</b></p>
-
-        <select id="partner-${safe(order.id)}">
-          <option value="">Select Delivery Partner</option>
-          ${partnerOptions}
-        </select>
-
-        <p class="small">
-          ${
-            selectedPartner
-            ? "Currently assigned: "+
-              safe(
-                assignedPartner?.name ||
-                assignedPartner?.email ||
-                selectedPartner
-              )
-            : "Not assigned yet"
-          }
-        </p>
-
-        <button class="assign"
-          data-assign="${safe(order.id)}">
-          ${selectedPartner
-            ? "CHANGE DELIVERY PARTNER"
-            : "ASSIGN DELIVERY"}
-        </button>
-      </div>
-
-    ` : "";
-
-    // DIFFERENT BUTTONS FOR DIFFERENT ORDER TYPES
-    const statusButtons = homeDelivery ? `
-
-      <button class="primary"
-        data-id="${safe(order.id)}"
-        data-status="Accepted">ACCEPT</button>
-
-      <button class="reject"
-        data-id="${safe(order.id)}"
-        data-status="Rejected">REJECT</button>
-
-      <br>
-
-      <button class="status"
-        data-id="${safe(order.id)}"
-        data-status="Preparing">PREPARING</button>
-
-      <button class="status"
-        data-id="${safe(order.id)}"
-        data-status="Out for Delivery">OUT FOR DELIVERY</button>
-
-      <button class="success"
-        data-id="${safe(order.id)}"
-        data-status="Delivered">DELIVERED</button>
-
-    ` : pickup ? `
-
-      <button class="primary"
-        data-id="${safe(order.id)}"
-        data-status="Accepted">ACCEPT</button>
-
-      <button class="reject"
-        data-id="${safe(order.id)}"
-        data-status="Rejected">REJECT</button>
-
-      <br>
-
-      <button class="status"
-        data-id="${safe(order.id)}"
-        data-status="Preparing">PREPARING</button>
-
-      <button class="success"
-        data-id="${safe(order.id)}"
-        data-status="Ready for Pickup">READY FOR PICKUP</button>
-
-      <button class="assign"
-        data-id="${safe(order.id)}"
-        data-status="Picked Up">PICKED UP</button>
-
-    ` : `
-
-      <button class="primary"
-        data-id="${safe(order.id)}"
-        data-status="Accepted">ACCEPT</button>
-
-      <button class="reject"
-        data-id="${safe(order.id)}"
-        data-status="Rejected">REJECT</button>
-
-      <br>
-
-      <button class="status"
-        data-id="${safe(order.id)}"
-        data-status="Preparing">PREPARING</button>
-
-    `;
-
-    return `
-
-      <div class="order">
-
-        <h3>Order #${safe(order.id.slice(0,8))}</h3>
-
-        <p>
-          <span class="order-type">
-            ${homeDelivery ? "HOME DELIVERY" : pickup ? "PICKUP" : safe(type)}
-          </span>
-        </p>
-
-        <p><b>Name:</b> ${safe(name)}</p>
-        <p><b>Phone:</b> ${safe(phone)}</p>
-        <p><b>Order Type:</b> ${safe(type)}</p>
-        <p><b>Items:</b><br>${items}</p>
-        <p><b>Total:</b> ₹${safe(total)}</p>
-        <p><b>Address:</b> ${safe(address)}</p>
-
-        ${
-          map
-          ? `<p><a href="${safe(map)}"
-              target="_blank" rel="noopener">
-              OPEN GOOGLE MAPS
-             </a></p>`
-          : ""
-        }
-
-        <p><b>Current Status:</b>
-          <span class="tag">${safe(status)}</span>
-        </p>
-
-        <p class="small">${safe(date)}</p>
-
-        ${statusButtons}
-
-        ${assignmentHTML}
-
-      </div>
-
-    `;
-
-  }).join("");
 }
 
-// ORDER BUTTON ACTIONS
-$("orders").addEventListener("click",async event=>{
+if(thisVersion !== authVersion) return;
 
-  // ASSIGN DELIVERY PARTNER
-  const assignButton =
-    event.target.closest("button[data-assign]");
+currentAdminUid = user.uid;
 
-  if(assignButton){
+$("adminEmail").textContent =
+"Logged in: "+(user.email || "");
 
-    const orderId = assignButton.dataset.assign;
-    const select = $("partner-"+orderId);
-    const partnerUid = select?.value;
+$("dashboard").classList.remove("hidden");
 
-    if(!partnerUid){
-      alert("Pehle Delivery Partner select kijiye.");
-      return;
-    }
+await loadDeliveryPartners();
 
-    const partner =
-      deliveryPartners.find(p=>p.uid===partnerUid);
+if(thisVersion !== authVersion) return;
 
-    if(!partner){
-      alert("Selected delivery partner nahi mila.");
-      return;
-    }
+startOrdersListener();
 
-    const order =
-      currentOrders.find(o=>o.id===orderId);
+}catch(error){
 
-    if(!order) return;
+console.error("Admin verification error:",error);
 
-    if(!isHomeDelivery(order)){
-      alert("Pickup order ko Delivery Partner assign nahi kar sakte.");
-      return;
-    }
+if(thisVersion !== authVersion) return;
 
-    if(!confirm(
-      "Is order ko selected Delivery Partner ko assign karna hai?"
-    )){
-      return;
-    }
+$("loginBox").classList.remove("hidden");
+$("dashboard").classList.add("hidden");
 
-    assignButton.disabled = true;
-    assignButton.textContent = "ASSIGNING...";
+$("message").textContent =
+"Admin error: "+error.message;
 
-    try{
-
-      await updateDoc(
-        doc(db,"orders",orderId),
-        {
-          assignedTo:partnerUid,
-          assignedToEmail:partner.email || "",
-          assignedAt:serverTimestamp()
-        }
-      );
-
-      alert("Delivery Partner successfully assigned!");
-
-    }catch(error){
-
-      console.error("Assignment error:",error);
-
-      alert(
-        "Assignment failed: "+
-        error.code+" - "+error.message
-      );
-
-    }finally{
-      assignButton.disabled = false;
-      assignButton.textContent =
-        order.assignedTo
-        ? "CHANGE DELIVERY PARTNER"
-        : "ASSIGN DELIVERY";
-    }
-
-    return;
-  }
-
-  // UPDATE ORDER STATUS
-  const button =
-    event.target.closest("button[data-id]");
-
-  if(!button) return;
-
-  const orderId = button.dataset.id;
-  const nextStatus = button.dataset.status;
-
-  const order =
-    currentOrders.find(o=>o.id===orderId);
-
-  if(!order) return;
-
-  const homeDelivery = isHomeDelivery(order);
-  const pickup = isPickup(order);
-
-  // PREVENT WRONG ORDER TYPE STATUS
-  const deliveryStatuses = [
-    "Out for Delivery",
-    "Delivered"
-  ];
-
-  const pickupStatuses = [
-    "Ready for Pickup",
-    "Picked Up"
-  ];
-
-  if(homeDelivery && pickupStatuses.includes(nextStatus)){
-    alert("Ye status sirf Pickup orders ke liye hai.");
-    return;
-  }
-
-  if(pickup && deliveryStatuses.includes(nextStatus)){
-    alert("Pickup order mein Delivery wala status nahi laga sakte.");
-    return;
-  }
-
-  if(
-    nextStatus === "Out for Delivery" &&
-    !order.assignedTo
-  ){
-    alert("Pehle Delivery Partner assign kijiye.");
-    return;
-  }
-
-  if(!confirm("Order status "+nextStatus+" karna hai?")){
-    return;
-  }
-
-  button.disabled = true;
-
-  try{
-
-    const batch = writeBatch(db);
-
-    batch.update(
-      doc(db,"orders",orderId),
-      {status:nextStatus}
-    );
-
-    if(order.trackingCode){
-
-      const trackingCode = String(order.trackingCode)
-        .replace(/[\s-]/g,"")
-        .toUpperCase();
-
-      if(!/^[A-Z2-9]{20}$/.test(trackingCode)){
-        throw new Error("Invalid tracking code.");
-      }
-
-      batch.update(
-        doc(db,"orderTracking",trackingCode),
-        {status:nextStatus}
-      );
-    }
-
-    await batch.commit();
-
-  }catch(error){
-
-    console.error("Status update error:",error);
-
-    alert(
-      "Status update nahi hua: "+
-      error.code+" - "+error.message
-    );
-
-  }finally{
-    button.disabled = false;
-  }
+}
 
 });
 
+
+// LOAD DELIVERY PARTNERS
+// Read users collection and filter locally.
+// This avoids a compound where-query dependency.
+
+async function loadDeliveryPartners(){
+
+$("partnerMessage").textContent =
+"Loading delivery partners...";
+
+deliveryPartners = [];
+
+try{
+
+const usersSnapshot = await getDocs(
+collection(db,"users")
+);
+
+const foundPartners = usersSnapshot.docs
+.map(item=>({
+uid:item.id,
+...item.data()
+}))
+.filter(partner=>
+normalize(partner.role)==="delivery" &&
+partner.active===true
+);
+
+deliveryPartners = foundPartners;
+
+
+// Fallback: directly read the known delivery UID
+// if it was not included in the collection result.
+
+if(
+!deliveryPartners.some(
+partner=>partner.uid===KNOWN_DELIVERY_UID
+)
+){
+
+try{
+
+const partnerSnap = await getDoc(
+doc(db,"users",KNOWN_DELIVERY_UID)
+);
+
+if(partnerSnap.exists()){
+
+const data = partnerSnap.data();
+
+if(
+normalize(data.role)==="delivery" &&
+data.active===true
+){
+
+deliveryPartners.push({
+uid:partnerSnap.id,
+...data
+});
+
+}
+
+}
+
+}catch(fallbackError){
+
+console.warn(
+"Direct delivery account check:",
+fallbackError
+);
+
+}
+
+}
+
+
+if(deliveryPartners.length){
+
+$("partnerMessage").textContent =
+deliveryPartners.length+
+" active delivery partner(s) available.";
+
+}else{
+
+$("partnerMessage").textContent =
+"Users collection read successful, but no active delivery partner found. Check role and active field types.";
+
+}
+
+renderOrders(currentOrders);
+
+}catch(error){
+
+console.error("Delivery partner loading error:",error);
+
+
+// Try direct read if collection listing fails.
+
+try{
+
+const partnerSnap = await getDoc(
+doc(db,"users",KNOWN_DELIVERY_UID)
+);
+
+if(partnerSnap.exists()){
+
+const data = partnerSnap.data();
+
+if(
+normalize(data.role)==="delivery" &&
+data.active===true
+){
+
+deliveryPartners = [{
+uid:partnerSnap.id,
+...data
+}];
+
+$("partnerMessage").textContent =
+"1 delivery partner loaded through direct document read.";
+
+renderOrders(currentOrders);
+
+return;
+
+}
+
+}
+
+}catch(fallbackError){
+
+console.error(
+"Direct document read also failed:",
+fallbackError
+);
+
+}
+
+$("partnerMessage").textContent =
+"Delivery partner loading error: "+
+(error.code || "")+" - "+
+(error.message || error);
+
+renderOrders(currentOrders);
+
+}
+
+}
+
+
+// LIVE ORDERS
+
+function startOrdersListener(){
+
+if(unsubscribeOrders){
+unsubscribeOrders();
+unsubscribeOrders = null;
+}
+
+$("orders").textContent = "Loading orders...";
+
+unsubscribeOrders = onSnapshot(
+
+collection(db,"orders"),
+
+snapshot=>{
+
+currentOrders = snapshot.docs.map(item=>({
+id:item.id,
+...item.data()
+}));
+
+currentOrders.sort((a,b)=>{
+
+const at = a.createdAt?.toMillis?.() || 0;
+const bt = b.createdAt?.toMillis?.() || 0;
+
+return bt-at;
+
+});
+
+$("count").textContent = currentOrders.length;
+
+renderOrders(currentOrders);
+
+},
+
+error=>{
+
+console.error("Orders error:",error);
+
+$("orders").textContent =
+"Orders load nahi hue: "+
+error.code+" - "+error.message;
+
+}
+
+);
+
+}
+
+
+// RENDER ORDERS
+
+function renderOrders(list){
+
+if(!list.length){
+
+$("orders").innerHTML =
+'<div class="card">Abhi koi order nahi hai.</div>';
+
+return;
+
+}
+
+$("orders").innerHTML = list.map(order=>{
+
+const name =
+order.customerName || order.name || "Customer";
+
+const phone =
+order.customerPhone || order.phone || order.mobile || "";
+
+const type = order.orderType || "Not specified";
+const address = order.address || "Address not available";
+const total = order.total ?? order.grandTotal ?? 0;
+const status = order.status || "New";
+
+const homeDelivery = isHomeDelivery(order);
+const pickup = isPickup(order);
+
+const items = Array.isArray(order.items)
+? order.items.map(item=>{
+
+if(typeof item==="string") return safe(item);
+
+return safe(item.name || item.title || "Item")+
+" × "+safe(item.quantity || item.qty || 1);
+
+}).join("<br>")
+: safe(order.items || "Items not available");
+
+const map = order.mapLink ||
+order.googleMapsLink ||
+(
+order.latitude != null && order.longitude != null
+? "https://www.google.com/maps?q="+
+encodeURIComponent(order.latitude+","+order.longitude)
+: ""
+);
+
+const date = order.createdAt?.toDate
+? order.createdAt.toDate().toLocaleString("en-IN")
+: "Time unavailable";
+
+
+// DELIVERY PARTNER OPTIONS
+
+const selectedPartner = order.assignedTo || "";
+
+const partnerOptions = deliveryPartners.map(partner=>{
+
+const partnerName = partnerDisplayName(partner);
+
+return `
+<option value="${safe(partner.uid)}"
+${selectedPartner===partner.uid ? "selected" : ""}>
+${safe(partnerName)}
+</option>
+`;
+
+}).join("");
+
+const assignedPartner =
+deliveryPartners.find(p=>p.uid===selectedPartner);
+
+
+// ASSIGNMENT BOX
+
+const assignmentHTML = homeDelivery ? `
+
+<div class="assignment-box">
+
+<p><b>Delivery Partner Assignment</b></p>
+
+<select id="partner-${safe(order.id)}">
+<option value="">Select Delivery Partner</option>
+${partnerOptions}
+</select>
+
+<p class="small">
+${
+selectedPartner
+? "Currently assigned: "+
+safe(
+assignedPartner
+? partnerDisplayName(assignedPartner)
+: selectedPartner
+)
+: "Not assigned yet"
+}
+</p>
+
+<button class="assign"
+data-assign="${safe(order.id)}">
+${selectedPartner
+? "CHANGE DELIVERY PARTNER"
+: "ASSIGN DELIVERY"}
+</button>
+
+</div>
+
+` : "";
+
+
+// STATUS BUTTONS
+
+const statusButtons = homeDelivery ? `
+
+<button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
+<br>
+<button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
+<button class="status" data-id="${safe(order.id)}" data-status="Out for Delivery">OUT FOR DELIVERY</button>
+<button class="success" data-id="${safe(order.id)}" data-status="Delivered">DELIVERED</button>
+
+` : pickup ? `
+
+<button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
+<br>
+<button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
+<button class="success" data-id="${safe(order.id)}" data-status="Ready for Pickup">READY FOR PICKUP</button>
+<button class="assign" data-id="${safe(order.id)}" data-status="Picked Up">PICKED UP</button>
+
+` : `
+
+<button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
+<br>
+<button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
+
+`;
+
+
+return `
+
+<div class="order">
+
+<h3>Order #${safe(order.id.slice(0,8))}</h3>
+
+<p>
+<span class="order-type">
+${homeDelivery ? "HOME DELIVERY" : pickup ? "PICKUP" : safe(type)}
+</span>
+</p>
+
+<p><b>Name:</b> ${safe(name)}</p>
+<p><b>Phone:</b> ${safe(phone)}</p>
+<p><b>Order Type:</b> ${safe(type)}</p>
+<p><b>Items:</b><br>${items}</p>
+<p><b>Total:</b> ₹${safe(total)}</p>
+<p><b>Address:</b> ${safe(address)}</p>
+
+${
+map
+? `<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>`
+: ""
+}
+
+<p><b>Current Status:</b>
+<span class="tag">${safe(status)}</span>
+</p>
+
+<p class="small">${safe(date)}</p>
+
+${statusButtons}
+
+${assignmentHTML}
+
+</div>
+
+`;
+
+}).join("");
+
+}
+
+
+// ORDER ACTIONS
+
+$("orders").addEventListener("click",async event=>{
+
+// ASSIGN DELIVERY PARTNER
+
+const assignButton =
+event.target.closest("button[data-assign]");
+
+if(assignButton){
+
+const orderId = assignButton.dataset.assign;
+
+const select = $("partner-"+orderId);
+
+const partnerUid = select?.value;
+
+if(!partnerUid){
+
+alert("Pehle Delivery Partner select kijiye.");
+
+return;
+
+}
+
+const partner =
+deliveryPartners.find(p=>p.uid===partnerUid);
+
+if(!partner){
+
+alert("Selected delivery partner nahi mila.");
+
+return;
+
+}
+
+const order =
+currentOrders.find(o=>o.id===orderId);
+
+if(!order) return;
+
+if(!isHomeDelivery(order)){
+
+alert("Pickup order ko Delivery Partner assign nahi kar sakte.");
+
+return;
+
+}
+
+if(!confirm(
+"Is order ko selected Delivery Partner ko assign karna hai?"
+)) return;
+
+assignButton.disabled = true;
+assignButton.textContent = "ASSIGNING...";
+
+try{
+
+await updateDoc(
+doc(db,"orders",orderId),
+{
+assignedTo:partnerUid,
+assignedToEmail:partner.email || "",
+assignedAt:serverTimestamp()
+}
+);
+
+alert("Delivery Partner successfully assigned!");
+
+}catch(error){
+
+console.error("Assignment error:",error);
+
+alert(
+"Assignment failed: "+
+error.code+" - "+error.message
+);
+
+}finally{
+
+assignButton.disabled = false;
+
+}
+
+return;
+
+}
+
+
+// UPDATE STATUS
+
+const button =
+event.target.closest("button[data-id]");
+
+if(!button) return;
+
+const orderId = button.dataset.id;
+const nextStatus = button.dataset.status;
+
+const order =
+currentOrders.find(o=>o.id===orderId);
+
+if(!order) return;
+
+const homeDelivery = isHomeDelivery(order);
+const pickup = isPickup(order);
+
+const deliveryStatuses = [
+"Out for Delivery",
+"Delivered"
+];
+
+const pickupStatuses = [
+"Ready for Pickup",
+"Picked Up"
+];
+
+if(homeDelivery && pickupStatuses.includes(nextStatus)){
+
+alert("Ye status sirf Pickup orders ke liye hai.");
+
+return;
+
+}
+
+if(pickup && deliveryStatuses.includes(nextStatus)){
+
+alert("Pickup order mein Delivery wala status nahi laga sakte.");
+
+return;
+
+}
+
+if(
+nextStatus==="Out for Delivery" &&
+!order.assignedTo
+){
+
+alert("Pehle Delivery Partner assign kijiye.");
+
+return;
+
+}
+
+if(!confirm("Order status "+nextStatus+" karna hai?")) return;
+
+button.disabled = true;
+
+try{
+
+const batch = writeBatch(db);
+
+batch.update(
+doc(db,"orders",orderId),
+{status:nextStatus}
+);
+
+if(order.trackingCode){
+
+const trackingCode = String(order.trackingCode)
+.replace(/[\s-]/g,"")
+.toUpperCase();
+
+batch.update(
+doc(db,"orderTracking",trackingCode),
+{status:nextStatus}
+);
+
+}
+
+await batch.commit();
+
+}catch(error){
+
+console.error("Status update error:",error);
+
+alert(
+"Status update nahi hua: "+
+error.code+" - "+error.message
+);
+
+}finally{
+
+button.disabled = false;
+
+}
+
+});
+
+
 // REFRESH
+
 $("refreshBtn").addEventListener("click",async()=>{
-  await loadDeliveryPartners();
-  renderOrders(currentOrders);
+
+$("refreshBtn").disabled = true;
+$("refreshBtn").textContent = "LOADING...";
+
+await loadDeliveryPartners();
+
+renderOrders(currentOrders);
+
+$("refreshBtn").disabled = false;
+$("refreshBtn").textContent = "REFRESH";
+
 });
 
 </script>
