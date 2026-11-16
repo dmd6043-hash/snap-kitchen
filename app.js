@@ -5,7 +5,8 @@ import {
   getFirestore,
   collection,
   getDocs,
-  addDoc,
+  doc,
+  writeBatch,
   serverTimestamp,
   onSnapshot
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
@@ -36,6 +37,7 @@ let category = "All";
 let userLocation = null;
 let isOpeningRestaurant = false;
 let unsubscribeMenu = null;
+let unsubscribeTracking = null;
 
 // HELPERS
 function showToast(message) {
@@ -66,6 +68,32 @@ function escapeHTML(value) {
   }[char]));
 }
 
+// SECURE TRACKING CODE
+function generateTrackingCode() {
+  if (!crypto || !crypto.getRandomValues) {
+    throw new Error("Secure code generation is not supported.");
+  }
+
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = new Uint8Array(20);
+
+  crypto.getRandomValues(bytes);
+
+  return Array.from(bytes)
+    .map((byte) => alphabet[byte & 31])
+    .join("");
+}
+
+function formatTrackingCode(code) {
+  return String(code).match(/.{1,4}/g)?.join("-") || code;
+}
+
+function normalizeTrackingCode(code) {
+  return String(code || "")
+    .toUpperCase()
+    .replace(/[\s-]/g, "");
+}
+
 // LOAD RESTAURANTS
 async function loadRestaurants() {
   const grid = $("restaurantGrid") || $("restaurants");
@@ -82,9 +110,9 @@ async function loadRestaurants() {
     const snapshot = await getDocs(collection(db, "restaurants"));
 
     restaurants = snapshot.docs
-      .map((doc) => ({
-        id: doc.id,
-        ...doc.data()
+      .map((document) => ({
+        id: document.id,
+        ...document.data()
       }))
       .filter((item) => item.active === true || item.Active === true);
 
@@ -165,7 +193,6 @@ async function openRestaurant(restaurant) {
 
   isOpeningRestaurant = true;
 
-  // Stop previous restaurant menu listener
   if (unsubscribeMenu) {
     unsubscribeMenu();
     unsubscribeMenu = null;
@@ -237,11 +264,11 @@ function loadSelectedRestaurantMenu() {
 
     (snapshot) => {
       menu = snapshot.docs
-        .map((doc) => {
-          const data = doc.data();
+        .map((document) => {
+          const data = document.data();
 
           return {
-            id: doc.id,
+            id: document.id,
             ...data,
             name: String(data.name || data.Name || "Food Item").trim(),
             price: Number(data.price ?? data.Price ?? 0),
@@ -253,12 +280,10 @@ function loadSelectedRestaurantMenu() {
         })
         .filter((item) => item.available === true);
 
-      // Remove unavailable items from cart
       cart = cart.filter((cartItem) =>
         menu.some((menuItem) => menuItem.id === cartItem.id)
       );
 
-      // Update cart prices if partner changes prices
       cart = cart.map((cartItem) => {
         const updatedItem = menu.find(
           (menuItem) => menuItem.id === cartItem.id
@@ -621,6 +646,109 @@ async function getCurrentLocation() {
   );
 }
 
+// SHOW ORDER SUCCESS CARD
+function showOrderSuccess(orderId, trackingCode, whatsappURL) {
+  const trackSection = $("trackOrder");
+
+  if (!trackSection) {
+    showToast("Order placed! Order ID: " + orderId);
+    window.location.href = whatsappURL;
+    return;
+  }
+
+  let successCard = $("orderSuccess");
+
+  if (!successCard) {
+    successCard = document.createElement("div");
+    successCard.id = "orderSuccess";
+    successCard.style.cssText = `
+      background:#211538;
+      border:1px solid #7650a8;
+      border-radius:18px;
+      padding:18px;
+      margin:16px 0;
+      color:white;
+    `;
+
+    const trackingForm = trackSection.querySelector(".tracking-form");
+
+    if (trackingForm) {
+      trackSection.insertBefore(successCard, trackingForm);
+    } else {
+      trackSection.prepend(successCard);
+    }
+  }
+
+  successCard.innerHTML = `
+    <div style="font-size:30px;text-align:center;">🎉</div>
+    <h3 style="text-align:center;">Order Placed Successfully!</h3>
+    <p style="text-align:center;">Aapka order restaurant ko bhejne ke liye ready hai.</p>
+
+    <div style="background:#160e25;padding:12px;border-radius:12px;margin:12px 0;">
+      <small>YOUR ORDER ID</small>
+      <h3 style="margin:6px 0;word-break:break-all;">${escapeHTML(orderId)}</h3>
+      <button type="button" id="copyOrderId">Copy Order ID</button>
+    </div>
+
+    <div style="background:#160e25;padding:12px;border-radius:12px;margin:12px 0;">
+      <small>YOUR SECRET TRACKING CODE</small>
+      <h3 style="margin:6px 0;letter-spacing:2px;word-break:break-word;">${escapeHTML(formatTrackingCode(trackingCode))}</h3>
+      <button type="button" id="copyTrackingCode">Copy Tracking Code</button>
+    </div>
+
+    <p style="font-size:13px;">Tracking Code ko sambhal kar rakhein. Iske bina order status nahi dekh paayenge.</p>
+
+    <button type="button" id="trackThisOrder" style="width:100%;margin:6px 0;">
+      📦 Track This Order
+    </button>
+
+    <button type="button" id="sendWhatsAppOrder" style="width:100%;margin:6px 0;">
+      Send Order on WhatsApp
+    </button>
+  `;
+
+  successCard.hidden = false;
+
+  $("copyOrderId")?.addEventListener("click", () => {
+    copyText(orderId);
+  });
+
+  $("copyTrackingCode")?.addEventListener("click", () => {
+    copyText(formatTrackingCode(trackingCode));
+  });
+
+  $("trackThisOrder")?.addEventListener("click", () => {
+    if ($("trackingOrderId")) $("trackingOrderId").value = orderId;
+    if ($("trackingCode")) $("trackingCode").value = formatTrackingCode(trackingCode);
+
+    trackSection.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+
+    trackOrder();
+  });
+
+  $("sendWhatsAppOrder")?.addEventListener("click", () => {
+    window.location.href = whatsappURL;
+  });
+
+  successCard.scrollIntoView({
+    behavior: "smooth",
+    block: "start"
+  });
+}
+
+// COPY TEXT
+async function copyText(value) {
+  try {
+    await navigator.clipboard.writeText(value);
+    showToast("Copied successfully!");
+  } catch (error) {
+    showToast("Copy nahi hua. Text manually copy kijiye.");
+  }
+}
+
 // PLACE ORDER
 async function placeOrder() {
   const name = $("customerName")?.value.trim() || "";
@@ -668,24 +796,44 @@ async function placeOrder() {
 
   const orderTotal = getTotal();
 
-  const orderData = {
-    customerName: name,
-    customerPhone: phone,
-    orderType,
-    address: orderType === "Home Delivery" ? address : "",
-    restaurantId: selectedRestaurant.id,
-    restaurantName: selectedRestaurant.name,
-    items: orderItems,
-    total: orderTotal,
-    status: "New",
-    createdAt: serverTimestamp()
-  };
-
   try {
-    const orderRef = await addDoc(collection(db, "orders"), orderData);
+    const trackingCode = generateTrackingCode();
+
+    const orderRef = doc(collection(db, "orders"));
+    const trackingRef = doc(db, "orderTracking", trackingCode);
+
+    const orderData = {
+      customerName: name,
+      customerPhone: phone,
+      orderType,
+      address: orderType === "Home Delivery" ? address : "",
+      restaurantId: selectedRestaurant.id,
+      restaurantName: selectedRestaurant.name,
+      items: orderItems,
+      total: orderTotal,
+      status: "New",
+      trackingCode,
+      createdAt: serverTimestamp()
+    };
+
+    const trackingData = {
+      orderId: orderRef.id,
+      restaurantId: selectedRestaurant.id,
+      restaurantName: selectedRestaurant.name,
+      status: "New",
+      createdAt: serverTimestamp()
+    };
+
+    // Save order and tracking record together
+    const batch = writeBatch(db);
+    batch.set(orderRef, orderData);
+    batch.set(trackingRef, trackingData);
+
+    await batch.commit();
 
     let message = "*NEW ZAIKABOX ORDER*\n";
     message += `Order ID: ${orderRef.id}\n`;
+    message += `Tracking Code: ${formatTrackingCode(trackingCode)}\n`;
     message += `Restaurant: ${selectedRestaurant.name}\n`;
     message += `Name: ${name}\n`;
     message += `Mobile: ${phone}\n`;
@@ -706,13 +854,15 @@ async function placeOrder() {
     const whatsappURL =
       `https://wa.me/${DEFAULT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
 
-    showToast("Order placed successfully!");
-
     cart = [];
     renderCart();
+    renderMenu();
     closeCart();
 
-    window.location.href = whatsappURL;
+    $("checkoutForm")?.remove();
+
+    showOrderSuccess(orderRef.id, trackingCode, whatsappURL);
+    showToast("Order placed successfully!");
 
   } catch (error) {
     console.error("Order placement error:", error);
@@ -724,6 +874,154 @@ async function placeOrder() {
     }
   }
 }
+
+// DISPLAY TRACKING STATUS
+function renderTrackingStatus(data) {
+  const result = $("trackingResult");
+  if (!result) return;
+
+  result.hidden = false;
+
+  const status = String(data.status || "New");
+
+  if (status === "Rejected") {
+    result.innerHTML = `
+      <div class="tracking-status">
+        <h3>❌ Order Rejected</h3>
+        <p>Restaurant ne is order ko reject kar diya hai. Details ke liye restaurant se contact karein.</p>
+        <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+      </div>
+    `;
+    return;
+  }
+
+  const steps = [
+    "New",
+    "Accepted",
+    "Preparing",
+    "Out for Delivery",
+    "Delivered"
+  ];
+
+  const currentIndex = steps.indexOf(status);
+
+  const labels = {
+    "New": "Order Received",
+    "Accepted": "Order Accepted",
+    "Preparing": "Food is Being Prepared",
+    "Out for Delivery": "Out for Delivery",
+    "Delivered": "Delivered"
+  };
+
+  const timeline = steps.map((step, index) => {
+    const completed = currentIndex >= index;
+
+    return `
+      <div class="tracking-step" style="
+        padding:10px;
+        margin:6px 0;
+        border-left:4px solid ${completed ? "#a879ed" : "#554766"};
+        opacity:${completed ? "1" : "0.5"};
+      ">
+        ${completed ? "✅" : "○"}
+        <strong>${labels[step]}</strong>
+      </div>
+    `;
+  }).join("");
+
+  result.innerHTML = `
+    <div class="tracking-status">
+      <h3>📦 Your Order Status</h3>
+      <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+      <p><strong>Current Status:</strong> ${escapeHTML(status)}</p>
+      <div class="tracking-order-items">${timeline}</div>
+      <p style="font-size:12px;">Status automatically refresh hota rahega.</p>
+    </div>
+  `;
+}
+
+// TRACK ORDER
+function trackOrder() {
+  const orderId = $("trackingOrderId")?.value.trim() || "";
+  const trackingCode = normalizeTrackingCode($("trackingCode")?.value || "");
+  const result = $("trackingResult");
+
+  if (!orderId || !trackingCode) {
+    showToast("Order ID aur Tracking Code dono enter kijiye.");
+    return;
+  }
+
+  if (!/^[A-Z2-9]{20}$/.test(trackingCode)) {
+    showToast("Tracking Code sahi format mein enter kijiye.");
+    return;
+  }
+
+  if (unsubscribeTracking) {
+    unsubscribeTracking();
+    unsubscribeTracking = null;
+  }
+
+  if (result) {
+    result.hidden = false;
+    result.innerHTML = "<p>Checking your order...</p>";
+  }
+
+  const trackingRef = doc(db, "orderTracking", trackingCode);
+
+  unsubscribeTracking = onSnapshot(
+    trackingRef,
+
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        if (result) {
+          result.hidden = false;
+          result.innerHTML = "<p>Order nahi mila. Order ID aur Tracking Code check kijiye.</p>";
+        }
+
+        if (unsubscribeTracking) {
+          unsubscribeTracking();
+          unsubscribeTracking = null;
+        }
+
+        return;
+      }
+
+      const data = snapshot.data();
+
+      if (data.orderId !== orderId) {
+        if (result) {
+          result.hidden = false;
+          result.innerHTML = "<p>Order nahi mila. Details dobara check kijiye.</p>";
+        }
+
+        if (unsubscribeTracking) {
+          unsubscribeTracking();
+          unsubscribeTracking = null;
+        }
+
+        return;
+      }
+
+      renderTrackingStatus(data);
+    },
+
+    (error) => {
+      console.error("Tracking error:", error);
+
+      if (result) {
+        result.hidden = false;
+        result.innerHTML = "<p>Tracking load nahi ho paayi. Dobara try kijiye.</p>";
+      }
+
+      if (unsubscribeTracking) {
+        unsubscribeTracking();
+        unsubscribeTracking = null;
+      }
+    }
+  );
+}
+
+$("trackOrderBtn")?.addEventListener("click", trackOrder);
 
 // SEARCH
 $("search")?.addEventListener("input", renderMenu);
