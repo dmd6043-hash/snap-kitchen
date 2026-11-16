@@ -26,10 +26,11 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .order{border:1px solid #594276;border-radius:12px;padding:14px;margin:12px 0;overflow-wrap:anywhere}
 .order h3{margin-top:0;color:#d2b8ff}
 a{color:#c5a3ff}
-#message,#partnerMessage{color:#ffd27a;overflow-wrap:anywhere;line-height:1.5}
+#globalStatus{background:#302044;color:#ffd27a;padding:13px;border-radius:10px;margin:14px 0;overflow-wrap:anywhere;line-height:1.5}
 .assignment-box{background:#160e25;border:1px solid #594276;padding:12px;border-radius:10px;margin-top:12px}
 .tag{display:inline-block;background:#3a2854;padding:5px 9px;border-radius:20px;font-size:12px}
 .order-type{display:inline-block;padding:5px 9px;border-radius:20px;background:#3a2854;color:#e1ceff;font-size:12px}
+hr{border:0;border-top:1px solid #49365f}
 </style>
 </head>
 
@@ -39,12 +40,13 @@ a{color:#c5a3ff}
 <h1>ZAIKABOX</h1>
 <p class="small">ADMIN DASHBOARD</p>
 
+<div id="globalStatus">Admin panel starting...</div>
+
 <div id="loginBox" class="card">
 <h2>Admin Login</h2>
 <input id="email" type="email" placeholder="Admin email" autocomplete="username">
 <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 <button class="primary" id="loginBtn" type="button">LOGIN</button>
-<p id="message">Please login.</p>
 </div>
 
 <div id="dashboard" class="hidden">
@@ -90,37 +92,41 @@ signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-const firebaseConfig = {
-apiKey: "AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
-authDomain: "snap-kitchen-b8a73.firebaseapp.com",
-projectId: "snap-kitchen-b8a73",
-storageBucket: "snap-kitchen-b8a73.firebasestorage.app",
-messagingSenderId: "1060475241392",
-appId: "1:1060475241392:web:c3751859ecb085830b8c75",
-measurementId: "G-KRFFRFJY5X"
+
+const firebaseConfig={
+apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+authDomain:"snap-kitchen-b8a73.firebaseapp.com",
+projectId:"snap-kitchen-b8a73",
+storageBucket:"snap-kitchen-b8a73.firebasestorage.app",
+messagingSenderId:"1060475241392",
+appId:"1:1060475241392:web:c3751859ecb085830b8c75",
+measurementId:"G-KRFFRFJY5X"
 };
 
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-const auth = getAuth(app);
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+const auth=getAuth(app);
 
-const $ = id => document.getElementById(id);
+const $=id=>document.getElementById(id);
 
-const ADMIN_UID = "RjDxrTXlLAgNfns668SgUWxBjBvB1";
-const KNOWN_DELIVERY_UID = "Q4do4Aw3mnQrY6npmM2uBkbAT8i1";
+const ADMIN_UID="RjDxrTXlLAgNfns668SgUWxBjBvB1";
+const KNOWN_DELIVERY_UID="Q4do4Aw3mnQrY6npmM2uBkbAT8i1";
 
-let unsubscribeOrders = null;
-let deliveryPartners = [];
-let currentOrders = [];
-let authVersion = 0;
-let loginInProgress = false;
-let dashboardLoading = false;
+let unsubscribeOrders=null;
+let deliveryPartners=[];
+let currentOrders=[];
+let authVersion=0;
+let loginInProgress=false;
 
 
 // HELPERS
 
+function setStatus(message){
+$("globalStatus").textContent=message;
+}
+
 function safe(value){
-return String(value ?? "").replace(/[&<>"']/g,char=>({
+return String(value??"").replace(/[&<>"']/g,char=>({
 "&":"&amp;",
 "<":"&lt;",
 ">":"&gt;",
@@ -130,7 +136,7 @@ return String(value ?? "").replace(/[&<>"']/g,char=>({
 }
 
 function normalize(value){
-return String(value ?? "").trim().toLowerCase();
+return String(value??"").trim().toLowerCase();
 }
 
 function isHomeDelivery(order){
@@ -142,17 +148,7 @@ return normalize(order.orderType).includes("pickup");
 }
 
 function partnerDisplayName(partner){
-return partner.name ||
-partner.displayName ||
-partner.email ||
-partner.uid;
-}
-
-function showLoginError(prefix,error){
-console.error(prefix,error);
-$("message").textContent =
-prefix+": "+(error.code || "unknown")+
-" - "+(error.message || "Unknown error");
+return partner.name||partner.displayName||partner.email||partner.uid;
 }
 
 
@@ -160,20 +156,21 @@ prefix+": "+(error.code || "unknown")+
 
 $("loginBtn").addEventListener("click",async()=>{
 
-if(loginInProgress) return;
+if(loginInProgress)return;
 
 const email=$("email").value.trim();
 const password=$("password").value;
 
-if(!email || !password){
-$("message").textContent="Email aur password dono bhariye.";
+if(!email||!password){
+setStatus("Email aur password dono bhariye.");
 return;
 }
 
 loginInProgress=true;
 $("loginBtn").disabled=true;
 $("loginBtn").textContent="LOGGING IN...";
-$("message").textContent="Firebase login request bhej raha hai...";
+
+setStatus("STEP 1: Firebase login request bhej raha hai...");
 
 let timeoutId;
 
@@ -186,7 +183,7 @@ loginPromise,
 new Promise((_,reject)=>{
 timeoutId=setTimeout(()=>{
 const error=new Error(
-"15 seconds mein Firebase se response nahi mila. Internet, Firebase API aur network check karein."
+"15 seconds mein Firebase response nahi mila. Network ya Firebase Auth connection check karein."
 );
 error.code="LOGIN_TIMEOUT";
 reject(error);
@@ -196,15 +193,16 @@ reject(error);
 
 clearTimeout(timeoutId);
 
-$("message").textContent=
-"Login successful. Admin verify ho raha hai...";
-
-console.log("FIREBASE LOGIN SUCCESS:",result.user.uid);
+setStatus("STEP 2: Firebase login successful. UID: "+result.user.uid);
 
 }catch(error){
 
 clearTimeout(timeoutId);
-showLoginError("LOGIN ERROR",error);
+console.error("ADMIN LOGIN ERROR:",error);
+
+setStatus(
+"LOGIN ERROR: "+(error.code||"unknown")+" - "+error.message
+);
 
 }finally{
 
@@ -216,26 +214,20 @@ $("loginBtn").textContent="LOGIN";
 
 });
 
-
-// ENTER KEY LOGIN
-
 $("password").addEventListener("keydown",event=>{
-if(event.key==="Enter"){
-$("loginBtn").click();
-}
+if(event.key==="Enter")$("loginBtn").click();
 });
 
 
 // LOGOUT
 
 $("logoutBtn").addEventListener("click",async()=>{
-
 try{
 await signOut(auth);
+setStatus("Logout successful.");
 }catch(error){
-alert("Logout failed: "+error.message);
+setStatus("LOGOUT ERROR: "+error.message);
 }
-
 });
 
 
@@ -250,7 +242,6 @@ unsubscribeOrders=null;
 
 currentOrders=[];
 deliveryPartners=[];
-dashboardLoading=false;
 
 $("orders").innerHTML="";
 $("count").textContent="0";
@@ -259,11 +250,13 @@ $("partnerMessage").textContent="";
 }
 
 
-// AUTH CHECK
+// SINGLE AUTH LISTENER
 
 onAuthStateChanged(auth,async user=>{
 
 const version=++authVersion;
+
+console.log("ADMIN AUTH STATE:",user?user.uid:"No user");
 
 if(!user){
 
@@ -273,77 +266,86 @@ $("loginBox").classList.remove("hidden");
 $("dashboard").classList.add("hidden");
 
 if(!loginInProgress){
-$("message").textContent="Please login.";
+setStatus("Please login with Admin account.");
 }
 
 return;
-
 }
 
 $("loginBox").classList.add("hidden");
 $("dashboard").classList.add("hidden");
 
+setStatus("STEP 2: Firebase login successful. Admin UID verify ho rahi hai...");
+
 if(user.uid!==ADMIN_UID){
 
-$("loginBox").classList.remove("hidden");
-$("message").textContent=
-"ADMIN ERROR: Ye account Admin account nahi hai. UID match nahi hui.";
+setStatus(
+"ADMIN ERROR: UID match nahi hui. Logged in UID: "+user.uid
+);
 
-try{await signOut(auth);}catch(e){
-console.error("Signout error:",e);
+$("loginBox").classList.remove("hidden");
+
+try{
+await signOut(auth);
+}catch(error){
+console.error("Signout error:",error);
 }
 
 return;
-
 }
 
 if(version!==authVersion)return;
 
-$("adminEmail").textContent="Logged in: "+(user.email || "");
+$("adminEmail").textContent="Logged in: "+(user.email||"");
+
+setStatus("STEP 3: Admin verified. Delivery partners load ho rahe hain...");
+
 $("dashboard").classList.remove("hidden");
-$("partnerMessage").textContent="Admin verified. Dashboard loading...";
 
-dashboardLoading=true;
-
-let dashboardTimeout;
+let timeoutId;
 
 try{
 
-const timeoutPromise=new Promise((_,reject)=>{
-dashboardTimeout=setTimeout(()=>{
-const error=new Error(
-"Dashboard data load hone mein 15 seconds se zyada lag rahe hain."
-);
+await Promise.race([
+loadDeliveryPartners(),
+new Promise((_,reject)=>{
+timeoutId=setTimeout(()=>{
+const error=new Error("Dashboard data 15 seconds mein load nahi hua.");
 error.code="DASHBOARD_TIMEOUT";
 reject(error);
 },15000);
-});
-
-await Promise.race([
-loadDeliveryPartners(),
-timeoutPromise
+})
 ]);
+
+clearTimeout(timeoutId);
 
 if(version!==authVersion)return;
 
 startOrdersListener();
 
+setStatus("SUCCESS: Admin dashboard ready hai.");
+
 }catch(error){
 
-console.error("Dashboard loading error:",error);
+clearTimeout(timeoutId);
+
+console.error("ADMIN DASHBOARD ERROR:",error);
 
 if(version!==authVersion)return;
 
-$("partnerMessage").textContent=
-"DASHBOARD ERROR: "+(error.code || "unknown")+
-" - "+error.message;
-
-}finally{
-
-clearTimeout(dashboardTimeout);
-dashboardLoading=false;
+setStatus(
+"DASHBOARD ERROR: "+(error.code||"unknown")+" - "+error.message
+);
 
 }
+
+},error=>{
+
+console.error("AUTH STATE ERROR:",error);
+
+setStatus(
+"AUTH STATE ERROR: "+(error.code||"unknown")+" - "+error.message
+);
 
 });
 
@@ -352,7 +354,8 @@ dashboardLoading=false;
 
 async function loadDeliveryPartners(){
 
-$("partnerMessage").textContent="Loading delivery partners...";
+setStatus("STEP 3: Delivery partners load ho rahe hain...");
+
 deliveryPartners=[];
 
 try{
@@ -379,13 +382,11 @@ if(partnerSnap.exists()){
 
 const data=partnerSnap.data();
 
-if(normalize(data.role)==="delivery" && data.active===true){
-
+if(normalize(data.role)==="delivery"&&data.active===true){
 deliveryPartners.push({
 uid:partnerSnap.id,
 ...data
 });
-
 }
 
 }
@@ -395,17 +396,16 @@ uid:partnerSnap.id,
 $("partnerMessage").textContent=
 deliveryPartners.length
 ?deliveryPartners.length+" active delivery partner(s) available."
-:"No active delivery partners found. Check users document role and active.";
+:"No active delivery partners found.";
 
 renderOrders(currentOrders);
 
 }catch(error){
 
-console.error("Delivery partner error:",error);
+console.error("DELIVERY PARTNER ERROR:",error);
 
 $("partnerMessage").textContent=
-"PARTNER ERROR: "+(error.code || "unknown")+
-" - "+error.message;
+"PARTNER ERROR: "+(error.code||"unknown")+" - "+error.message;
 
 renderOrders(currentOrders);
 
@@ -437,8 +437,8 @@ id:item.id,
 }));
 
 currentOrders.sort((a,b)=>
-(b.createdAt?.toMillis?.() || 0)-
-(a.createdAt?.toMillis?.() || 0)
+(b.createdAt?.toMillis?.()||0)-
+(a.createdAt?.toMillis?.()||0)
 );
 
 $("count").textContent=currentOrders.length;
@@ -448,11 +448,10 @@ renderOrders(currentOrders);
 
 error=>{
 
-console.error("Orders error:",error);
+console.error("ORDERS ERROR:",error);
 
 $("orders").textContent=
-"Orders error: "+(error.code || "unknown")+
-" - "+error.message;
+"ORDERS ERROR: "+(error.code||"unknown")+" - "+error.message;
 
 }
 );
@@ -465,19 +464,18 @@ $("orders").textContent=
 function renderOrders(list){
 
 if(!list.length){
-$("orders").innerHTML=
-'<div class="card">Abhi koi order nahi hai.</div>';
+$("orders").innerHTML='<div class="card">Abhi koi order nahi hai.</div>';
 return;
 }
 
 $("orders").innerHTML=list.map(order=>{
 
-const name=order.customerName || order.name || "Customer";
-const phone=order.customerPhone || order.phone || order.mobile || "";
-const type=order.orderType || "Not specified";
-const address=order.address || "Address not available";
-const total=order.total ?? order.grandTotal ?? 0;
-const status=order.status || "New";
+const name=order.customerName||order.name||"Customer";
+const phone=order.customerPhone||order.phone||order.mobile||"";
+const type=order.orderType||"Not specified";
+const address=order.address||"Address not available";
+const total=order.total??order.grandTotal??0;
+const status=order.status||"New";
 
 const homeDelivery=isHomeDelivery(order);
 const pickup=isPickup(order);
@@ -487,16 +485,14 @@ const items=Array.isArray(order.items)
 
 if(typeof item==="string")return safe(item);
 
-return safe(item.name || item.title || "Item")+
-" × "+safe(item.quantity || item.qty || 1);
+return safe(item.name||item.title||"Item")+
+" × "+safe(item.quantity||item.qty||1);
 
 }).join("<br>")
-:safe(order.items || "Items not available");
+:safe(order.items||"Items not available");
 
-const map=order.mapLink ||
-order.googleMapsLink ||
-(
-order.latitude!=null && order.longitude!=null
+const map=order.mapLink||order.googleMapsLink||(
+order.latitude!=null&&order.longitude!=null
 ?"https://www.google.com/maps?q="+
 encodeURIComponent(order.latitude+","+order.longitude)
 :""
@@ -506,7 +502,7 @@ const date=order.createdAt?.toDate
 ?order.createdAt.toDate().toLocaleString("en-IN")
 :"Time unavailable";
 
-const selectedPartner=order.assignedTo || "";
+const selectedPartner=order.assignedTo||"";
 
 const partnerOptions=deliveryPartners.map(partner=>`
 <option value="${safe(partner.uid)}"
@@ -515,91 +511,60 @@ ${safe(partnerDisplayName(partner))}
 </option>
 `).join("");
 
-const assignedPartner=
-deliveryPartners.find(p=>p.uid===selectedPartner);
+const assignedPartner=deliveryPartners.find(p=>p.uid===selectedPartner);
 
 const assignmentHTML=homeDelivery?`
-
 <div class="assignment-box">
 <p><b>Delivery Partner Assignment</b></p>
-
 <select id="partner-${safe(order.id)}">
 <option value="">Select Delivery Partner</option>
 ${partnerOptions}
 </select>
-
 <p class="small">
-${
-selectedPartner
-?"Currently assigned: "+
-safe(assignedPartner
-?partnerDisplayName(assignedPartner)
-:selectedPartner)
-:"Not assigned yet"
-}
+${selectedPartner
+?"Currently assigned: "+safe(assignedPartner?partnerDisplayName(assignedPartner):selectedPartner)
+:"Not assigned yet"}
 </p>
-
 <button class="assign" data-assign="${safe(order.id)}">
 ${selectedPartner?"CHANGE DELIVERY PARTNER":"ASSIGN DELIVERY"}
 </button>
 </div>
-
 `:"";
 
 const statusButtons=homeDelivery?`
-
 <button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
-<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
-<br>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button><br>
 <button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
 <button class="status" data-id="${safe(order.id)}" data-status="Out for Delivery">OUT FOR DELIVERY</button>
 <button class="success" data-id="${safe(order.id)}" data-status="Delivered">DELIVERED</button>
-
 `:pickup?`
-
 <button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
-<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
-<br>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button><br>
 <button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
 <button class="success" data-id="${safe(order.id)}" data-status="Ready for Pickup">READY FOR PICKUP</button>
 <button class="assign" data-id="${safe(order.id)}" data-status="Picked Up">PICKED UP</button>
-
 `:`
-
 <button class="primary" data-id="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
-<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button>
-<br>
+<button class="reject" data-id="${safe(order.id)}" data-status="Rejected">REJECT</button><br>
 <button class="status" data-id="${safe(order.id)}" data-status="Preparing">PREPARING</button>
-
 `;
 
 return `
-
 <div class="order">
-
 <h3>Order #${safe(order.id.slice(0,8))}</h3>
-
-<p><span class="order-type">
-${homeDelivery?"HOME DELIVERY":pickup?"PICKUP":safe(type)}
-</span></p>
-
+<p><span class="order-type">${homeDelivery?"HOME DELIVERY":pickup?"PICKUP":safe(type)}</span></p>
 <p><b>Name:</b> ${safe(name)}</p>
 <p><b>Phone:</b> ${safe(phone)}</p>
 <p><b>Order Type:</b> ${safe(type)}</p>
 <p><b>Items:</b><br>${items}</p>
 <p><b>Total:</b> ₹${safe(total)}</p>
 <p><b>Address:</b> ${safe(address)}</p>
-
 ${map?`<p><a href="${safe(map)}" target="_blank" rel="noopener">OPEN GOOGLE MAPS</a></p>`:""}
-
 <p><b>Current Status:</b> <span class="tag">${safe(status)}</span></p>
 <p class="small">${safe(date)}</p>
-
 ${statusButtons}
 ${assignmentHTML}
-
 </div>
-
 `;
 
 }).join("");
@@ -632,7 +597,7 @@ return;
 
 const order=currentOrders.find(o=>o.id===orderId);
 
-if(!order || !isHomeDelivery(order)){
+if(!order||!isHomeDelivery(order)){
 alert("Valid Home Delivery order nahi mila.");
 return;
 }
@@ -646,7 +611,7 @@ try{
 
 await updateDoc(doc(db,"orders",orderId),{
 assignedTo:partnerUid,
-assignedToEmail:partner.email || "",
+assignedToEmail:partner.email||"",
 assignedAt:serverTimestamp()
 });
 
@@ -654,9 +619,9 @@ alert("Delivery Partner successfully assigned!");
 
 }catch(error){
 
-console.error("Assignment error:",error);
+console.error("ASSIGNMENT ERROR:",error);
 
-alert("Assignment failed: "+(error.code || "unknown")+" - "+error.message);
+alert("Assignment failed: "+(error.code||"unknown")+" - "+error.message);
 
 }finally{
 
@@ -665,7 +630,6 @@ assignButton.disabled=false;
 }
 
 return;
-
 }
 
 const button=event.target.closest("button[data-id]");
@@ -674,7 +638,6 @@ if(!button)return;
 
 const orderId=button.dataset.id;
 const nextStatus=button.dataset.status;
-
 const order=currentOrders.find(o=>o.id===orderId);
 
 if(!order)return;
@@ -682,17 +645,17 @@ if(!order)return;
 const homeDelivery=isHomeDelivery(order);
 const pickup=isPickup(order);
 
-if(homeDelivery && ["Ready for Pickup","Picked Up"].includes(nextStatus)){
+if(homeDelivery&&["Ready for Pickup","Picked Up"].includes(nextStatus)){
 alert("Ye status sirf Pickup orders ke liye hai.");
 return;
 }
 
-if(pickup && ["Out for Delivery","Delivered"].includes(nextStatus)){
+if(pickup&&["Out for Delivery","Delivered"].includes(nextStatus)){
 alert("Pickup order mein Delivery wala status nahi laga sakte.");
 return;
 }
 
-if(nextStatus==="Out for Delivery" && !order.assignedTo){
+if(nextStatus==="Out for Delivery"&&!order.assignedTo){
 alert("Pehle Delivery Partner assign kijiye.");
 return;
 }
@@ -730,9 +693,9 @@ await batch.commit();
 
 }catch(error){
 
-console.error("Status update error:",error);
+console.error("STATUS UPDATE ERROR:",error);
 
-alert("Status update nahi hua: "+(error.code || "unknown")+" - "+error.message);
+alert("Status update nahi hua: "+(error.code||"unknown")+" - "+error.message);
 
 }finally{
 
@@ -756,7 +719,7 @@ await loadDeliveryPartners();
 
 }catch(error){
 
-console.error("Refresh error:",error);
+console.error("REFRESH ERROR:",error);
 
 }
 
@@ -764,30 +727,6 @@ $("refreshBtn").disabled=false;
 $("refreshBtn").textContent="REFRESH";
 
 });
-
-
-// AUTH LISTENER ERROR
-
-onAuthStateChanged(
-auth,
-user=>{
-
-console.log(
-"AUTH STATE:",
-user ? user.uid : "No logged-in user"
-);
-
-},
-error=>{
-
-console.error("AUTH STATE LISTENER ERROR:",error);
-
-$("message").textContent=
-"AUTH STATE ERROR: "+(error.code || "unknown")+
-" - "+error.message;
-
-}
-);
 
 </script>
 </body>
