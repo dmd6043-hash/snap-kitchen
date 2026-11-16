@@ -5,7 +5,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#180d2e">
-<title>ZaikaBox | Restaurant Partner</title>
+<title>ZaikaBox Restaurant Partner</title>
 
 <style>
 *{box-sizing:border-box}
@@ -24,7 +24,8 @@ button:disabled{opacity:.5}
 .success{background:#4cba86;color:#10251b}
 .hidden{display:none!important}
 .small{font-size:13px;color:#c8bad9;overflow-wrap:anywhere}
-#message,#menuMessage{color:#ffd27a;overflow-wrap:anywhere;line-height:1.5}
+#globalStatus{background:#302044;color:#ffd27a;padding:13px;border-radius:10px;margin:14px 0;overflow-wrap:anywhere;line-height:1.5}
+#menuMessage{color:#ffd27a;overflow-wrap:anywhere}
 .item,.order{border:1px solid #594276;border-radius:12px;padding:13px;margin:12px 0;overflow-wrap:anywhere}
 .item h3,.order h3{color:#d2b8ff;margin:0 0 8px}
 .row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
@@ -39,6 +40,10 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <h1>ZAIKABOX</h1>
 <p class="small">RESTAURANT PARTNER PANEL</p>
 
+<div id="globalStatus">
+Partner panel starting...
+</div>
+
 <div id="loginBox" class="card">
 <h2>Partner Login</h2>
 
@@ -49,7 +54,7 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 
 <button class="primary" id="loginBtn" type="button">LOGIN</button>
-<p id="message">Please login.</p>
+<button class="secondary hidden" id="errorLogoutBtn" type="button">LOGOUT</button>
 </div>
 
 <div id="dashboard" class="hidden">
@@ -87,7 +92,7 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <textarea id="itemDescription" rows="2" maxlength="250" placeholder="Item details"></textarea>
 
 <label>Emoji</label>
-<input id="itemEmoji" maxlength="8" value="🍽️" placeholder="🥟">
+<input id="itemEmoji" maxlength="8" value="🍽️">
 
 <label>Availability</label>
 <select id="itemAvailable">
@@ -102,7 +107,7 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <p id="menuMessage" class="small"></p>
 <hr>
 <h3>Your Menu Items</h3>
-<div id="menuList">Loading menu...</div>
+<div id="menuList">Menu not loaded yet.</div>
 </div>
 
 <div class="card">
@@ -111,7 +116,7 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <button class="secondary" id="refreshOrdersBtn" type="button">REFRESH</button>
 </div>
 <p class="small">Only orders for your restaurant are shown.</p>
-<div id="ordersList">Loading orders...</div>
+<div id="ordersList">Orders not loaded yet.</div>
 </div>
 
 </div>
@@ -146,6 +151,7 @@ signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
+
 const firebaseConfig={
 apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
 authDomain:"snap-kitchen-b8a73.firebaseapp.com",
@@ -169,14 +175,19 @@ let loginInProgress=false;
 let partnerMenuItems=[];
 let partnerOrders=[];
 
-function safe(value){
-return String(value??"").replace(/[&<>"']/g,char=>({
-"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-})[char]);
+
+function setStatus(message){
+$("globalStatus").textContent=message;
 }
 
-function showMessage(id,text){
-$(id).textContent=text;
+function safe(value){
+return String(value??"").replace(/[&<>"']/g,char=>({
+"&":"&amp;",
+"<":"&lt;",
+">":"&gt;",
+'"':"&quot;",
+"'":"&#039;"
+})[char]);
 }
 
 function menuCollection(){
@@ -195,45 +206,26 @@ const email=$("email").value.trim();
 const password=$("password").value;
 
 if(!email||!password){
-showMessage("message","Email aur password bhariye.");
+setStatus("Email aur password dono bhariye.");
 return;
 }
 
 loginInProgress=true;
 $("loginBtn").disabled=true;
 $("loginBtn").textContent="LOGGING IN...";
-showMessage("message","Firebase login request bhej raha hai...");
-
-let timeoutId;
+setStatus("STEP 1: Firebase login request bheja ja raha hai...");
 
 try{
 
-const loginPromise=signInWithEmailAndPassword(auth,email,password);
+const credential=await signInWithEmailAndPassword(auth,email,password);
 
-const result=await Promise.race([
-loginPromise,
-new Promise((_,reject)=>{
-timeoutId=setTimeout(()=>{
-const error=new Error("15 seconds mein Firebase response nahi mila. Network ya Firebase connection check karein.");
-error.code="LOGIN_TIMEOUT";
-reject(error);
-},15000);
-})
-]);
-
-clearTimeout(timeoutId);
-
-console.log("PARTNER LOGIN SUCCESS:",result.user.uid);
-showMessage("message","Login successful. Partner account verify ho raha hai...");
+setStatus("STEP 2: Firebase login successful. UID: "+credential.user.uid+". Partner account check ho raha hai...");
 
 }catch(error){
 
-clearTimeout(timeoutId);
-console.error("Partner login error:",error);
+console.error("LOGIN ERROR:",error);
 
-showMessage("message",
-"LOGIN ERROR: "+(error.code||"unknown")+" - "+error.message
-);
+setStatus("LOGIN ERROR: "+(error.code||"unknown")+" - "+error.message);
 
 }finally{
 
@@ -252,16 +244,24 @@ if(event.key==="Enter")$("loginBtn").click();
 
 // LOGOUT
 
-$("logoutBtn").addEventListener("click",async()=>{
+async function logoutPartner(){
 try{
 await signOut(auth);
+currentRestaurantId=null;
+$("dashboard").classList.add("hidden");
+$("loginBox").classList.remove("hidden");
+$("errorLogoutBtn").classList.add("hidden");
+setStatus("Logged out. Ab dobara login kar sakte hain.");
 }catch(error){
-alert("Logout failed: "+error.message);
+setStatus("LOGOUT ERROR: "+error.message);
 }
-});
+}
+
+$("logoutBtn").addEventListener("click",logoutPartner);
+$("errorLogoutBtn").addEventListener("click",logoutPartner);
 
 
-// AUTH + ACCOUNT VERIFICATION
+// AUTH STATE + PARTNER ACCOUNT CHECK
 
 onAuthStateChanged(auth,async user=>{
 
@@ -275,65 +275,86 @@ partnerOrders=[];
 
 $("loginBox").classList.remove("hidden");
 $("dashboard").classList.add("hidden");
+$("errorLogoutBtn").classList.add("hidden");
 
-$("menuList").textContent="";
-$("ordersList").textContent="";
+$("menuList").textContent="Menu not loaded yet.";
+$("ordersList").textContent="Orders not loaded yet.";
 
-if(!loginInProgress)showMessage("message","Please login.");
+if(!loginInProgress){
+setStatus("Please login with your restaurant partner account.");
+}
 
 return;
 }
 
 $("loginBox").classList.add("hidden");
 $("dashboard").classList.add("hidden");
-showMessage("message","Checking partner account...");
+$("errorLogoutBtn").classList.add("hidden");
+
+setStatus("STEP 2: Login successful. Account document check ho raha hai...");
 
 try{
 
-// Direct UID account lookup
+// STEP 3: ACCOUNT DOCUMENT
+
 const accountRef=doc(db,"accounts",user.uid);
 const accountSnapshot=await getDoc(accountRef);
 
 if(version!==authVersion)return;
 
 if(!accountSnapshot.exists()){
-throw new Error("Partner account document nahi mila. accounts collection mein UID check karein.");
+throw new Error("accounts collection mein is UID ka document nahi mila. UID: "+user.uid);
 }
+
+setStatus("STEP 3: Partner account mil gaya. Role aur active status check ho raha hai...");
 
 const account=accountSnapshot.data();
 
 if(account.role!=="restaurant"){
-throw new Error("Account role restaurant nahi hai.");
+throw new Error("Account role restaurant nahi hai. Current role: "+String(account.role));
 }
 
 if(account.active!==true){
-throw new Error("Restaurant partner account active nahi hai.");
+throw new Error("Partner account active nahi hai. accounts document mein active=true hona chahiye.");
 }
 
 if(!account.restaurantId){
-throw new Error("Account mein restaurantId missing hai.");
+throw new Error("accounts document mein restaurantId missing hai.");
 }
 
 currentRestaurantId=account.restaurantId;
 
-// Direct restaurant document lookup
+setStatus("STEP 4: Restaurant record check ho raha hai: "+currentRestaurantId);
+
+
+// STEP 4: RESTAURANT DOCUMENT
+
 const restaurantRef=doc(db,"restaurants",currentRestaurantId);
 const restaurantSnapshot=await getDoc(restaurantRef);
 
 if(version!==authVersion)return;
 
 if(!restaurantSnapshot.exists()){
-throw new Error("Restaurant record nahi mila: "+currentRestaurantId);
+throw new Error("restaurants collection mein document nahi mila: "+currentRestaurantId);
 }
 
 const restaurant=restaurantSnapshot.data();
+
+if(restaurant.active===false){
+throw new Error("Restaurant inactive hai. restaurants document mein active=true karein.");
+}
 
 currentRestaurantName=restaurant.name||"Restaurant";
 
 $("restaurantName").textContent=currentRestaurantName;
 $("partnerMessage").textContent="Logged in: "+(user.email||"");
 
+
+// STEP 5: SHOW DASHBOARD
+
 $("dashboard").classList.remove("hidden");
+
+setStatus("STEP 5: Account verified! Dashboard open ho gaya. Menu aur orders load ho rahe hain...");
 
 await loadMenu();
 
@@ -341,33 +362,31 @@ if(version!==authVersion)return;
 
 await loadOrders();
 
+if(version!==authVersion)return;
+
+setStatus("SUCCESS: "+currentRestaurantName+" dashboard ready hai.");
+
 }catch(error){
 
-console.error("Partner verification error:",error);
+console.error("PARTNER VERIFICATION ERROR:",error);
 
 if(version!==authVersion)return;
 
 currentRestaurantId=null;
 
-$("loginBox").classList.remove("hidden");
 $("dashboard").classList.add("hidden");
+$("loginBox").classList.remove("hidden");
+$("errorLogoutBtn").classList.remove("hidden");
 
-showMessage("message",
-"PARTNER ERROR: "+(error.code||"unknown")+" - "+error.message
-);
-
-try{
-await signOut(auth);
-}catch(logoutError){
-console.error("Signout error:",logoutError);
-}
+setStatus("PARTNER ERROR: "+(error.code||"unknown")+" - "+error.message);
 
 }
 
 },error=>{
 
-console.error("Auth state error:",error);
-showMessage("message","AUTH ERROR: "+(error.code||"unknown")+" - "+error.message);
+console.error("AUTH STATE ERROR:",error);
+
+setStatus("AUTH ERROR: "+(error.code||"unknown")+" - "+error.message);
 
 });
 
@@ -400,7 +419,7 @@ return;
 
 $("menuList").innerHTML=partnerMenuItems.map(item=>{
 
-const available=item.available??item.Available??true;
+const available=item.available??true;
 
 return `
 <div class="item">
@@ -408,10 +427,9 @@ return `
 <h3>${safe(item.emoji||"🍽️")} ${safe(item.name||"Food Item")}</h3>
 <span class="tag">${available?"AVAILABLE":"UNAVAILABLE"}</span>
 </div>
-<p>Price: <b>₹${safe(item.price??item.Price??0)}</b></p>
+<p>Price: <b>₹${safe(item.price??0)}</b></p>
 <p class="small">Category: ${safe(item.category||"Other")}</p>
 <p class="small">${safe(item.description||"")}</p>
-
 <button class="primary" data-action="edit" data-id="${safe(item.id)}">EDIT</button>
 <button class="secondary" data-action="toggle" data-id="${safe(item.id)}">${available?"MARK UNAVAILABLE":"MAKE AVAILABLE"}</button>
 <button class="danger" data-action="delete" data-id="${safe(item.id)}">DELETE</button>
@@ -422,26 +440,29 @@ return `
 
 }catch(error){
 
-console.error("Menu load error:",error);
-$("menuList").textContent="Menu load nahi hua: "+(error.code||"")+" "+error.message;
+console.error("MENU ERROR:",error);
+
+$("menuList").textContent="MENU ERROR: "+(error.code||"")+" "+error.message;
 
 }
 
 }
 
 
-// RESET FORM
+// MENU FORM RESET
 
 function resetMenuForm(){
+
 $("menuForm").reset();
 $("editItemId").value="";
 $("itemEmoji").value="🍽️";
 $("saveItemBtn").textContent="ADD MENU ITEM";
 $("cancelEditBtn").classList.add("hidden");
+
 }
 
 
-// ADD / EDIT MENU
+// ADD / UPDATE MENU ITEM
 
 $("menuForm").addEventListener("submit",async event=>{
 
@@ -458,15 +479,20 @@ const available=$("itemAvailable").value==="true";
 const editId=$("editItemId").value;
 
 if(!name||!category||!Number.isFinite(price)||price<=0){
-showMessage("menuMessage","Name, category aur valid price bhariye.");
+$("menuMessage").textContent="Valid name, category aur price bhariye.";
 return;
 }
 
 $("saveItemBtn").disabled=true;
-showMessage("menuMessage","Saving menu item...");
+$("menuMessage").textContent="Saving...";
 
 const itemData={
-name,price,category,description,emoji,available,
+name,
+price,
+category,
+description,
+emoji,
+available,
 updatedAt:serverTimestamp()
 };
 
@@ -479,7 +505,7 @@ doc(db,"restaurants",currentRestaurantId,"menuItems",editId),
 itemData
 );
 
-showMessage("menuMessage","Menu item updated!");
+$("menuMessage").textContent="Menu item updated!";
 
 }else{
 
@@ -488,7 +514,7 @@ await addDoc(menuCollection(),{
 createdAt:serverTimestamp()
 });
 
-showMessage("menuMessage","New menu item added!");
+$("menuMessage").textContent="New menu item added!";
 
 }
 
@@ -497,8 +523,8 @@ await loadMenu();
 
 }catch(error){
 
-console.error("Menu save error:",error);
-showMessage("menuMessage","Save nahi hua: "+error.message);
+console.error("MENU SAVE ERROR:",error);
+$("menuMessage").textContent="MENU SAVE ERROR: "+error.message;
 
 }finally{
 
@@ -509,11 +535,12 @@ $("saveItemBtn").disabled=false;
 });
 
 
-// MENU ACTIONS
+// MENU BUTTON ACTIONS
 
 $("menuList").addEventListener("click",async event=>{
 
 const button=event.target.closest("button[data-action]");
+
 if(!button||!currentRestaurantId)return;
 
 const id=button.dataset.id;
@@ -532,7 +559,7 @@ if(action==="edit"){
 
 $("editItemId").value=item.id;
 $("itemName").value=item.name||"";
-$("itemPrice").value=item.price??item.Price??0;
+$("itemPrice").value=item.price??0;
 $("itemCategory").value=item.category||"";
 $("itemDescription").value=item.description||"";
 $("itemEmoji").value=item.emoji||"🍽️";
@@ -545,7 +572,7 @@ $("menuForm").scrollIntoView({behavior:"smooth"});
 
 }else if(action==="toggle"){
 
-const current=item.available??item.Available??true;
+const current=item.available??true;
 
 await updateDoc(itemRef,{
 available:!current,
@@ -561,14 +588,14 @@ if(!confirm("Is menu item ko delete karna hai?"))return;
 await deleteDoc(itemRef);
 await loadMenu();
 
-showMessage("menuMessage","Menu item deleted.");
+$("menuMessage").textContent="Menu item deleted.";
 
 }
 
 }catch(error){
 
-console.error("Menu action error:",error);
-alert("Action complete nahi hua: "+error.message);
+console.error("MENU ACTION ERROR:",error);
+alert("MENU ERROR: "+error.message);
 
 }finally{
 
@@ -633,7 +660,6 @@ return `
 <h3>Order #${safe(order.id.slice(0,8))}</h3>
 <p><b>Customer:</b> ${safe(order.customerName||"Customer")}</p>
 <p><b>Phone:</b> ${safe(order.customerPhone||"")}</p>
-<p><b>Type:</b> ${safe(order.orderType||"Not specified")}</p>
 <p><b>Items:</b><br>${items}</p>
 <p><b>Total:</b> ₹${safe(order.total??order.grandTotal??0)}</p>
 <p><b>Address:</b> ${safe(order.address||"Pickup")}</p>
@@ -650,21 +676,22 @@ return `
 
 }catch(error){
 
-console.error("Orders load error:",error);
+console.error("ORDERS ERROR:",error);
 
 $("ordersList").textContent=
-"Orders load nahi hue: "+(error.code||"")+" "+error.message;
+"ORDERS ERROR: "+(error.code||"")+" "+error.message;
 
 }
 
 }
 
 
-// ORDER STATUS ACTIONS
+// ORDER STATUS UPDATE
 
 $("ordersList").addEventListener("click",async event=>{
 
 const button=event.target.closest("button[data-order]");
+
 if(!button||!currentRestaurantId)return;
 
 const orderId=button.dataset.order;
@@ -693,7 +720,7 @@ const trackingCode=String(order.trackingCode)
 .replace(/[\s-]/g,"");
 
 if(!/^[A-Z2-9]{20}$/.test(trackingCode)){
-throw new Error("Order ka Tracking Code invalid hai.");
+throw new Error("Order tracking code invalid hai.");
 }
 
 batch.update(
@@ -705,15 +732,15 @@ doc(db,"orderTracking",trackingCode),
 
 await batch.commit();
 
-showMessage("partnerMessage","Order status updated: "+status);
+setStatus("Order status updated: "+status);
 
 await loadOrders();
 
 }catch(error){
 
-console.error("Order update error:",error);
+console.error("ORDER UPDATE ERROR:",error);
 
-alert("Order status update nahi hua: "+(error.code||"")+" "+error.message);
+alert("ORDER ERROR: "+(error.code||"")+" "+error.message);
 
 }finally{
 
@@ -724,7 +751,7 @@ button.disabled=false;
 });
 
 
-// REFRESH
+// REFRESH BUTTONS
 
 $("refreshOrdersBtn").addEventListener("click",loadOrders);
 
