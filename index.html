@@ -26,9 +26,7 @@
   --border:rgba(255,255,255,.09);
 }
 
-* {
-  box-sizing:border-box;
-}
+* {box-sizing:border-box}
 
 html {
   scroll-behavior:smooth;
@@ -47,13 +45,9 @@ body {
   font-family:'DM Sans',sans-serif;
 }
 
-[hidden] {
-  display:none !important;
-}
+[hidden] {display:none !important}
 
-button,input,textarea,select {
-  font:inherit;
-}
+button,input,textarea,select {font:inherit}
 
 button {
   cursor:pointer;
@@ -61,11 +55,7 @@ button {
   -webkit-tap-highlight-color:transparent;
 }
 
-button:active {
-  transform:scale(.97);
-}
-
-/* HEADER */
+button:active {transform:scale(.97)}
 
 header {
   position:sticky;
@@ -129,20 +119,14 @@ header {
   box-shadow:0 5px 18px #0005;
 }
 
-/* MAIN */
-
 main {
   width:min(1100px,92%);
   margin:auto;
 }
 
-section {
-  margin:30px 0;
-}
+section {margin:30px 0}
 
-h1,h2,h3 {
-  font-family:Outfit,sans-serif;
-}
+h1,h2,h3 {font-family:Outfit,sans-serif}
 
 .eyebrow {
   color:#c49aff;
@@ -150,8 +134,6 @@ h1,h2,h3 {
   font-weight:800;
   letter-spacing:2px;
 }
-
-/* HERO */
 
 .hero {
   position:relative;
@@ -257,8 +239,6 @@ h1,h2,h3 {
   box-shadow:0 7px 20px #8e4ce744;
 }
 
-/* INFO STRIP */
-
 .info {
   display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));
@@ -285,8 +265,6 @@ h1,h2,h3 {
   font-weight:500;
 }
 
-/* SECTION HEADINGS */
-
 h2 {
   margin:7px 0 15px;
   font-size:27px;
@@ -297,8 +275,6 @@ h2 {
   color:var(--muted);
   font-size:13px;
 }
-
-/* RESTAURANTS */
 
 #restaurantStatus {
   padding:12px 0;
@@ -329,9 +305,7 @@ h2 {
   transition:.2s;
 }
 
-.restaurant-card:active {
-  border-color:var(--orange);
-}
+.restaurant-card:active {border-color:var(--orange)}
 
 .restaurant-emoji {
   margin-bottom:10px;
@@ -369,8 +343,6 @@ h2 {
   color:white;
 }
 
-/* MENU */
-
 #search {
   width:100%;
   margin:5px 0 14px;
@@ -396,9 +368,7 @@ h2 {
   scrollbar-width:none;
 }
 
-.cats::-webkit-scrollbar {
-  display:none;
-}
+.cats::-webkit-scrollbar {display:none}
 
 .cats button {
   flex-shrink:0;
@@ -443,9 +413,7 @@ h2 {
   text-align:center;
 }
 
-.product-info {
-  padding:12px 12px 5px;
-}
+.product-info {padding:12px 12px 5px}
 
 .product-info h3 {
   margin:0 0 6px;
@@ -459,9 +427,7 @@ h2 {
   font-size:11px;
 }
 
-.product-info strong {
-  font-weight:900;
-}
+.product-info strong {font-weight:900}
 
 .add-button {
   margin:10px 12px 13px;
@@ -479,7 +445,7 @@ h2 {
   text-align:center;
 }
 
-/* PROMO + REWARDS */
+/* PROMO AND REWARDS */
 
 .promo,.reward,.offer {
   border:1px solid #a66aff30;
@@ -504,9 +470,7 @@ h2 {
   letter-spacing:1px;
 }
 
-.promo h2 {
-  font-size:25px;
-}
+.promo h2 {font-size:25px}
 
 .promo p,.reward p {
   color:var(--muted);
@@ -543,18 +507,14 @@ h2 {
   font-weight:800;
 }
 
-.reward {
-  padding:18px;
-}
+.reward {padding:18px}
 
 .reward h3 {
   margin:10px 0 15px;
   font-size:18px;
 }
 
-.reward h3 b {
-  color:var(--orange);
-}
+.reward h3 b {color:var(--orange)}
 
 .stamps {
   display:flex;
@@ -590,8 +550,6 @@ h2 {
   font-size:11px;
 }
 
-/* LAST SECTION */
-
 .last {
   display:flex;
   align-items:center;
@@ -600,8 +558,98 @@ h2 {
   padding:20px 0;
 }
 
-.last h2 {
-  font-size:23px;
+.last h2 {font-size:23px}
+
+/* ORDER TRACKING */
+
+#trackOrder {
+  scroll-margin-top:85px;
+}
+
+.tracking-form {
+  padding:18px;
+  border:1px solid #a66aff35;
+  border-radius:19px;
+  background:
+    radial-gradient(circle at 100% 0%,#a75bff18,transparent 45%),
+    linear-gradient(145deg,#21172f,#15101e);
+  box-shadow:0 8px 22px #0003;
+}
+
+.tracking-form label {
+  display:block;
+  margin:14px 0 7px;
+  color:#e8d9fa;
+  font-size:13px;
+  font-weight:700;
+}
+
+.tracking-form input {
+  display:block;
+  width:100%;
+  min-height:49px;
+  padding:13px;
+  border:1px solid #ffffff25;
+  border-radius:11px;
+  outline:none;
+  background:#100b18;
+  color:white;
+  font-size:16px;
+}
+
+.tracking-form input:focus {
+  border-color:var(--purple);
+  box-shadow:0 0 0 3px #9b5cff20;
+}
+
+.tracking-form button {
+  width:100%;
+  margin-top:17px;
+}
+
+.tracking-help {
+  margin-top:12px;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.6;
+}
+
+#trackingResult {
+  margin-top:16px;
+  padding:18px;
+  border:1px solid #a66aff45;
+  border-radius:17px;
+  background:#1d1529;
+}
+
+.tracking-status {
+  margin-top:13px;
+  padding:14px;
+  border:1px solid #a66aff35;
+  border-radius:12px;
+  background:#302044;
+  color:#d7baff;
+  font-weight:800;
+}
+
+.tracking-step {
+  position:relative;
+  padding:12px 10px;
+  border-bottom:1px solid var(--border);
+  color:#81788e;
+  font-size:13px;
+}
+
+.tracking-step.active {
+  color:#9af0ad;
+  font-weight:800;
+}
+
+.tracking-order-items {
+  margin-top:12px;
+  color:#ded3e8;
+  font-size:12px;
+  line-height:1.8;
 }
 
 /* BOTTOM NAV */
@@ -615,14 +663,14 @@ nav {
   display:flex;
   align-items:center;
   justify-content:space-around;
-  padding:11px 5% calc(11px + env(safe-area-inset-bottom));
+  padding:11px 3% calc(11px + env(safe-area-inset-bottom));
   border-top:1px solid #ffffff14;
   background:rgba(17,12,25,.96);
   backdrop-filter:blur(18px);
 }
 
 nav a,nav button {
-  min-width:48px;
+  min-width:45px;
   border:0;
   background:none;
   color:#cfc3dc;
@@ -650,9 +698,7 @@ nav small {
   backdrop-filter:blur(4px);
 }
 
-.shade.show {
-  display:flex;
-}
+.shade.show {display:flex}
 
 .sheet {
   width:min(550px,100%);
@@ -682,13 +728,9 @@ nav small {
   line-height:1.8;
 }
 
-.sheet h3 {
-  padding-top:10px;
-}
+.sheet h3 {padding-top:10px}
 
-#total {
-  color:var(--orange);
-}
+#total {color:var(--orange)}
 
 #checkout {
   width:100%;
@@ -714,11 +756,9 @@ nav small {
   text-align:center;
 }
 
-#toast.show {
-  display:block;
-}
+#toast.show {display:block}
 
-/* CHECKOUT FORM - IF CREATED BY APP.JS */
+/* CHECKOUT */
 
 #checkoutForm {
   display:block;
@@ -731,9 +771,7 @@ nav small {
   scroll-margin-top:20px;
 }
 
-#checkoutForm h3 {
-  margin-top:0;
-}
+#checkoutForm h3 {margin-top:0}
 
 #checkoutForm label {
   display:block;
@@ -758,9 +796,7 @@ nav small {
   font-size:16px;
 }
 
-#checkoutForm textarea {
-  min-height:90px;
-}
+#checkoutForm textarea {min-height:90px}
 
 #checkoutForm button {
   display:block;
@@ -781,79 +817,25 @@ nav small {
   cursor:wait;
 }
 
-/* DESKTOP */
-
 @media(min-width:700px) {
-  .products {
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-
-  .restaurant-grid {
-    grid-template-columns:repeat(3,minmax(0,1fr));
-  }
-
-  .hero {
-    min-height:290px;
-    padding:40px;
-  }
+  .products {grid-template-columns:repeat(3,minmax(0,1fr))}
+  .restaurant-grid {grid-template-columns:repeat(3,minmax(0,1fr))}
+  .hero {min-height:290px;padding:40px}
 }
 
-/* MOBILE */
-
 @media(max-width:480px) {
-  .hero {
-    min-height:210px;
-    padding:21px 16px;
-  }
-
-  .hero > div:first-child {
-    max-width:72%;
-  }
-
-  .hero h1 {
-    font-size:37px;
-  }
-
-  .food {
-    width:90px;
-    height:90px;
-    font-size:47px;
-  }
-
-  .info span {
-    padding:12px 5px;
-    font-size:10px;
-  }
-
-  .info small {
-    font-size:8px;
-  }
-
-  .restaurant-card {
-    padding:14px;
-  }
-
-  .restaurant-card h3 {
-    font-size:16px;
-  }
-
-  .promo {
-    padding:16px;
-  }
-
-  .promo h2 {
-    font-size:22px;
-  }
-
-  .seal {
-    width:72px;
-    height:72px;
-  }
-
-  .last {
-    align-items:flex-start;
-    flex-direction:column;
-  }
+  .hero {min-height:210px;padding:21px 16px}
+  .hero > div:first-child {max-width:72%}
+  .hero h1 {font-size:37px}
+  .food {width:90px;height:90px;font-size:47px}
+  .info span {padding:12px 5px;font-size:10px}
+  .info small {font-size:8px}
+  .restaurant-card {padding:14px}
+  .restaurant-card h3 {font-size:16px}
+  .promo {padding:16px}
+  .promo h2 {font-size:22px}
+  .seal {width:72px;height:72px}
+  .last {align-items:flex-start;flex-direction:column}
 }
 </style>
 </head>
@@ -882,7 +864,6 @@ nav small {
       <p>Your favourite food, from your favourite places.</p>
       <a class="btn" href="#restaurants">Explore restaurants ↗</a>
     </div>
-
     <div class="food">🍔<small>YUMMY!</small></div>
   </section>
 
@@ -896,17 +877,14 @@ nav small {
     <p class="eyebrow">DISCOVER JAGDALPUR</p>
     <h2>Choose your restaurant</h2>
     <p>Your city. Your food. Your favourites. 💜</p>
-
     <div id="restaurantStatus">Loading restaurants...</div>
     <div id="restaurantGrid" class="restaurant-grid"></div>
   </section>
 
   <section id="menu" hidden>
     <button id="backRestaurants">← All Restaurants</button>
-
     <p class="eyebrow">EXPLORE THE MENU</p>
     <h2 id="selectedRestaurantName">Restaurant Menu</h2>
-
     <input id="search" placeholder="Search momos, rolls, fries...">
 
     <div class="cats" id="cats">
@@ -921,6 +899,44 @@ nav small {
     <p id="empty" hidden>No items found.</p>
   </section>
 
+  <!-- ORDER TRACKING -->
+  <section id="trackOrder">
+    <p class="eyebrow">ORDER UPDATES</p>
+    <h2>Track your order</h2>
+    <p style="color:var(--muted);font-size:13px;line-height:1.6;">
+      Apna Order ID aur secret Tracking Code daalkar order status dekhein.
+    </p>
+
+    <div class="tracking-form">
+      <label for="trackingOrderId">Order ID</label>
+      <input
+        id="trackingOrderId"
+        type="text"
+        placeholder="Enter your Order ID"
+        autocomplete="off"
+      >
+
+      <label for="trackingCode">Tracking Code</label>
+      <input
+        id="trackingCode"
+        type="text"
+        placeholder="Enter your Tracking Code"
+        autocomplete="off"
+      >
+
+      <button class="btn" id="trackOrderBtn" type="button">
+        Track Order →
+      </button>
+
+      <p class="tracking-help">
+        Order ID aur Tracking Code order place hone ke baad milenge.
+        Tracking Code ko kisi ke saath share na karein.
+      </p>
+    </div>
+
+    <div id="trackingResult" hidden></div>
+  </section>
+
   <section class="promo">
     <div>
       <label>💜 ZAIKABOX REWARDS</label>
@@ -928,22 +944,18 @@ nav small {
       <p>Order, collect stamps and unlock exciting rewards.</p>
       <button class="outline" id="rewardJump">View rewards ↗</button>
     </div>
-
     <div class="seal">✦<b>ZAIKA<br>REWARDS</b>♡</div>
   </section>
 
   <section id="rewards">
     <p class="eyebrow">A LITTLE EXTRA LOVE</p>
     <h2>Your rewards</h2>
-
     <div class="reward">
       <small>YOUR STAMP CARD</small>
       <h3>Order & Collect <b>0 / 6</b></h3>
-
       <div class="stamps">
         <i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i>
       </div>
-
       <p>Rewards will be managed by ZaikaBox.</p>
     </div>
 
@@ -962,7 +974,6 @@ nav small {
       <p class="eyebrow">READY WHEN YOU ARE</p>
       <h2>Your next favourite<br>is one tap away.</h2>
     </div>
-
     <button class="btn" id="viewCart">View cart →</button>
   </section>
 
@@ -971,6 +982,7 @@ nav small {
 <nav>
   <a href="#">⌂<small>Home</small></a>
   <a href="#restaurants">▦<small>Explore</small></a>
+  <a href="#trackOrder">📦<small>Track</small></a>
   <a href="#rewards">✦<small>Rewards</small></a>
   <button id="navCart">🛒<small>Cart</small></button>
 </nav>
@@ -978,23 +990,18 @@ nav small {
 <div class="shade" id="shade">
   <div class="sheet">
     <button class="close" id="close">✕</button>
-
     <p class="eyebrow">YOUR SELECTION</p>
     <h2>Your cart</h2>
-
     <div id="cartLines">Your cart is empty.</div>
-
     <h3>Total: <b id="total">₹0</b></h3>
-
     <button class="btn" id="checkout">Continue →</button>
-
     <small>Review your items and enter your order details.</small>
   </div>
 </div>
 
 <div id="toast"></div>
 
-<script type="module" src="app.js?v=200"></script>
+<script type="module" src="app.js?v=201"></script>
 
 </body>
 </html>
