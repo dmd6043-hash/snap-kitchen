@@ -4,7 +4,6 @@ const CACHE = "zaikabox-v1";
 const FILES = [
   "./",
   "./index.html",
-  "./styles.css",
   "./app.js",
   "./manifest.webmanifest"
 ];
@@ -22,7 +21,9 @@ self.addEventListener("activate", event => {
     caches.keys().then(keys =>
       Promise.all(
         keys
-          .filter(key => key !== CACHE)
+          .filter(key =>
+            key.startsWith("zaikabox-") && key !== CACHE
+          )
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -35,7 +36,7 @@ self.addEventListener("fetch", event => {
   event.respondWith(
     fetch(event.request)
       .then(response => {
-        if (response.ok) {
+        if (response.ok && event.request.url.startsWith(self.location.origin)) {
           const copy = response.clone();
           caches.open(CACHE).then(cache =>
             cache.put(event.request, copy)
