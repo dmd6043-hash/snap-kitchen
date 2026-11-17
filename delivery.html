@@ -42,11 +42,9 @@ button:disabled{opacity:.5}
 <h3>Delivery Partner Login</h3>
 
 <input id="email" type="email" placeholder="Email address" autocomplete="username">
-
 <input id="password" type="password" placeholder="Password" autocomplete="current-password">
 
 <button id="loginBtn">LOGIN</button>
-
 <p id="loginMessage"></p>
 </div>
 
@@ -66,9 +64,7 @@ button:disabled{opacity:.5}
 </div>
 
 <h3>My Assigned Orders</h3>
-
 <p id="message">Loading orders...</p>
-
 <div id="orders"></div>
 
 </div>
@@ -97,8 +93,8 @@ collection,
 query,
 where,
 onSnapshot,
-writeBatch,
 setDoc,
+updateDoc,
 serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
@@ -142,9 +138,6 @@ const gpsMessage = document.getElementById("gpsMessage");
 let unsubscribeOrders = null;
 let gpsWatchId = null;
 let activeTrackingKey = null;
-
-// Every new auth callback gets a new number.
-// Old async checks cannot overwrite the latest state.
 let authCheckVersion = 0;
 
 
@@ -235,7 +228,6 @@ gpsWatchId = navigator.geolocation.watchPosition(
 
 async(position)=>{
 
-// Ignore old GPS callbacks.
 if(activeTrackingKey !== cleanCode) return;
 
 const latitude = position.coords.latitude;
@@ -280,32 +272,24 @@ console.error("GPS error:",error);
 let reason = error.message;
 
 if(error.code === 1){
-
 reason =
 "Location permission denied. Browser settings mein location allow kijiye.";
-
 }
 
 if(error.code === 2){
-
 reason =
 "GPS location available nahi hai. GPS ON kijiye.";
-
 }
 
 if(error.code === 3){
-
 reason =
 "GPS timeout. Dobara location try karein.";
-
 }
 
 gpsMessage.textContent = "GPS ERROR: "+reason;
 
 if(error.code === 1){
-
 stopLocationSharing();
-
 }
 
 },
@@ -348,7 +332,6 @@ loginMessage.textContent =
 
 try{
 
-// Explicitly save Firebase login on this browser.
 await setPersistence(
 auth,
 browserLocalPersistence
@@ -406,6 +389,115 @@ alert(
 });
 
 
+// UPDATE ORDER STATUS
+
+async function updateDeliveryStatus(
+orderId,
+trackingCode,
+nextStatus,
+button
+){
+
+const confirmed = confirm(
+"Order status "+nextStatus+" karna hai?"
+);
+
+if(!confirmed) return;
+
+button.disabled = true;
+button.textContent = "UPDATING...";
+
+try{
+
+// STEP 1: Update main order document first.
+// This is the important update.
+
+await updateDoc(
+doc(db,"orders",orderId),
+{
+status:nextStatus
+}
+);
+
+
+// STEP 2: Update tracking document separately.
+// Tracking failure will NOT undo the order update.
+
+let trackingWarning = "";
+
+if(trackingCode){
+
+const cleanTrackingCode = String(trackingCode)
+.replace(/[\s-]/g,"")
+.toUpperCase();
+
+try{
+
+await updateDoc(
+doc(db,"orderTracking",cleanTrackingCode),
+{
+status:nextStatus
+}
+);
+
+}catch(trackingError){
+
+console.error(
+"Tracking update error:",
+trackingError
+);
+
+trackingWarning =
+"\nOrder update ho gaya, lekin tracking sync nahi hua."+
+"\nTracking error: "+
+trackingError.code;
+
+}
+
+}
+
+
+// STEP 3: Stop GPS after delivery completed.
+
+if(nextStatus === "Delivered"){
+
+stopLocationSharing();
+
+}
+
+
+// STEP 4: Show result.
+
+alert(
+"Order status updated: "+
+nextStatus+
+trackingWarning
+);
+
+}catch(error){
+
+console.error(
+"Delivery status error:",
+error
+);
+
+alert(
+"Order status update error: "+
+error.code+" - "+error.message
+);
+
+button.disabled = false;
+
+button.textContent =
+nextStatus === "Delivered"
+? "MARK DELIVERED"
+: "START DELIVERY";
+
+}
+
+}
+
+
 // LOAD ASSIGNED ORDERS
 
 function loadAssignedOrders(user){
@@ -445,7 +537,7 @@ message.textContent =
 snapshot.size+" assigned order(s)";
 
 
-// Find active delivery order
+// FIND ACTIVE DELIVERY ORDER
 
 let activeOrder = null;
 
@@ -580,13 +672,9 @@ if(mapLink){
 const map = document.createElement("a");
 
 map.className = "map-btn";
-
 map.href = mapLink;
-
 map.target = "_blank";
-
 map.rel = "noopener";
-
 map.textContent = "OPEN GOOGLE MAPS";
 
 card.appendChild(map);
@@ -594,7 +682,7 @@ card.appendChild(map);
 }
 
 
-// DELIVERY STATUS
+// DELIVERY STATUS BUTTONS
 
 if(
 order.status === "Preparing" ||
@@ -625,81 +713,12 @@ updateButton.addEventListener(
 "click",
 async()=>{
 
-const confirmed = confirm(
-"Order status "+nextStatus+" karna hai?"
+await updateDeliveryStatus(
+orderId,
+order.trackingCode,
+nextStatus,
+updateButton
 );
-
-if(!confirmed) return;
-
-updateButton.disabled = true;
-
-updateButton.textContent = "UPDATING...";
-
-try{
-
-const batch = writeBatch(db);
-
-
-// Update order
-
-batch.update(
-doc(db,"orders",orderId),
-{
-status:nextStatus
-}
-);
-
-
-// Update tracking document
-
-if(order.trackingCode){
-
-const trackingCode =
-String(order.trackingCode)
-.replace(/[\s-]/g,"")
-.toUpperCase();
-
-batch.update(
-doc(db,"orderTracking",trackingCode),
-{
-status:nextStatus
-}
-);
-
-}
-
-await batch.commit();
-
-if(nextStatus === "Delivered"){
-
-stopLocationSharing();
-
-}
-
-alert(
-"Order status updated: "+nextStatus
-);
-
-}catch(error){
-
-console.error(
-"Delivery status error:",
-error
-);
-
-alert(
-"Status update error: "+
-error.code+" - "+error.message
-);
-
-updateButton.disabled = false;
-
-updateButton.textContent =
-nextStatus === "Delivered"
-? "MARK DELIVERED"
-: "START DELIVERY";
-
-}
 
 });
 
@@ -710,7 +729,6 @@ card.appendChild(updateButton);
 const done = document.createElement("p");
 
 done.textContent = "✓ Delivery completed";
-
 done.style.color = "#4ade80";
 
 card.appendChild(done);
@@ -754,8 +772,6 @@ error.code+" - "+error.message;
 
 onAuthStateChanged(auth,async(user)=>{
 
-// Each callback invalidates older pending checks.
-
 const currentCheck = ++authCheckVersion;
 
 stopOrdersListener();
@@ -776,7 +792,7 @@ return;
 }
 
 
-// Show checking screen while verifying account.
+// VERIFY ACCOUNT
 
 loginBox.classList.remove("hidden");
 appBox.classList.add("hidden");
@@ -790,9 +806,6 @@ try{
 const userRef = doc(db,"users",user.uid);
 
 const userSnap = await getDoc(userRef);
-
-
-// Ignore an old result if auth changed meanwhile.
 
 if(currentCheck !== authCheckVersion) return;
 
@@ -833,7 +846,7 @@ return;
 }
 
 
-// Account verified successfully.
+// ACCOUNT VERIFIED
 
 loginBox.classList.add("hidden");
 appBox.classList.remove("hidden");
@@ -845,9 +858,6 @@ user.email || "";
 
 message.textContent =
 "Loading assigned orders...";
-
-
-// Load orders
 
 loadAssignedOrders(user);
 
