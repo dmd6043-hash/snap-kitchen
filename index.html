@@ -981,8 +981,23 @@ nav small {
 
 <div id="toast"></div>
 
-<!-- Latest app.js version -->
+<!-- Existing app.js -->
 <script type="module" src="app.js?v=20261116"></script>
+
+<!-- Service Worker Registration -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(registration => {
+        console.log("ZaikaBox Service Worker registered:", registration.scope);
+      })
+      .catch(error => {
+        console.error("ZaikaBox Service Worker Error:", error);
+      });
+  });
+}
+</script>
 
 </body>
 </html>
