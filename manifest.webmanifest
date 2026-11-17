@@ -1,1 +1,27 @@
-{"name":"Snap Kitchen","short_name":"Snap Kitchen","start_url":"./","display":"standalone","background_color":"#0c100d","theme_color":"#101510","description":"Snap Kitchen - Taste That Clicks!"}
+
+{
+  "id": "./",
+  "name": "ZaikaBox - Har Craving Ka Apna Box!",
+  "short_name": "ZaikaBox",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0c0714",
+  "theme_color": "#160d24",
+  "description": "ZaikaBox - Discover local restaurants and order your favourite food in Jagdalpur.",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
