@@ -17,7 +17,7 @@ h2{margin-top:0}
 input,select,textarea{width:100%;padding:13px;margin:7px 0 13px;border:1px solid #594276;border-radius:9px;background:#160e25;color:#fff;font-size:15px}
 label{font-size:13px;color:#d5c8e8}
 button{padding:11px 15px;margin:4px;border:0;border-radius:9px;font-weight:bold;cursor:pointer}
-button:disabled{opacity:.5}
+button:disabled{opacity:.5;cursor:not-allowed}
 .primary{background:#b68cff;color:#180d2e}
 .secondary{background:#44315d;color:#fff}
 .danger{background:#e85d75;color:#fff}
@@ -40,9 +40,7 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <h1>ZAIKABOX</h1>
 <p class="small">RESTAURANT PARTNER PANEL</p>
 
-<div id="globalStatus">
-Partner panel starting...
-</div>
+<div id="globalStatus">Partner panel starting...</div>
 
 <div id="loginBox" class="card">
 <h2>Partner Login</h2>
@@ -138,8 +136,7 @@ deleteDoc,
 doc,
 query,
 where,
-serverTimestamp,
-writeBatch
+serverTimestamp
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
@@ -150,7 +147,6 @@ onAuthStateChanged,
 signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
-
 
 const firebaseConfig={
 apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
@@ -175,7 +171,6 @@ let loginInProgress=false;
 let partnerMenuItems=[];
 let partnerOrders=[];
 
-
 function setStatus(message){
 $("globalStatus").textContent=message;
 }
@@ -195,7 +190,6 @@ if(!currentRestaurantId)throw new Error("Restaurant ID missing.");
 return collection(db,"restaurants",currentRestaurantId,"menuItems");
 }
 
-
 // LOGIN
 
 $("loginBtn").addEventListener("click",async()=>{
@@ -213,18 +207,17 @@ return;
 loginInProgress=true;
 $("loginBtn").disabled=true;
 $("loginBtn").textContent="LOGGING IN...";
-setStatus("STEP 1: Firebase login request bheja ja raha hai...");
+setStatus("Firebase login request bheja ja raha hai...");
 
 try{
 
 const credential=await signInWithEmailAndPassword(auth,email,password);
 
-setStatus("STEP 2: Firebase login successful. UID: "+credential.user.uid+". Partner account check ho raha hai...");
+setStatus("Login successful. UID: "+credential.user.uid+". Partner account check ho raha hai...");
 
 }catch(error){
 
 console.error("LOGIN ERROR:",error);
-
 setStatus("LOGIN ERROR: "+(error.code||"unknown")+" - "+error.message);
 
 }finally{
@@ -241,25 +234,31 @@ $("password").addEventListener("keydown",event=>{
 if(event.key==="Enter")$("loginBtn").click();
 });
 
-
 // LOGOUT
 
 async function logoutPartner(){
+
 try{
+
 await signOut(auth);
 currentRestaurantId=null;
+
 $("dashboard").classList.add("hidden");
 $("loginBox").classList.remove("hidden");
 $("errorLogoutBtn").classList.add("hidden");
+
 setStatus("Logged out. Ab dobara login kar sakte hain.");
+
 }catch(error){
+
 setStatus("LOGOUT ERROR: "+error.message);
+
 }
+
 }
 
 $("logoutBtn").addEventListener("click",logoutPartner);
 $("errorLogoutBtn").addEventListener("click",logoutPartner);
-
 
 // AUTH STATE + PARTNER ACCOUNT CHECK
 
@@ -285,17 +284,16 @@ setStatus("Please login with your restaurant partner account.");
 }
 
 return;
+
 }
 
 $("loginBox").classList.add("hidden");
 $("dashboard").classList.add("hidden");
 $("errorLogoutBtn").classList.add("hidden");
 
-setStatus("STEP 2: Login successful. Account document check ho raha hai...");
+setStatus("Login successful. Account document check ho raha hai...");
 
 try{
-
-// STEP 3: ACCOUNT DOCUMENT
 
 const accountRef=doc(db,"accounts",user.uid);
 const accountSnapshot=await getDoc(accountRef);
@@ -305,8 +303,6 @@ if(version!==authVersion)return;
 if(!accountSnapshot.exists()){
 throw new Error("accounts collection mein is UID ka document nahi mila. UID: "+user.uid);
 }
-
-setStatus("STEP 3: Partner account mil gaya. Role aur active status check ho raha hai...");
 
 const account=accountSnapshot.data();
 
@@ -324,10 +320,7 @@ throw new Error("accounts document mein restaurantId missing hai.");
 
 currentRestaurantId=account.restaurantId;
 
-setStatus("STEP 4: Restaurant record check ho raha hai: "+currentRestaurantId);
-
-
-// STEP 4: RESTAURANT DOCUMENT
+setStatus("Restaurant record check ho raha hai: "+currentRestaurantId);
 
 const restaurantRef=doc(db,"restaurants",currentRestaurantId);
 const restaurantSnapshot=await getDoc(restaurantRef);
@@ -349,12 +342,9 @@ currentRestaurantName=restaurant.name||"Restaurant";
 $("restaurantName").textContent=currentRestaurantName;
 $("partnerMessage").textContent="Logged in: "+(user.email||"");
 
-
-// STEP 5: SHOW DASHBOARD
-
 $("dashboard").classList.remove("hidden");
 
-setStatus("STEP 5: Account verified! Dashboard open ho gaya. Menu aur orders load ho rahe hain...");
+setStatus("Account verified! Menu aur orders load ho rahe hain...");
 
 await loadMenu();
 
@@ -385,11 +375,9 @@ setStatus("PARTNER ERROR: "+(error.code||"unknown")+" - "+error.message);
 },error=>{
 
 console.error("AUTH STATE ERROR:",error);
-
 setStatus("AUTH ERROR: "+(error.code||"unknown")+" - "+error.message);
 
 });
-
 
 // LOAD MENU
 
@@ -441,13 +429,11 @@ return `
 }catch(error){
 
 console.error("MENU ERROR:",error);
-
 $("menuList").textContent="MENU ERROR: "+(error.code||"")+" "+error.message;
 
 }
 
 }
-
 
 // MENU FORM RESET
 
@@ -460,7 +446,6 @@ $("saveItemBtn").textContent="ADD MENU ITEM";
 $("cancelEditBtn").classList.add("hidden");
 
 }
-
 
 // ADD / UPDATE MENU ITEM
 
@@ -533,7 +518,6 @@ $("saveItemBtn").disabled=false;
 }
 
 });
-
 
 // MENU BUTTON ACTIONS
 
@@ -608,7 +592,6 @@ button.disabled=false;
 $("cancelEditBtn").addEventListener("click",resetMenuForm);
 $("refreshMenuBtn").addEventListener("click",loadMenu);
 
-
 // LOAD ORDERS
 
 async function loadOrders(){
@@ -659,7 +642,7 @@ return `
 <div class="order">
 <h3>Order #${safe(order.id.slice(0,8))}</h3>
 <p><b>Customer:</b> ${safe(order.customerName||"Customer")}</p>
-<p><b>Phone:</b> ${safe(order.customerPhone||"")}</p>
+<p><b>Phone:</b> ${safe(order.customerPhone||order.phone||"")}</p>
 <p><b>Items:</b><br>${items}</p>
 <p><b>Total:</b> ₹${safe(order.total??order.grandTotal??0)}</p>
 <p><b>Address:</b> ${safe(order.address||"Pickup")}</p>
@@ -685,8 +668,8 @@ $("ordersList").textContent=
 
 }
 
-
 // ORDER STATUS UPDATE
+// Main order and tracking document are updated separately.
 
 $("ordersList").addEventListener("click",async event=>{
 
@@ -704,14 +687,20 @@ if(!order)return;
 if(!confirm("Order status "+status+" karna hai?"))return;
 
 button.disabled=true;
+button.textContent="UPDATING...";
 
 try{
 
-const batch=writeBatch(db);
+// STEP 1: MAIN ORDER UPDATE
+await updateDoc(
+doc(db,"orders",orderId),
+{
+status:status
+}
+);
 
-batch.update(doc(db,"orders",orderId),{
-status
-});
+// STEP 2: TRACKING DOCUMENT UPDATE
+let trackingWarning="";
 
 if(order.trackingCode){
 
@@ -719,28 +708,54 @@ const trackingCode=String(order.trackingCode)
 .toUpperCase()
 .replace(/[\s-]/g,"");
 
-if(!/^[A-Z2-9]{20}$/.test(trackingCode)){
-throw new Error("Order tracking code invalid hai.");
-}
+try{
 
-batch.update(
+await updateDoc(
 doc(db,"orderTracking",trackingCode),
-{status}
+{
+status:status
+}
 );
 
+}catch(trackingError){
+
+console.error("TRACKING UPDATE ERROR:",trackingError);
+
+trackingWarning=
+"\nMain order update ho gaya, lekin tracking update nahi hua."+
+"\nTracking error: "+
+(trackingError.code||"")+
+" - "+
+trackingError.message;
+
 }
 
-await batch.commit();
+}
 
+// STEP 3: REFRESH
+await loadOrders();
+
+// STEP 4: RESULT
 setStatus("Order status updated: "+status);
 
-await loadOrders();
+alert(
+"Main order status updated: "+
+status+
+trackingWarning
+);
 
 }catch(error){
 
 console.error("ORDER UPDATE ERROR:",error);
 
-alert("ORDER ERROR: "+(error.code||"")+" "+error.message);
+alert(
+"ORDER ERROR: "+
+(error.code||"")+
+" - "+
+error.message
+);
+
+setStatus("Order update failed: "+error.message);
 
 }finally{
 
@@ -749,7 +764,6 @@ button.disabled=false;
 }
 
 });
-
 
 // REFRESH BUTTONS
 
