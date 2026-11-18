@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
@@ -168,11 +169,11 @@ function renderRestaurants() {
     card.innerHTML = `
       <div class="restaurant-emoji">🍽️</div>
       <div class="restaurant-info">
-        <h3>${escapeHTML(restaurant.name || "Restaurant")}</h3>
-        <p>${escapeHTML(restaurant.description || "Fresh food and local favourites")}</p>
-        <small>${escapeHTML(restaurant.city || "Jagdalpur")}</small>
+        <h3>${escapeHTML(restaurant.name || restaurant.Name || "Restaurant")}</h3>
+        <p>${escapeHTML(restaurant.description || restaurant.Description || "Fresh food and local favourites")}</p>
+        <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
         ${
-          restaurant.isPureVeg
+          restaurant.isPureVeg === true || restaurant.isPureVeg === "true"
             ? '<span class="veg-label">PURE VEG</span>'
             : ""
         }
@@ -216,7 +217,8 @@ async function openRestaurant(restaurant) {
   }
 
   if ($("selectedRestaurantName")) {
-    $("selectedRestaurantName").textContent = restaurant.name || "Restaurant";
+    $("selectedRestaurantName").textContent =
+      restaurant.name || restaurant.Name || "Restaurant";
   }
 
   if ($("backRestaurants")) {
@@ -239,6 +241,26 @@ async function openRestaurant(restaurant) {
   } finally {
     isOpeningRestaurant = false;
   }
+}
+
+// MENU AVAILABILITY CHECK
+function isMenuItemVisible(data) {
+  const available = data.available ?? data.Available;
+  const active = data.active ?? data.Active;
+
+  if (available === false || active === false) return false;
+
+  if (
+    typeof available === "string" &&
+    available.toLowerCase() === "false"
+  ) return false;
+
+  if (
+    typeof active === "string" &&
+    active.toLowerCase() === "false"
+  ) return false;
+
+  return true;
 }
 
 // LOAD LIVE MENU FROM FIREBASE
@@ -265,6 +287,8 @@ function loadSelectedRestaurantMenu() {
     menuRef,
 
     (snapshot) => {
+      console.log("Menu documents found:", snapshot.size);
+
       menu = snapshot.docs
         .map((document) => {
           const data = document.data();
@@ -272,15 +296,15 @@ function loadSelectedRestaurantMenu() {
           return {
             id: document.id,
             ...data,
-            name: String(data.name || data.Name || "Food Item").trim(),
+            name: String(data.name || data.Name || data.title || data.Title || document.id).trim(),
             price: Number(data.price ?? data.Price ?? 0),
             category: String(data.category || data.Category || "Other").trim(),
             description: data.description || data.Description || "",
             emoji: String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
-            available: data.available ?? data.Available ?? true
+            available: isMenuItemVisible(data)
           };
         })
-        .filter((item) => item.available === true);
+        .filter((item) => item.available);
 
       cart = cart.filter((cartItem) =>
         menu.some((menuItem) => menuItem.id === cartItem.id)
@@ -305,6 +329,10 @@ function loadSelectedRestaurantMenu() {
       renderCategories();
       renderMenu();
       renderCart();
+
+      if (!snapshot.size) {
+        console.warn("Menu subcollection is empty.");
+      }
     },
 
     (error) => {
@@ -381,6 +409,7 @@ function renderMenu() {
     if (empty) {
       empty.hidden = false;
       empty.style.display = "block";
+      empty.textContent = "No items found. Try another category.";
     } else {
       products.innerHTML = "<p>No menu items available.</p>";
     }
@@ -814,7 +843,7 @@ async function placeOrder() {
       orderType,
       address: orderType === "Home Delivery" ? address : "",
       restaurantId: selectedRestaurant.id,
-      restaurantName: selectedRestaurant.name,
+      restaurantName: selectedRestaurant.name || selectedRestaurant.Name || "Restaurant",
       items: orderItems,
       total: orderTotal,
       status: "New",
@@ -825,7 +854,7 @@ async function placeOrder() {
     const trackingData = {
       orderId: orderRef.id,
       restaurantId: selectedRestaurant.id,
-      restaurantName: selectedRestaurant.name,
+      restaurantName: orderData.restaurantName,
       orderType: orderType,
       status: "New",
       createdAt: serverTimestamp()
@@ -840,7 +869,7 @@ async function placeOrder() {
     let message = "*NEW ZAIKABOX ORDER*\n";
     message += `Order ID: ${orderRef.id}\n`;
     message += `Tracking Code: ${formatTrackingCode(trackingCode)}\n`;
-    message += `Restaurant: ${selectedRestaurant.name}\n`;
+    message += `Restaurant: ${orderData.restaurantName}\n`;
     message += `Name: ${name}\n`;
     message += `Mobile: ${phone}\n`;
     message += `Order Type: ${orderType}\n`;
