@@ -1,23 +1,22 @@
-
 {
-  "id": "./partner-app",
+  "id": "/snap-kitchen/restaurant-partner-app",
   "name": "ZaikaBox Restaurant Partner",
-  "short_name": "Zaika Partner",
-  "description": "ZaikaBox restaurant order and menu management",
-  "start_url": "./partner.html",
-  "scope": "./",
+  "short_name": "Restaurant Partner",
+  "description": "ZaikaBox restaurant order management",
+  "start_url": "/snap-kitchen/partner.html?mode=restaurant",
+  "scope": "/snap-kitchen/",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#100d0a",
   "theme_color": "#100d0a",
   "icons": [
     {
-      "src": "./icon-192.png",
+      "src": "/snap-kitchen/icon-192.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "./icon-512.png",
+      "src": "/snap-kitchen/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
