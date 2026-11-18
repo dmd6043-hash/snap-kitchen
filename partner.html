@@ -4,21 +4,21 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#180d2e">
+<meta name="theme-color" content="#100d0a">
 <title>ZaikaBox Restaurant Partner</title>
 
 <style>
 *{box-sizing:border-box}
-body{margin:0;padding:16px;background:#10091e;color:#fff;font-family:Arial,sans-serif}
+body{margin:0;padding:16px;background:#100d0a;color:#fffaf5;font-family:Arial,sans-serif}
 .wrap{max-width:850px;margin:auto}
-h1{color:#c5a3ff;margin-bottom:4px}
+h1{color:#ff8a35;margin-bottom:4px}
 h2{margin-top:0}
-.card{background:#211536;border:1px solid #392653;border-radius:15px;padding:17px;margin:14px 0}
+.card{background:#1c1814;border:1px solid #392b20;border-radius:15px;padding:17px;margin:14px 0}
 input,select,textarea{width:100%;padding:13px;margin:7px 0 13px;border:1px solid #594276;border-radius:9px;background:#160e25;color:#fff;font-size:15px}
-label{font-size:13px;color:#d5c8e8}
+label{font-size:13px;color:#e0cbb9}
 button{padding:11px 15px;margin:4px;border:0;border-radius:9px;font-weight:bold;cursor:pointer}
 button:disabled{opacity:.5;cursor:not-allowed}
-.primary{background:#b68cff;color:#180d2e}
+.primary{background:#ff8a35;color:#180d2e}
 .secondary{background:#44315d;color:#fff}
 .danger{background:#e85d75;color:#fff}
 .success{background:#4cba86;color:#10251b}
@@ -27,10 +27,12 @@ button:disabled{opacity:.5;cursor:not-allowed}
 #globalStatus{background:#302044;color:#ffd27a;padding:13px;border-radius:10px;margin:14px 0;overflow-wrap:anywhere;line-height:1.5}
 #menuMessage{color:#ffd27a;overflow-wrap:anywhere}
 .item,.order{border:1px solid #594276;border-radius:12px;padding:13px;margin:12px 0;overflow-wrap:anywhere}
-.item h3,.order h3{color:#d2b8ff;margin:0 0 8px}
+.item h3,.order h3{color:#ffb16f;margin:0 0 8px}
 .row{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
 .tag{display:inline-block;background:#3a2854;padding:5px 9px;border-radius:20px;font-size:12px}
 hr{border:0;border-top:1px solid #49365f;margin:16px 0}
+.order-buttons{display:flex;flex-wrap:wrap;gap:5px}
+#ordersList{min-height:50px}
 </style>
 </head>
 
@@ -113,8 +115,8 @@ hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 <h2>Your Orders</h2>
 <button class="secondary" id="refreshOrdersBtn" type="button">REFRESH</button>
 </div>
-<p class="small">Only orders for your restaurant are shown.</p>
-<div id="ordersList">Orders not loaded yet.</div>
+<p class="small">Live orders from your restaurant. New orders appear automatically.</p>
+<div id="ordersList">Orders loading...</div>
 </div>
 
 </div>
@@ -136,7 +138,9 @@ deleteDoc,
 doc,
 query,
 where,
-serverTimestamp
+serverTimestamp,
+onSnapshot,
+writeBatch
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
@@ -170,6 +174,7 @@ let authVersion=0;
 let loginInProgress=false;
 let partnerMenuItems=[];
 let partnerOrders=[];
+let ordersUnsubscribe=null;
 
 function setStatus(message){
 $("globalStatus").textContent=message;
@@ -188,6 +193,13 @@ return String(value??"").replace(/[&<>"']/g,char=>({
 function menuCollection(){
 if(!currentRestaurantId)throw new Error("Restaurant ID missing.");
 return collection(db,"restaurants",currentRestaurantId,"menuItems");
+}
+
+function stopLiveOrders(){
+if(ordersUnsubscribe){
+ordersUnsubscribe();
+ordersUnsubscribe=null;
+}
 }
 
 // LOGIN
@@ -212,8 +224,7 @@ setStatus("Firebase login request bheja ja raha hai...");
 try{
 
 const credential=await signInWithEmailAndPassword(auth,email,password);
-
-setStatus("Login successful. UID: "+credential.user.uid+". Partner account check ho raha hai...");
+setStatus("Login successful. Partner account check ho raha hai...");
 
 }catch(error){
 
@@ -240,8 +251,11 @@ async function logoutPartner(){
 
 try{
 
+stopLiveOrders();
 await signOut(auth);
 currentRestaurantId=null;
+partnerMenuItems=[];
+partnerOrders=[];
 
 $("dashboard").classList.add("hidden");
 $("loginBox").classList.remove("hidden");
@@ -265,6 +279,7 @@ $("errorLogoutBtn").addEventListener("click",logoutPartner);
 onAuthStateChanged(auth,async user=>{
 
 const version=++authVersion;
+stopLiveOrders();
 
 if(!user){
 
@@ -344,17 +359,17 @@ $("partnerMessage").textContent="Logged in: "+(user.email||"");
 
 $("dashboard").classList.remove("hidden");
 
-setStatus("Account verified! Menu aur orders load ho rahe hain...");
+setStatus("Account verified! Menu aur live orders load ho rahe hain...");
 
 await loadMenu();
 
 if(version!==authVersion)return;
 
-await loadOrders();
+startLiveOrders();
 
 if(version!==authVersion)return;
 
-setStatus("SUCCESS: "+currentRestaurantName+" dashboard ready hai.");
+setStatus("SUCCESS: "+currentRestaurantName+" dashboard ready hai. Live orders active.");
 
 }catch(error){
 
@@ -363,6 +378,7 @@ console.error("PARTNER VERIFICATION ERROR:",error);
 if(version!==authVersion)return;
 
 currentRestaurantId=null;
+stopLiveOrders();
 
 $("dashboard").classList.add("hidden");
 $("loginBox").classList.remove("hidden");
@@ -592,22 +608,21 @@ button.disabled=false;
 $("cancelEditBtn").addEventListener("click",resetMenuForm);
 $("refreshMenuBtn").addEventListener("click",loadMenu);
 
-// LOAD ORDERS
+// LIVE ORDERS
 
-async function loadOrders(){
+function startLiveOrders(){
 
 if(!currentRestaurantId)return;
 
-$("ordersList").textContent="Loading orders...";
-
-try{
+stopLiveOrders();
+$("ordersList").textContent="Live orders connect ho rahe hain...";
 
 const ordersQuery=query(
 collection(db,"orders"),
 where("restaurantId","==",currentRestaurantId)
 );
 
-const snapshot=await getDocs(ordersQuery);
+ordersUnsubscribe=onSnapshot(ordersQuery,snapshot=>{
 
 partnerOrders=snapshot.docs.map(item=>({
 id:item.id,
@@ -619,9 +634,28 @@ partnerOrders.sort((a,b)=>
 (a.createdAt?.toMillis?.()||0)
 );
 
+renderOrders();
+
+},error=>{
+
+console.error("LIVE ORDERS ERROR:",error);
+
+$("ordersList").textContent=
+"LIVE ORDERS ERROR: "+(error.code||"")+" "+error.message;
+
+setStatus("Live order listener error: "+error.message);
+
+});
+
+}
+
+function renderOrders(){
+
 if(!partnerOrders.length){
 
-$("ordersList").innerHTML='<p class="small">Abhi koi order nahi hai.</p>';
+$("ordersList").innerHTML=
+'<p class="small">Abhi koi order nahi hai. Naye order aate hi yahan dikhenge.</p>';
+
 return;
 
 }
@@ -638,6 +672,8 @@ const date=order.createdAt?.toDate
 ?order.createdAt.toDate().toLocaleString("en-IN")
 :"Time unavailable";
 
+const status=order.status||"New";
+
 return `
 <div class="order">
 <h3>Order #${safe(order.id.slice(0,8))}</h3>
@@ -646,30 +682,22 @@ return `
 <p><b>Items:</b><br>${items}</p>
 <p><b>Total:</b> ₹${safe(order.total??order.grandTotal??0)}</p>
 <p><b>Address:</b> ${safe(order.address||"Pickup")}</p>
-<p><b>Status:</b> <span class="tag">${safe(order.status||"New")}</span></p>
+<p><b>Status:</b> <span class="tag">${safe(status)}</span></p>
 <p class="small">${safe(date)}</p>
 
+<div class="order-buttons">
 <button class="success" data-order="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
 <button class="danger" data-order="${safe(order.id)}" data-status="Rejected">REJECT</button>
 <button class="secondary" data-order="${safe(order.id)}" data-status="Preparing">PREPARING</button>
+</div>
 </div>
 `;
 
 }).join("");
 
-}catch(error){
-
-console.error("ORDERS ERROR:",error);
-
-$("ordersList").textContent=
-"ORDERS ERROR: "+(error.code||"")+" "+error.message;
-
 }
 
-}
-
-// ORDER STATUS UPDATE
-// Main order and tracking document are updated separately.
+// ORDER STATUS UPDATE — BATCH UPDATE
 
 $("ordersList").addEventListener("click",async event=>{
 
@@ -679,7 +707,6 @@ if(!button||!currentRestaurantId)return;
 
 const orderId=button.dataset.order;
 const status=button.dataset.status;
-
 const order=partnerOrders.find(item=>item.id===orderId);
 
 if(!order)return;
@@ -691,58 +718,40 @@ button.textContent="UPDATING...";
 
 try{
 
-// STEP 1: MAIN ORDER UPDATE
-await updateDoc(
+const batch=writeBatch(db);
+
+// Update main order
+batch.update(
 doc(db,"orders",orderId),
 {
-status:status
+status:status,
+updatedAt:serverTimestamp()
 }
 );
 
-// STEP 2: TRACKING DOCUMENT UPDATE
-let trackingWarning="";
-
+// Update tracking document, if trackingCode exists
 if(order.trackingCode){
 
 const trackingCode=String(order.trackingCode)
 .toUpperCase()
 .replace(/[\s-]/g,"");
 
-try{
-
-await updateDoc(
+batch.update(
 doc(db,"orderTracking",trackingCode),
 {
-status:status
+status:status,
+updatedAt:serverTimestamp()
 }
 );
 
-}catch(trackingError){
-
-console.error("TRACKING UPDATE ERROR:",trackingError);
-
-trackingWarning=
-"\nMain order update ho gaya, lekin tracking update nahi hua."+
-"\nTracking error: "+
-(trackingError.code||"")+
-" - "+
-trackingError.message;
-
 }
 
-}
+// Commit both changes together
+await batch.commit();
 
-// STEP 3: REFRESH
-await loadOrders();
-
-// STEP 4: RESULT
 setStatus("Order status updated: "+status);
 
-alert(
-"Main order status updated: "+
-status+
-trackingWarning
-);
+alert("Order status successfully updated: "+status);
 
 }catch(error){
 
@@ -760,14 +769,24 @@ setStatus("Order update failed: "+error.message);
 }finally{
 
 button.disabled=false;
+button.textContent=status==="Accepted"?"ACCEPT":
+status==="Rejected"?"REJECT":"PREPARING";
 
 }
 
 });
 
-// REFRESH BUTTONS
+// MANUAL REFRESH (Listener already live)
 
-$("refreshOrdersBtn").addEventListener("click",loadOrders);
+$("refreshOrdersBtn").addEventListener("click",()=>{
+
+if(!currentRestaurantId)return;
+
+setStatus("Live orders already active. Refreshing connection...");
+
+startLiveOrders();
+
+});
 
 </script>
 </body>
