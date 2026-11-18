@@ -1,0 +1,641 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100d0a">
+  <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
+
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="stylesheet" href="./styles.css?v=20261118">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <title>ZaikaBox - Har Craving Ka Apna Box!</title>
+
+  <!-- Premium ZaikaBox theme overrides -->
+  <style>
+    :root {
+      --bg: #100d0a;
+      --surface: #1c1814;
+      --surface2: #262019;
+      --surface3: #33291f;
+      --purple: #ff8a35;
+      --purple2: #ffb16f;
+      --orange: #ff8a35;
+      --text: #fffaf5;
+      --muted: #b4a69a;
+      --border: rgba(255,255,255,.09);
+      --green: #37d69a;
+      --danger: #ff5f72;
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      background:
+        radial-gradient(circle at 85% 0%, rgba(255,138,53,.10), transparent 30%),
+        #100d0a;
+      color: #fffaf5;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .topbar {
+      background: rgba(16,13,10,.94);
+      border-bottom: 1px solid rgba(255,138,53,.10);
+    }
+
+    .brand-logo {
+      background: linear-gradient(135deg,#ff9b4a,#d95716);
+      box-shadow: 0 7px 22px rgba(255,138,53,.22);
+    }
+
+    .brand-name,
+    .section-head h2,
+    .screen-title,
+    #selectedRestaurantName,
+    .cart-head h2 {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    .hero {
+      background:
+        radial-gradient(circle at 85% 20%, rgba(255,255,255,.12), transparent 25%),
+        linear-gradient(135deg,#4a2818,#21150f 72%);
+      border: 1px solid rgba(255,138,53,.18);
+    }
+
+    .hero h1 span {
+      color: #ffb16f;
+    }
+
+    .hero p {
+      color: #e7d5c7;
+    }
+
+    .primary-btn,
+    #checkout {
+      background: linear-gradient(135deg,#ff9b4a,#ed681f);
+      box-shadow: 0 7px 20px rgba(255,138,53,.20);
+      color: white;
+    }
+
+    .text-btn {
+      color: #ffad70;
+    }
+
+    .promo {
+      background: linear-gradient(110deg,#34251a,#211811);
+      border-color: rgba(255,138,53,.18);
+    }
+
+    .search-wrap input:focus,
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #ff8a35 !important;
+      box-shadow: 0 0 0 3px rgba(255,138,53,.10);
+      outline: none;
+    }
+
+    .restaurant-card:active {
+      border-color: #ff8a35;
+    }
+
+    #cats button.active,
+    #cats button.selected {
+      background: #e8752b;
+      color: white;
+      border-color: #e8752b;
+    }
+
+    .product-card .price,
+    #total {
+      color: #ffb16f;
+    }
+
+    .product-card button {
+      background: rgba(255,138,53,.12);
+      border: 1px solid rgba(255,138,53,.30);
+      color: #ffc18e;
+    }
+
+    .product-card button:active {
+      background: #e8752b;
+      color: white;
+    }
+
+    .reward-hero {
+      background: linear-gradient(135deg,#59331f,#281a12);
+    }
+
+    .nav-item.active {
+      color: #ffad70;
+    }
+
+    .nav-item.active .nav-icon {
+      filter: drop-shadow(0 4px 7px rgba(255,138,53,.35));
+    }
+
+    .bottom-nav {
+      background: rgba(24,19,15,.97);
+      border-top-color: rgba(255,138,53,.12);
+    }
+
+    .cart-sheet {
+      background: #1c1712;
+      border-color: rgba(255,138,53,.14);
+    }
+
+    #close {
+      background: #33271d;
+    }
+
+    .cart-count {
+      background: #ed762c;
+    }
+
+    #toast {
+      background: #fff0e3;
+      color: #382012;
+    }
+
+    .field {
+      background: #15110d;
+    }
+
+    /* Checkout form */
+    #checkoutForm,
+    .checkout-form {
+      width: 100%;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 18px;
+      background: #211a14;
+      border: 1px solid rgba(255,138,53,.20);
+      color: #fffaf5;
+    }
+
+    #checkoutForm h3 {
+      color: #fffaf5;
+      font-family: 'Outfit',sans-serif;
+      font-size: 20px;
+      margin-bottom: 16px;
+    }
+
+    #checkoutForm label {
+      display: block;
+      color: #e6d4c5;
+      font-size: 12px;
+      font-weight: 700;
+      margin: 14px 0 7px;
+    }
+
+    #checkoutForm input,
+    #checkoutForm textarea,
+    #checkoutForm select {
+      display: block;
+      width: 100%;
+      min-height: 47px;
+      padding: 13px 14px;
+      border-radius: 12px;
+      background: #120e0b;
+      border: 1px solid rgba(255,255,255,.12);
+      color: #fffaf5;
+      font-size: 14px;
+      outline: none;
+    }
+
+    #checkoutForm input::placeholder,
+    #checkoutForm textarea::placeholder {
+      color: #89796c;
+    }
+
+    #checkoutForm textarea {
+      min-height: 85px;
+      resize: vertical;
+    }
+
+    #checkoutForm #getLocation {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 11px;
+      background: #33251a;
+      border: 1px solid rgba(255,138,53,.30);
+      color: #ffb16f;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    #checkoutForm #placeOrder {
+      display: block;
+      width: 100%;
+      min-height: 49px;
+      padding: 14px;
+      margin-top: 20px;
+      border-radius: 13px;
+      background: linear-gradient(135deg,#ff9b4a,#ed681f);
+      color: white;
+      font-size: 14px;
+      font-weight: 800;
+      box-shadow: 0 6px 18px rgba(255,138,53,.18);
+    }
+
+    #checkoutForm #getLocation:active,
+    #checkoutForm #placeOrder:active {
+      transform: scale(.98);
+    }
+
+    .success-card {
+      background: rgba(55,214,154,.09);
+      border-color: rgba(55,214,154,.25);
+    }
+
+    @media (max-width: 360px) {
+      #checkoutForm,
+      .checkout-form {
+        padding: 14px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: .01ms !important;
+        transition-duration: .01ms !important;
+      }
+    }
+  </style>
+</head>
+
+<body>
+<div class="app">
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">🍱</div>
+      <div>
+        <div class="brand-name">ZaikaBox</div>
+        <div class="brand-tag">Har Craving Ka Apna Box!</div>
+      </div>
+    </div>
+
+    <button class="top-cart" id="openCart" aria-label="Open cart">
+      🛒
+    </button>
+  </header>
+
+  <!-- HOME SCREEN -->
+  <main id="homeScreen" class="screen active">
+
+    <div class="hero">
+      <div class="eyebrow">Welcome to ZaikaBox</div>
+      <h1>Cravings Ka <span>Perfect</span> Match!</h1>
+      <p>Discover your favourite local food and order something delicious today.</p>
+
+      <button class="primary-btn" onclick="window.zaikaGo('explore')">
+        Explore Food <span>→</span>
+      </button>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <h2>Why ZaikaBox?</h2>
+        <p>Your local food, your local favourites</p>
+      </div>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature">
+        <div class="feature-icon">🍽️</div>
+        <strong>Local Taste</strong>
+        <small>Discover nearby food</small>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <strong>Easy Ordering</strong>
+        <small>Simple and quick</small>
+      </div>
+
+      <div class="feature">
+        <div class="feature-icon">📦</div>
+        <strong>Order Track</strong>
+        <small>Check your order</small>
+      </div>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <h2>Hungry Right Now?</h2>
+        <p>Find something tasty today</p>
+      </div>
+
+      <button class="text-btn" onclick="window.zaikaGo('explore')">
+        Explore →
+      </button>
+    </div>
+
+    <div class="promo">
+      <div>
+        <h3>Your next favourite meal awaits!</h3>
+        <p>Explore restaurants around you on ZaikaBox.</p>
+
+        <button class="primary-btn" style="margin-top:13px" onclick="window.zaikaGo('explore')">
+          Find Food →
+        </button>
+      </div>
+
+      <div class="promo-icon">🍜</div>
+    </div>
+
+    <div class="footer-note">Made with ❤️ for local food lovers</div>
+  </main>
+
+  <!-- EXPLORE SCREEN -->
+  <main id="exploreScreen" class="screen">
+
+    <div class="eyebrow">Discover local flavours</div>
+    <h1 class="screen-title">Explore Food 🍴</h1>
+    <p class="screen-subtitle">Choose your favourite restaurant and discover its menu.</p>
+
+    <div id="restaurants">
+      <div class="search-wrap">
+        <span>⌕</span>
+        <input id="restaurantSearch" type="search" placeholder="Find restaurants..." autocomplete="off">
+      </div>
+
+      <div id="restaurantStatus">Loading restaurants...</div>
+      <div id="restaurantGrid"></div>
+    </div>
+
+    <div id="menu">
+      <button class="back-btn" id="backRestaurants">← All Restaurants</button>
+      <h2 id="selectedRestaurantName">Restaurant Menu</h2>
+
+      <div class="search-wrap">
+        <span>⌕</span>
+        <input id="search" type="search" placeholder="Search dishes..." autocomplete="off">
+      </div>
+
+      <div id="cats"></div>
+      <div id="products"></div>
+      <div id="empty">No items found. Try another category.</div>
+    </div>
+
+    <div class="footer-note">ZaikaBox • Har Craving Ka Apna Box!</div>
+  </main>
+
+  <!-- TRACK SCREEN -->
+  <main id="trackScreen" class="screen">
+    <div class="eyebrow">Your food journey</div>
+    <h1 class="screen-title">Track Order 📦</h1>
+    <p class="screen-subtitle">Enter your order details to check the latest order status.</p>
+
+    <div class="track-card" id="trackOrder">
+      <h3>Where's my order?</h3>
+      <p>Use the Order ID and Tracking Code received after placing your order.</p>
+
+      <input class="field" id="trackingOrderId" type="text" placeholder="Enter Order ID" autocomplete="off">
+
+      <input class="field" id="trackingCode" type="text" placeholder="Enter 20-character Tracking Code" autocomplete="off" maxlength="20">
+
+      <button class="primary-btn track-submit" id="trackOrderBtn">
+        Track My Order →
+      </button>
+
+      <div id="trackingResult"></div>
+    </div>
+
+    <div class="track-card">
+      <h3>Need help?</h3>
+      <p>Keep your Order ID and Tracking Code safe. They help you check your order status.</p>
+    </div>
+  </main>
+
+  <!-- REWARDS SCREEN -->
+  <main id="rewardsScreen" class="screen">
+    <div class="eyebrow">A little extra happiness</div>
+    <h1 class="screen-title">Zaika Rewards ✨</h1>
+    <p class="screen-subtitle">Your food journey deserves a little celebration.</p>
+
+    <div class="reward-hero">
+      <div class="star">🎁</div>
+      <h2>Rewards are coming!</h2>
+      <p>We're preparing exciting rewards and special offers for ZaikaBox customers.</p>
+    </div>
+
+    <div class="section-head">
+      <div>
+        <h2>How it works</h2>
+        <p>More delicious moments ahead</p>
+      </div>
+    </div>
+
+    <div class="reward-steps">
+      <div class="reward-step">
+        <span>🍔</span>
+        <div>
+          <strong>Order your favourites</strong>
+          <small>Discover and order from local restaurants.</small>
+        </div>
+      </div>
+
+      <div class="reward-step">
+        <span>⭐</span>
+        <div>
+          <strong>Collect rewards</strong>
+          <small>Exciting customer benefits are planned.</small>
+        </div>
+      </div>
+
+      <div class="reward-step">
+        <span>🎉</span>
+        <div>
+          <strong>Enjoy special offers</strong>
+          <small>Stay connected for future updates.</small>
+        </div>
+      </div>
+    </div>
+  </main>
+
+</div>
+
+<!-- BOTTOM NAVIGATION -->
+<nav class="bottom-nav">
+  <button class="nav-item active" data-screen="home">
+    <span class="nav-icon">⌂</span>
+    <small>Home</small>
+  </button>
+
+  <button class="nav-item" data-screen="explore">
+    <span class="nav-icon">▦</span>
+    <small>Explore</small>
+  </button>
+
+  <button class="nav-item" data-screen="track">
+    <span class="nav-icon">📦</span>
+    <small>Track</small>
+  </button>
+
+  <button class="nav-item" data-screen="rewards">
+    <span class="nav-icon">✦</span>
+    <small>Rewards</small>
+  </button>
+
+  <button class="nav-item" id="navCart">
+    <span class="nav-icon nav-cart-icon">
+      🛒
+      <span class="cart-count" id="cartCount" style="display:none">0</span>
+    </span>
+    <small>Cart</small>
+  </button>
+</nav>
+
+<!-- CART BACKDROP -->
+<div id="shade"></div>
+
+<!-- CART SHEET -->
+<div class="cart-sheet" id="cartSheet">
+  <div class="cart-head">
+    <h2>Your Cart 🛒</h2>
+    <button id="close" aria-label="Close cart">×</button>
+  </div>
+
+  <div id="cartLines">
+    Your cart is empty.
+  </div>
+
+  <div class="cart-total">
+    <span>Total</span>
+    <span id="total">₹0</span>
+  </div>
+
+  <button id="checkout">Proceed to Checkout →</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- MAIN APP -->
+<script type="module" src="./app.js?v=20261118"></script>
+
+<!-- NAVIGATION AND CART CONTROLS -->
+<script>
+(function () {
+  const screens = {
+    home: document.getElementById("homeScreen"),
+    explore: document.getElementById("exploreScreen"),
+    track: document.getElementById("trackScreen"),
+    rewards: document.getElementById("rewardsScreen")
+  };
+
+  const navItems = document.querySelectorAll(".nav-item[data-screen]");
+
+  window.zaikaGo = function (screenName) {
+    if (!screens[screenName]) return;
+
+    Object.values(screens).forEach(screen => {
+      screen.classList.remove("active");
+    });
+
+    screens[screenName].classList.add("active");
+
+    navItems.forEach(item => {
+      item.classList.toggle("active", item.dataset.screen === screenName);
+    });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  navItems.forEach(item => {
+    item.addEventListener("click", () => {
+      window.zaikaGo(item.dataset.screen);
+    });
+  });
+
+  // Restaurant search
+  const restaurantSearch = document.getElementById("restaurantSearch");
+
+  if (restaurantSearch) {
+    restaurantSearch.addEventListener("input", () => {
+      const query = restaurantSearch.value.toLowerCase().trim();
+      const cards = document.querySelectorAll("#restaurantGrid .restaurant-card");
+
+      cards.forEach(card => {
+        card.style.display = card.textContent.toLowerCase().includes(query) ? "" : "none";
+      });
+    });
+  }
+
+  // Cart sheet
+  const shade = document.getElementById("shade");
+  const cartSheet = document.getElementById("cartSheet");
+
+  function openZaikaCart() {
+    shade.classList.add("open");
+    cartSheet.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeZaikaCart() {
+    shade.classList.remove("open");
+    cartSheet.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  document.getElementById("openCart").addEventListener("click", openZaikaCart);
+  document.getElementById("navCart").addEventListener("click", openZaikaCart);
+  document.getElementById("close").addEventListener("click", closeZaikaCart);
+  shade.addEventListener("click", closeZaikaCart);
+
+  // Cart item count
+  const cartLines = document.getElementById("cartLines");
+  const cartCount = document.getElementById("cartCount");
+
+  if (cartLines && cartCount) {
+    const observer = new MutationObserver(() => {
+      const text = cartLines.innerText || "";
+      const matches = text.match(/×\s*(\d+)/g);
+      let count = 0;
+
+      if (matches) {
+        matches.forEach(value => {
+          count += Number(value.replace(/[^\d]/g, ""));
+        });
+      }
+
+      cartCount.textContent = count;
+      cartCount.style.display = count > 0 ? "grid" : "none";
+    });
+
+    observer.observe(cartLines, {
+      childList: true,
+      subtree: true,
+      characterData: true
+    });
+  }
+})();
+
+// Service worker registration
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(registration => {
+        console.log("ZaikaBox Service Worker registered:", registration.scope);
+      })
+      .catch(error => {
+        console.error("ZaikaBox Service Worker Error:", error);
+      });
+  });
+}
+</script>
+
+</body>
+</html>
