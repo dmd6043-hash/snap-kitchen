@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -137,9 +138,9 @@ getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-// Firebase configuration (ZaikaBox existing project)
+// CORRECT FIREBASE CONFIG
 const firebaseConfig={
-apiKey:"AIzaSyCiG0M2iO59aJGUge5Sok8nHkC8k4SByE",
+apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
 authDomain:"snap-kitchen-b8a73.firebaseapp.com",
 projectId:"snap-kitchen-b8a73",
 storageBucket:"snap-kitchen-b8a73.firebasestorage.app",
@@ -148,6 +149,7 @@ appId:"1:1060475241392:web:c3751859ecb085830b8c75",
 measurementId:"G-KRFFRFJY5X"
 };
 
+// Separate Firebase app instance for Partner
 const app=initializeApp(firebaseConfig,"ZaikaBoxPartnerApp");
 const db=getFirestore(app);
 const auth=getAuth(app);
@@ -187,22 +189,22 @@ function explainAuthError(error){
 const code=error?.code||"unknown";
 
 if(code==="auth/api-key-not-valid"){
-return "Firebase API KEY INVALID. Firebase Console mein Web App API key aur Google Cloud API key restrictions check karni hongi.";
+return "Firebase API key invalid. Config check karein.";
 }
 if(code==="auth/invalid-credential"||code==="auth/wrong-password"){
-return "Email ya password sahi nahi hai.";
+return "Email ya password galat hai.";
 }
 if(code==="auth/user-not-found"){
-return "Is email ka account Firebase Authentication mein nahi mila.";
+return "Is email ka Firebase account nahi mila.";
 }
 if(code==="auth/too-many-requests"){
-return "Bahut attempts hue. Kuch der baad dobara try karein.";
+return "Bahut login attempts hue. Thodi der baad try karein.";
 }
 if(code==="auth/network-request-failed"){
 return "Internet connection check karein.";
 }
 if(code==="auth/operation-not-allowed"){
-return "Firebase Console mein Email/Password sign-in enable karna hoga.";
+return "Firebase Console mein Email/Password login enable karein.";
 }
 return "LOGIN ERROR: "+code+" - "+(error?.message||"Unknown error");
 }
@@ -392,7 +394,7 @@ $("saveItemBtn").textContent="ADD MENU ITEM";
 $("cancelEditBtn").classList.add("hidden");
 }
 
-// ADD/UPDATE MENU ITEM
+// ADD / UPDATE MENU
 $("menuForm").addEventListener("submit",async event=>{
 event.preventDefault();
 if(!currentRestaurantId)return;
@@ -579,7 +581,7 @@ button.textContent=status==="Accepted"?"ACCEPT":status==="Rejected"?"REJECT":"PR
 }
 });
 
-// REFRESH
+// REFRESH ORDERS
 $("refreshOrdersBtn").addEventListener("click",()=>{
 if(!currentRestaurantId)return;
 setStatus("Live orders reconnecting...");
