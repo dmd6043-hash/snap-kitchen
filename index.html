@@ -16,44 +16,59 @@
 
   <title>ZaikaBox - Har Craving Ka Apna Box!</title>
 
-  <!-- Premium ZaikaBox theme overrides -->
   <style>
     :root {
-      --bg: #100d0a;
-      --surface: #1c1814;
-      --surface2: #262019;
-      --surface3: #33291f;
-      --purple: #ff8a35;
-      --purple2: #ffb16f;
-      --orange: #ff8a35;
-      --text: #fffaf5;
-      --muted: #b4a69a;
-      --border: rgba(255,255,255,.09);
-      --green: #37d69a;
-      --danger: #ff5f72;
-      --radius: 22px;
+      --bg:#100d0a;
+      --surface:#1c1814;
+      --surface2:#262019;
+      --surface3:#33291f;
+      --purple:#ff8a35;
+      --purple2:#ffb16f;
+      --orange:#ff8a35;
+      --text:#fffaf5;
+      --muted:#b4a69a;
+      --border:rgba(255,255,255,.09);
+      --green:#37d69a;
+      --danger:#ff5f72;
+      --radius:22px;
     }
 
     * {
-      box-sizing: border-box;
+      box-sizing:border-box;
+    }
+
+    html {
+      scroll-behavior:smooth;
     }
 
     body {
       background:
-        radial-gradient(circle at 85% 0%, rgba(255,138,53,.10), transparent 30%),
+        radial-gradient(circle at 85% 0%,rgba(255,138,53,.10),transparent 30%),
         #100d0a;
-      color: #fffaf5;
-      font-family: 'DM Sans', sans-serif;
+      color:#fffaf5;
+      font-family:'DM Sans',sans-serif;
     }
 
     .topbar {
-      background: rgba(16,13,10,.94);
-      border-bottom: 1px solid rgba(255,138,53,.10);
+      background:rgba(16,13,10,.96);
+      border-bottom:1px solid rgba(255,138,53,.12);
     }
 
     .brand-logo {
-      background: linear-gradient(135deg,#ff9b4a,#d95716);
-      box-shadow: 0 7px 22px rgba(255,138,53,.22);
+      width:48px;
+      height:48px;
+      padding:4px;
+      overflow:hidden;
+      border-radius:15px;
+      background:linear-gradient(135deg,#ff9b4a,#d95716);
+      box-shadow:0 7px 22px rgba(255,138,53,.22);
+    }
+
+    .brand-logo img {
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      border-radius:11px;
     }
 
     .brand-name,
@@ -61,214 +76,280 @@
     .screen-title,
     #selectedRestaurantName,
     .cart-head h2 {
-      font-family: 'Outfit', sans-serif;
+      font-family:'Outfit',sans-serif;
     }
 
     .hero {
+      position:relative;
+      overflow:hidden;
       background:
-        radial-gradient(circle at 85% 20%, rgba(255,255,255,.12), transparent 25%),
+        radial-gradient(circle at 85% 20%,rgba(255,255,255,.12),transparent 25%),
         linear-gradient(135deg,#4a2818,#21150f 72%);
-      border: 1px solid rgba(255,138,53,.18);
+      border:1px solid rgba(255,138,53,.22);
     }
 
     .hero h1 span {
-      color: #ffb16f;
+      color:#ffb16f;
     }
 
     .hero p {
-      color: #e7d5c7;
+      color:#e7d5c7;
     }
 
     .primary-btn,
     #checkout {
-      background: linear-gradient(135deg,#ff9b4a,#ed681f);
-      box-shadow: 0 7px 20px rgba(255,138,53,.20);
-      color: white;
+      background:linear-gradient(135deg,#ff9b4a,#ed681f);
+      box-shadow:0 7px 20px rgba(255,138,53,.20);
+      color:white;
     }
 
     .text-btn {
-      color: #ffad70;
+      color:#ffad70;
     }
 
     .promo {
-      background: linear-gradient(110deg,#34251a,#211811);
-      border-color: rgba(255,138,53,.18);
+      background:linear-gradient(110deg,#34251a,#211811);
+      border-color:rgba(255,138,53,.18);
     }
 
     .search-wrap input:focus,
     input:focus,
     textarea:focus,
     select:focus {
-      border-color: #ff8a35 !important;
-      box-shadow: 0 0 0 3px rgba(255,138,53,.10);
-      outline: none;
+      border-color:#ff8a35 !important;
+      box-shadow:0 0 0 3px rgba(255,138,53,.10);
+      outline:none;
     }
 
     .restaurant-card:active {
-      border-color: #ff8a35;
+      border-color:#ff8a35;
     }
 
     #cats button.active,
     #cats button.selected {
-      background: #e8752b;
-      color: white;
-      border-color: #e8752b;
+      background:#e8752b;
+      color:white;
+      border-color:#e8752b;
     }
 
     .product-card .price,
     #total {
-      color: #ffb16f;
+      color:#ffb16f;
     }
 
     .product-card button {
-      background: rgba(255,138,53,.12);
-      border: 1px solid rgba(255,138,53,.30);
-      color: #ffc18e;
+      background:rgba(255,138,53,.12);
+      border:1px solid rgba(255,138,53,.30);
+      color:#ffc18e;
     }
 
     .product-card button:active {
-      background: #e8752b;
-      color: white;
+      background:#e8752b;
+      color:white;
     }
 
     .reward-hero {
-      background: linear-gradient(135deg,#59331f,#281a12);
+      background:linear-gradient(135deg,#59331f,#281a12);
     }
 
     .nav-item.active {
-      color: #ffad70;
+      color:#ffad70;
     }
 
     .nav-item.active .nav-icon {
-      filter: drop-shadow(0 4px 7px rgba(255,138,53,.35));
+      filter:drop-shadow(0 4px 7px rgba(255,138,53,.35));
     }
 
     .bottom-nav {
-      background: rgba(24,19,15,.97);
-      border-top-color: rgba(255,138,53,.12);
+      background:rgba(24,19,15,.97);
+      border-top-color:rgba(255,138,53,.12);
     }
 
     .cart-sheet {
-      background: #1c1712;
-      border-color: rgba(255,138,53,.14);
+      background:#1c1712;
+      border-color:rgba(255,138,53,.14);
     }
 
     #close {
-      background: #33271d;
+      background:#33271d;
     }
 
     .cart-count {
-      background: #ed762c;
+      background:#ed762c;
     }
 
     #toast {
-      background: #fff0e3;
-      color: #382012;
+      background:#fff0e3;
+      color:#382012;
     }
 
     .field {
-      background: #15110d;
+      background:#15110d;
+    }
+
+    /* Home categories */
+    .home-categories {
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:10px;
+      margin:16px 0 25px;
+    }
+
+    .home-category {
+      min-width:0;
+      padding:14px 5px;
+      border-radius:17px;
+      border:1px solid rgba(255,138,53,.13);
+      background:linear-gradient(145deg,#251c15,#19140f);
+      color:#fffaf5;
+      text-align:center;
+      cursor:pointer;
+      transition:transform .2s,border-color .2s;
+    }
+
+    .home-category:active {
+      transform:scale(.96);
+      border-color:#ff8a35;
+    }
+
+    .home-category-icon {
+      display:block;
+      font-size:27px;
+      margin-bottom:7px;
+    }
+
+    .home-category strong {
+      display:block;
+      font-size:11px;
+      font-weight:800;
+    }
+
+    .home-category small {
+      display:block;
+      margin-top:3px;
+      color:#b4a69a;
+      font-size:9px;
+    }
+
+    .home-logo-glow {
+      box-shadow:0 0 25px rgba(255,138,53,.12);
     }
 
     /* Checkout form */
     #checkoutForm,
     .checkout-form {
-      width: 100%;
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 18px;
-      background: #211a14;
-      border: 1px solid rgba(255,138,53,.20);
-      color: #fffaf5;
+      width:100%;
+      margin-top:18px;
+      padding:18px;
+      border-radius:18px;
+      background:#211a14;
+      border:1px solid rgba(255,138,53,.20);
+      color:#fffaf5;
     }
 
     #checkoutForm h3 {
-      color: #fffaf5;
-      font-family: 'Outfit',sans-serif;
-      font-size: 20px;
-      margin-bottom: 16px;
+      color:#fffaf5;
+      font-family:'Outfit',sans-serif;
+      font-size:20px;
+      margin-bottom:16px;
     }
 
     #checkoutForm label {
-      display: block;
-      color: #e6d4c5;
-      font-size: 12px;
-      font-weight: 700;
-      margin: 14px 0 7px;
+      display:block;
+      color:#e6d4c5;
+      font-size:12px;
+      font-weight:700;
+      margin:14px 0 7px;
     }
 
     #checkoutForm input,
     #checkoutForm textarea,
     #checkoutForm select {
-      display: block;
-      width: 100%;
-      min-height: 47px;
-      padding: 13px 14px;
-      border-radius: 12px;
-      background: #120e0b;
-      border: 1px solid rgba(255,255,255,.12);
-      color: #fffaf5;
-      font-size: 14px;
-      outline: none;
+      display:block;
+      width:100%;
+      min-height:47px;
+      padding:13px 14px;
+      border-radius:12px;
+      background:#120e0b;
+      border:1px solid rgba(255,255,255,.12);
+      color:#fffaf5;
+      font-size:14px;
+      outline:none;
     }
 
     #checkoutForm input::placeholder,
     #checkoutForm textarea::placeholder {
-      color: #89796c;
+      color:#89796c;
     }
 
     #checkoutForm textarea {
-      min-height: 85px;
-      resize: vertical;
+      min-height:85px;
+      resize:vertical;
     }
 
     #checkoutForm #getLocation {
-      width: 100%;
-      padding: 12px;
-      margin-top: 10px;
-      border-radius: 11px;
-      background: #33251a;
-      border: 1px solid rgba(255,138,53,.30);
-      color: #ffb16f;
-      font-size: 12px;
-      font-weight: 800;
+      width:100%;
+      padding:12px;
+      margin-top:10px;
+      border-radius:11px;
+      background:#33251a;
+      border:1px solid rgba(255,138,53,.30);
+      color:#ffb16f;
+      font-size:12px;
+      font-weight:800;
     }
 
     #checkoutForm #placeOrder {
-      display: block;
-      width: 100%;
-      min-height: 49px;
-      padding: 14px;
-      margin-top: 20px;
-      border-radius: 13px;
-      background: linear-gradient(135deg,#ff9b4a,#ed681f);
-      color: white;
-      font-size: 14px;
-      font-weight: 800;
-      box-shadow: 0 6px 18px rgba(255,138,53,.18);
+      display:block;
+      width:100%;
+      min-height:49px;
+      padding:14px;
+      margin-top:20px;
+      border-radius:13px;
+      background:linear-gradient(135deg,#ff9b4a,#ed681f);
+      color:white;
+      font-size:14px;
+      font-weight:800;
+      box-shadow:0 6px 18px rgba(255,138,53,.18);
     }
 
     #checkoutForm #getLocation:active,
     #checkoutForm #placeOrder:active {
-      transform: scale(.98);
+      transform:scale(.98);
     }
 
     .success-card {
-      background: rgba(55,214,154,.09);
-      border-color: rgba(55,214,154,.25);
+      background:rgba(55,214,154,.09);
+      border-color:rgba(55,214,154,.25);
     }
 
-    @media (max-width: 360px) {
-      #checkoutForm,
-      .checkout-form {
-        padding: 14px;
+    @media(max-width:420px) {
+      .home-categories {
+        gap:7px;
+      }
+
+      .home-category {
+        padding:12px 3px;
+      }
+
+      .home-category-icon {
+        font-size:24px;
       }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      *, *::before, *::after {
-        animation-duration: .01ms !important;
-        transition-duration: .01ms !important;
+    @media(max-width:360px) {
+      #checkoutForm,
+      .checkout-form {
+        padding:14px;
+      }
+    }
+
+    @media(prefers-reduced-motion:reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration:.01ms !important;
+        transition-duration:.01ms !important;
       }
     }
   </style>
@@ -280,7 +361,9 @@
   <!-- TOP BAR -->
   <header class="topbar">
     <div class="brand">
-      <div class="brand-logo">🍱</div>
+      <div class="brand-logo home-logo-glow">
+        <img src="./icon-192.png" alt="ZaikaBox Logo">
+      </div>
       <div>
         <div class="brand-name">ZaikaBox</div>
         <div class="brand-tag">Har Craving Ka Apna Box!</div>
@@ -296,7 +379,7 @@
   <main id="homeScreen" class="screen active">
 
     <div class="hero">
-      <div class="eyebrow">Welcome to ZaikaBox</div>
+      <div class="eyebrow">WELCOME TO ZAIKABOX</div>
       <h1>Cravings Ka <span>Perfect</span> Match!</h1>
       <p>Discover your favourite local food and order something delicious today.</p>
 
@@ -335,11 +418,36 @@
     <div class="section-head">
       <div>
         <h2>Hungry Right Now?</h2>
-        <p>Find something tasty today</p>
+        <p>What are you craving today?</p>
       </div>
-
       <button class="text-btn" onclick="window.zaikaGo('explore')">
         Explore →
+      </button>
+    </div>
+
+    <div class="home-categories">
+      <button class="home-category" onclick="window.zaikaGo('explore')">
+        <span class="home-category-icon">🍔</span>
+        <strong>Burger</strong>
+        <small>Explore food</small>
+      </button>
+
+      <button class="home-category" onclick="window.zaikaGo('explore')">
+        <span class="home-category-icon">🍕</span>
+        <strong>Pizza</strong>
+        <small>Explore food</small>
+      </button>
+
+      <button class="home-category" onclick="window.zaikaGo('explore')">
+        <span class="home-category-icon">🥟</span>
+        <strong>Momos</strong>
+        <small>Explore food</small>
+      </button>
+
+      <button class="home-category" onclick="window.zaikaGo('explore')">
+        <span class="home-category-icon">🍜</span>
+        <strong>Chinese</strong>
+        <small>Explore food</small>
       </button>
     </div>
 
@@ -405,7 +513,7 @@
 
       <input class="field" id="trackingOrderId" type="text" placeholder="Enter Order ID" autocomplete="off">
 
-      <input class="field" id="trackingCode" type="text" placeholder="Enter 20-character Tracking Code" autocomplete="off" maxlength="20">
+      <input class="field" id="trackingCode" type="text" placeholder="Enter 20-character Tracking Code" autocomplete="off" maxlength="24">
 
       <button class="primary-btn track-submit" id="trackOrderBtn">
         Track My Order →
@@ -493,7 +601,7 @@
   <button class="nav-item" id="navCart">
     <span class="nav-icon nav-cart-icon">
       🛒
-      <span class="cart-count" id="cartCount" style="display:none">0</span>
+      <span class="cart-count" id="count" style="display:none">0</span>
     </span>
     <small>Cart</small>
   </button>
@@ -503,7 +611,7 @@
 <div id="shade"></div>
 
 <!-- CART SHEET -->
-<div class="cart-sheet" id="cartSheet">
+<div class="cart-sheet" id="cart">
   <div class="cart-head">
     <h2>Your Cart 🛒</h2>
     <button id="close" aria-label="Close cart">×</button>
@@ -526,7 +634,7 @@
 <!-- MAIN APP -->
 <script type="module" src="./app.js?v=20261118"></script>
 
-<!-- NAVIGATION AND CART CONTROLS -->
+<!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
 (function () {
   const screens = {
@@ -551,7 +659,7 @@
       item.classList.toggle("active", item.dataset.screen === screenName);
     });
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({top:0,behavior:"smooth"});
   };
 
   navItems.forEach(item => {
@@ -573,60 +681,14 @@
       });
     });
   }
-
-  // Cart sheet
-  const shade = document.getElementById("shade");
-  const cartSheet = document.getElementById("cartSheet");
-
-  function openZaikaCart() {
-    shade.classList.add("open");
-    cartSheet.classList.add("open");
-    document.body.style.overflow = "hidden";
-  }
-
-  function closeZaikaCart() {
-    shade.classList.remove("open");
-    cartSheet.classList.remove("open");
-    document.body.style.overflow = "";
-  }
-
-  document.getElementById("openCart").addEventListener("click", openZaikaCart);
-  document.getElementById("navCart").addEventListener("click", openZaikaCart);
-  document.getElementById("close").addEventListener("click", closeZaikaCart);
-  shade.addEventListener("click", closeZaikaCart);
-
-  // Cart item count
-  const cartLines = document.getElementById("cartLines");
-  const cartCount = document.getElementById("cartCount");
-
-  if (cartLines && cartCount) {
-    const observer = new MutationObserver(() => {
-      const text = cartLines.innerText || "";
-      const matches = text.match(/×\s*(\d+)/g);
-      let count = 0;
-
-      if (matches) {
-        matches.forEach(value => {
-          count += Number(value.replace(/[^\d]/g, ""));
-        });
-      }
-
-      cartCount.textContent = count;
-      cartCount.style.display = count > 0 ? "grid" : "none";
-    });
-
-    observer.observe(cartLines, {
-      childList: true,
-      subtree: true,
-      characterData: true
-    });
-  }
 })();
+</script>
 
-// Service worker registration
+<!-- SERVICE WORKER -->
+<script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("./service-worker.js")
+    navigator.serviceWorker.register("./sw.js")
       .then(registration => {
         console.log("ZaikaBox Service Worker registered:", registration.scope);
       })
