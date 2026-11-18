@@ -5,7 +5,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#100d0a">
-<title>ZaikaBox Restaurant Partner</title>
+<meta name="description" content="ZaikaBox Restaurant Partner Dashboard">
+<link rel="manifest" href="./partner-manifest.webmanifest">
+<title>ZaikaBox Partner</title>
 
 <style>
 *{box-sizing:border-box}
@@ -32,7 +34,6 @@ button:disabled{opacity:.5;cursor:not-allowed}
 .tag{display:inline-block;background:#3a2854;padding:5px 9px;border-radius:20px;font-size:12px}
 hr{border:0;border-top:1px solid #49365f;margin:16px 0}
 .order-buttons{display:flex;flex-wrap:wrap;gap:5px}
-#ordersList{min-height:50px}
 </style>
 </head>
 
@@ -128,32 +129,18 @@ import {initializeApp} from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
-getFirestore,
-collection,
-getDoc,
-getDocs,
-addDoc,
-updateDoc,
-deleteDoc,
-doc,
-query,
-where,
-serverTimestamp,
-onSnapshot,
-writeBatch
+getFirestore,collection,getDoc,getDocs,addDoc,updateDoc,
+deleteDoc,doc,query,where,serverTimestamp,onSnapshot,writeBatch
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
 
 import {
-getAuth,
-signInWithEmailAndPassword,
-onAuthStateChanged,
-signOut
+getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 const firebaseConfig={
-apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+apiKey:"AIzaSyCiG0M2iO59aJGUge5Sok8nHkC8k4SByE",
 authDomain:"snap-kitchen-b8a73.firebaseapp.com",
 projectId:"snap-kitchen-b8a73",
 storageBucket:"snap-kitchen-b8a73.firebasestorage.app",
@@ -165,7 +152,6 @@ measurementId:"G-KRFFRFJY5X"
 const app=initializeApp(firebaseConfig);
 const db=getFirestore(app);
 const auth=getAuth(app);
-
 const $=id=>document.getElementById(id);
 
 let currentRestaurantId=null;
@@ -182,11 +168,7 @@ $("globalStatus").textContent=message;
 
 function safe(value){
 return String(value??"").replace(/[&<>"']/g,char=>({
-"&":"&amp;",
-"<":"&lt;",
-">":"&gt;",
-'"':"&quot;",
-"'":"&#039;"
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
 })[char]);
 }
 
@@ -203,9 +185,7 @@ ordersUnsubscribe=null;
 }
 
 // LOGIN
-
 $("loginBtn").addEventListener("click",async()=>{
-
 if(loginInProgress)return;
 
 const email=$("email").value.trim();
@@ -222,23 +202,16 @@ $("loginBtn").textContent="LOGGING IN...";
 setStatus("Firebase login request bheja ja raha hai...");
 
 try{
-
-const credential=await signInWithEmailAndPassword(auth,email,password);
+await signInWithEmailAndPassword(auth,email,password);
 setStatus("Login successful. Partner account check ho raha hai...");
-
 }catch(error){
-
 console.error("LOGIN ERROR:",error);
 setStatus("LOGIN ERROR: "+(error.code||"unknown")+" - "+error.message);
-
 }finally{
-
 loginInProgress=false;
 $("loginBtn").disabled=false;
 $("loginBtn").textContent="LOGIN";
-
 }
-
 });
 
 $("password").addEventListener("keydown",event=>{
@@ -246,175 +219,118 @@ if(event.key==="Enter")$("loginBtn").click();
 });
 
 // LOGOUT
-
 async function logoutPartner(){
-
 try{
-
 stopLiveOrders();
 await signOut(auth);
 currentRestaurantId=null;
 partnerMenuItems=[];
 partnerOrders=[];
-
 $("dashboard").classList.add("hidden");
 $("loginBox").classList.remove("hidden");
 $("errorLogoutBtn").classList.add("hidden");
-
-setStatus("Logged out. Ab dobara login kar sakte hain.");
-
+setStatus("Logged out.");
 }catch(error){
-
 setStatus("LOGOUT ERROR: "+error.message);
-
 }
-
 }
 
 $("logoutBtn").addEventListener("click",logoutPartner);
 $("errorLogoutBtn").addEventListener("click",logoutPartner);
 
-// AUTH STATE + PARTNER ACCOUNT CHECK
-
+// ACCOUNT VERIFICATION
 onAuthStateChanged(auth,async user=>{
-
 const version=++authVersion;
 stopLiveOrders();
 
 if(!user){
-
 currentRestaurantId=null;
 partnerMenuItems=[];
 partnerOrders=[];
-
 $("loginBox").classList.remove("hidden");
 $("dashboard").classList.add("hidden");
 $("errorLogoutBtn").classList.add("hidden");
-
 $("menuList").textContent="Menu not loaded yet.";
 $("ordersList").textContent="Orders not loaded yet.";
-
-if(!loginInProgress){
-setStatus("Please login with your restaurant partner account.");
-}
-
+if(!loginInProgress)setStatus("Please login with your restaurant partner account.");
 return;
-
 }
 
 $("loginBox").classList.add("hidden");
 $("dashboard").classList.add("hidden");
 $("errorLogoutBtn").classList.add("hidden");
-
-setStatus("Login successful. Account document check ho raha hai...");
+setStatus("Checking partner account...");
 
 try{
-
-const accountRef=doc(db,"accounts",user.uid);
-const accountSnapshot=await getDoc(accountRef);
-
+const accountSnapshot=await getDoc(doc(db,"accounts",user.uid));
 if(version!==authVersion)return;
 
-if(!accountSnapshot.exists()){
-throw new Error("accounts collection mein is UID ka document nahi mila. UID: "+user.uid);
-}
+if(!accountSnapshot.exists())
+throw new Error("accounts document nahi mila. UID: "+user.uid);
 
 const account=accountSnapshot.data();
 
-if(account.role!=="restaurant"){
-throw new Error("Account role restaurant nahi hai. Current role: "+String(account.role));
-}
+if(account.role!=="restaurant")
+throw new Error("Account role restaurant nahi hai.");
 
-if(account.active!==true){
-throw new Error("Partner account active nahi hai. accounts document mein active=true hona chahiye.");
-}
+if(account.active!==true)
+throw new Error("Partner account active nahi hai.");
 
-if(!account.restaurantId){
-throw new Error("accounts document mein restaurantId missing hai.");
-}
+if(!account.restaurantId)
+throw new Error("restaurantId missing hai.");
 
 currentRestaurantId=account.restaurantId;
 
-setStatus("Restaurant record check ho raha hai: "+currentRestaurantId);
-
-const restaurantRef=doc(db,"restaurants",currentRestaurantId);
-const restaurantSnapshot=await getDoc(restaurantRef);
-
+const restaurantSnapshot=await getDoc(doc(db,"restaurants",currentRestaurantId));
 if(version!==authVersion)return;
 
-if(!restaurantSnapshot.exists()){
-throw new Error("restaurants collection mein document nahi mila: "+currentRestaurantId);
-}
+if(!restaurantSnapshot.exists())
+throw new Error("Restaurant record nahi mila: "+currentRestaurantId);
 
 const restaurant=restaurantSnapshot.data();
 
-if(restaurant.active===false){
-throw new Error("Restaurant inactive hai. restaurants document mein active=true karein.");
-}
+if(restaurant.active===false)
+throw new Error("Restaurant inactive hai.");
 
 currentRestaurantName=restaurant.name||"Restaurant";
-
 $("restaurantName").textContent=currentRestaurantName;
 $("partnerMessage").textContent="Logged in: "+(user.email||"");
-
 $("dashboard").classList.remove("hidden");
 
-setStatus("Account verified! Menu aur live orders load ho rahe hain...");
-
+setStatus("Account verified. Menu and orders loading...");
 await loadMenu();
-
 if(version!==authVersion)return;
 
 startLiveOrders();
-
 if(version!==authVersion)return;
 
-setStatus("SUCCESS: "+currentRestaurantName+" dashboard ready hai. Live orders active.");
+setStatus("SUCCESS: "+currentRestaurantName+" dashboard ready. Live orders active.");
 
 }catch(error){
-
 console.error("PARTNER VERIFICATION ERROR:",error);
-
 if(version!==authVersion)return;
 
 currentRestaurantId=null;
 stopLiveOrders();
-
 $("dashboard").classList.add("hidden");
 $("loginBox").classList.remove("hidden");
 $("errorLogoutBtn").classList.remove("hidden");
-
 setStatus("PARTNER ERROR: "+(error.code||"unknown")+" - "+error.message);
-
 }
-
 },error=>{
-
 console.error("AUTH STATE ERROR:",error);
 setStatus("AUTH ERROR: "+(error.code||"unknown")+" - "+error.message);
-
 });
 
-// LOAD MENU
-
+// MENU LOADING
 async function loadMenu(){
-
 if(!currentRestaurantId)return;
-
 $("menuList").textContent="Loading menu...";
 
 try{
-
 const snapshot=await getDocs(menuCollection());
-
-partnerMenuItems=snapshot.docs.map(item=>({
-id:item.id,
-...item.data()
-}));
-
-partnerMenuItems.sort((a,b)=>
-String(a.name||"").localeCompare(String(b.name||""))
-);
+partnerMenuItems=snapshot.docs.map(item=>({id:item.id,...item.data()}));
+partnerMenuItems.sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
 
 if(!partnerMenuItems.length){
 $("menuList").innerHTML='<p class="small">Abhi menu item nahi hai. Upar se add karein.</p>';
@@ -422,9 +338,7 @@ return;
 }
 
 $("menuList").innerHTML=partnerMenuItems.map(item=>{
-
 const available=item.available??true;
-
 return `
 <div class="item">
 <div class="row">
@@ -437,38 +351,27 @@ return `
 <button class="primary" data-action="edit" data-id="${safe(item.id)}">EDIT</button>
 <button class="secondary" data-action="toggle" data-id="${safe(item.id)}">${available?"MARK UNAVAILABLE":"MAKE AVAILABLE"}</button>
 <button class="danger" data-action="delete" data-id="${safe(item.id)}">DELETE</button>
-</div>
-`;
-
+</div>`;
 }).join("");
 
 }catch(error){
-
 console.error("MENU ERROR:",error);
 $("menuList").textContent="MENU ERROR: "+(error.code||"")+" "+error.message;
-
+}
 }
 
-}
-
-// MENU FORM RESET
-
+// RESET MENU FORM
 function resetMenuForm(){
-
 $("menuForm").reset();
 $("editItemId").value="";
 $("itemEmoji").value="🍽️";
 $("saveItemBtn").textContent="ADD MENU ITEM";
 $("cancelEditBtn").classList.add("hidden");
-
 }
 
-// ADD / UPDATE MENU ITEM
-
+// ADD/UPDATE MENU ITEM
 $("menuForm").addEventListener("submit",async event=>{
-
 event.preventDefault();
-
 if(!currentRestaurantId)return;
 
 const name=$("itemName").value.trim();
@@ -487,76 +390,42 @@ return;
 $("saveItemBtn").disabled=true;
 $("menuMessage").textContent="Saving...";
 
-const itemData={
-name,
-price,
-category,
-description,
-emoji,
-available,
-updatedAt:serverTimestamp()
-};
+const itemData={name,price,category,description,emoji,available,updatedAt:serverTimestamp()};
 
 try{
-
 if(editId){
-
-await updateDoc(
-doc(db,"restaurants",currentRestaurantId,"menuItems",editId),
-itemData
-);
-
+await updateDoc(doc(db,"restaurants",currentRestaurantId,"menuItems",editId),itemData);
 $("menuMessage").textContent="Menu item updated!";
-
 }else{
-
-await addDoc(menuCollection(),{
-...itemData,
-createdAt:serverTimestamp()
-});
-
+await addDoc(menuCollection(),{...itemData,createdAt:serverTimestamp()});
 $("menuMessage").textContent="New menu item added!";
-
 }
-
 resetMenuForm();
 await loadMenu();
-
 }catch(error){
-
 console.error("MENU SAVE ERROR:",error);
 $("menuMessage").textContent="MENU SAVE ERROR: "+error.message;
-
 }finally{
-
 $("saveItemBtn").disabled=false;
-
 }
-
 });
 
-// MENU BUTTON ACTIONS
-
+// MENU ACTIONS
 $("menuList").addEventListener("click",async event=>{
-
 const button=event.target.closest("button[data-action]");
-
 if(!button||!currentRestaurantId)return;
 
 const id=button.dataset.id;
 const action=button.dataset.action;
 const item=partnerMenuItems.find(x=>x.id===id);
-
 if(!item)return;
 
 const itemRef=doc(db,"restaurants",currentRestaurantId,"menuItems",id);
 
 try{
-
 button.disabled=true;
 
 if(action==="edit"){
-
 $("editItemId").value=item.id;
 $("itemName").value=item.name||"";
 $("itemPrice").value=item.price??0;
@@ -564,56 +433,32 @@ $("itemCategory").value=item.category||"";
 $("itemDescription").value=item.description||"";
 $("itemEmoji").value=item.emoji||"🍽️";
 $("itemAvailable").value=String(item.available??true);
-
 $("saveItemBtn").textContent="SAVE CHANGES";
 $("cancelEditBtn").classList.remove("hidden");
-
 $("menuForm").scrollIntoView({behavior:"smooth"});
-
 }else if(action==="toggle"){
-
-const current=item.available??true;
-
-await updateDoc(itemRef,{
-available:!current,
-updatedAt:serverTimestamp()
-});
-
+await updateDoc(itemRef,{available:!(item.available??true),updatedAt:serverTimestamp()});
 await loadMenu();
-
 }else if(action==="delete"){
-
 if(!confirm("Is menu item ko delete karna hai?"))return;
-
 await deleteDoc(itemRef);
 await loadMenu();
-
 $("menuMessage").textContent="Menu item deleted.";
-
 }
-
 }catch(error){
-
 console.error("MENU ACTION ERROR:",error);
 alert("MENU ERROR: "+error.message);
-
 }finally{
-
 button.disabled=false;
-
 }
-
 });
 
 $("cancelEditBtn").addEventListener("click",resetMenuForm);
 $("refreshMenuBtn").addEventListener("click",loadMenu);
 
 // LIVE ORDERS
-
 function startLiveOrders(){
-
 if(!currentRestaurantId)return;
-
 stopLiveOrders();
 $("ordersList").textContent="Live orders connect ho rahe hain...";
 
@@ -623,55 +468,28 @@ where("restaurantId","==",currentRestaurantId)
 );
 
 ordersUnsubscribe=onSnapshot(ordersQuery,snapshot=>{
-
-partnerOrders=snapshot.docs.map(item=>({
-id:item.id,
-...item.data()
-}));
-
-partnerOrders.sort((a,b)=>
-(b.createdAt?.toMillis?.()||0)-
-(a.createdAt?.toMillis?.()||0)
-);
-
+partnerOrders=snapshot.docs.map(item=>({id:item.id,...item.data()}));
+partnerOrders.sort((a,b)=>(b.createdAt?.toMillis?.()||0)-(a.createdAt?.toMillis?.()||0));
 renderOrders();
-
 },error=>{
-
 console.error("LIVE ORDERS ERROR:",error);
-
-$("ordersList").textContent=
-"LIVE ORDERS ERROR: "+(error.code||"")+" "+error.message;
-
+$("ordersList").textContent="LIVE ORDERS ERROR: "+(error.code||"")+" "+error.message;
 setStatus("Live order listener error: "+error.message);
-
 });
-
 }
 
 function renderOrders(){
-
 if(!partnerOrders.length){
-
-$("ordersList").innerHTML=
-'<p class="small">Abhi koi order nahi hai. Naye order aate hi yahan dikhenge.</p>';
-
+$("ordersList").innerHTML='<p class="small">Abhi koi order nahi hai. Naye order aate hi yahan dikhenge.</p>';
 return;
-
 }
 
 $("ordersList").innerHTML=partnerOrders.map(order=>{
-
 const items=Array.isArray(order.items)
-?order.items.map(item=>
-`${safe(item.name||"Item")} × ${safe(item.quantity||item.qty||1)}`
-).join("<br>")
+?order.items.map(item=>`${safe(item.name||"Item")} × ${safe(item.quantity||item.qty||1)}`).join("<br>")
 :safe(order.items||"Items unavailable");
 
-const date=order.createdAt?.toDate
-?order.createdAt.toDate().toLocaleString("en-IN")
-:"Time unavailable";
-
+const date=order.createdAt?.toDate?order.createdAt.toDate().toLocaleString("en-IN"):"Time unavailable";
 const status=order.status||"New";
 
 return `
@@ -684,31 +502,23 @@ return `
 <p><b>Address:</b> ${safe(order.address||"Pickup")}</p>
 <p><b>Status:</b> <span class="tag">${safe(status)}</span></p>
 <p class="small">${safe(date)}</p>
-
 <div class="order-buttons">
 <button class="success" data-order="${safe(order.id)}" data-status="Accepted">ACCEPT</button>
 <button class="danger" data-order="${safe(order.id)}" data-status="Rejected">REJECT</button>
 <button class="secondary" data-order="${safe(order.id)}" data-status="Preparing">PREPARING</button>
 </div>
-</div>
-`;
-
+</div>`;
 }).join("");
-
 }
 
-// ORDER STATUS UPDATE — BATCH UPDATE
-
+// ORDER STATUS UPDATE
 $("ordersList").addEventListener("click",async event=>{
-
 const button=event.target.closest("button[data-order]");
-
 if(!button||!currentRestaurantId)return;
 
 const orderId=button.dataset.order;
 const status=button.dataset.status;
 const order=partnerOrders.find(item=>item.id===orderId);
-
 if(!order)return;
 
 if(!confirm("Order status "+status+" karna hai?"))return;
@@ -717,75 +527,40 @@ button.disabled=true;
 button.textContent="UPDATING...";
 
 try{
-
 const batch=writeBatch(db);
 
-// Update main order
-batch.update(
-doc(db,"orders",orderId),
-{
-status:status,
+batch.update(doc(db,"orders",orderId),{
+status,
 updatedAt:serverTimestamp()
-}
-);
+});
 
-// Update tracking document, if trackingCode exists
 if(order.trackingCode){
-
-const trackingCode=String(order.trackingCode)
-.toUpperCase()
-.replace(/[\s-]/g,"");
-
-batch.update(
-doc(db,"orderTracking",trackingCode),
-{
-status:status,
+const trackingCode=String(order.trackingCode).toUpperCase().replace(/[\s-]/g,"");
+batch.update(doc(db,"orderTracking",trackingCode),{
+status,
 updatedAt:serverTimestamp()
-}
-);
-
+});
 }
 
-// Commit both changes together
 await batch.commit();
-
 setStatus("Order status updated: "+status);
-
 alert("Order status successfully updated: "+status);
 
 }catch(error){
-
 console.error("ORDER UPDATE ERROR:",error);
-
-alert(
-"ORDER ERROR: "+
-(error.code||"")+
-" - "+
-error.message
-);
-
+alert("ORDER ERROR: "+(error.code||"")+" - "+error.message);
 setStatus("Order update failed: "+error.message);
-
 }finally{
-
 button.disabled=false;
-button.textContent=status==="Accepted"?"ACCEPT":
-status==="Rejected"?"REJECT":"PREPARING";
-
+button.textContent=status==="Accepted"?"ACCEPT":status==="Rejected"?"REJECT":"PREPARING";
 }
-
 });
 
-// MANUAL REFRESH (Listener already live)
-
+// REFRESH
 $("refreshOrdersBtn").addEventListener("click",()=>{
-
 if(!currentRestaurantId)return;
-
-setStatus("Live orders already active. Refreshing connection...");
-
+setStatus("Live orders reconnecting...");
 startLiveOrders();
-
 });
 
 </script>
