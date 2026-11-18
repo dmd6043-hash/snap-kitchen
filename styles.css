@@ -623,3 +623,144 @@ select:focus-visible {
 [hidden] {
   display:none !important;
 }
+/* ===== ZAIKABOX CHECKOUT FINAL FIX ===== */
+
+#cartLines #checkoutForm.checkout-form {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  gap: 12px !important;
+  padding: 20px 15px !important;
+  margin: 20px 0 10px !important;
+  background: #1b1424 !important;
+  border: 1px solid #ff914d40 !important;
+  border-radius: 18px !important;
+  color: #ffffff !important;
+  overflow: visible !important;
+}
+
+#checkoutForm h3 {
+  color: #ffab70 !important;
+  font-size: 21px !important;
+  font-weight: 800 !important;
+  margin: 0 0 8px !important;
+  padding: 0 !important;
+  border: none !important;
+}
+
+#checkoutForm label {
+  display: block !important;
+  width: 100% !important;
+  color: #e5d9ec !important;
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  margin: 5px 0 2px !important;
+}
+
+#checkoutForm input,
+#checkoutForm textarea,
+#checkoutForm select {
+  display: block !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  min-height: 50px !important;
+  padding: 14px !important;
+  margin: 0 !important;
+  background: #100d16 !important;
+  color: #ffffff !important;
+  border: 1px solid #ffffff20 !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  font-family: inherit !important;
+  outline: none !important;
+  box-shadow: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+#checkoutForm input::placeholder,
+#checkoutForm textarea::placeholder {
+  color: #9a8b9f !important;
+  opacity: 1 !important;
+}
+
+#checkoutForm input:focus,
+#checkoutForm textarea:focus,
+#checkoutForm select:focus {
+  border-color: #ff914d !important;
+  box-shadow: 0 0 0 3px #ff914d20 !important;
+}
+
+#checkoutForm select {
+  background-image: none !important;
+}
+
+#checkoutForm select option {
+  background: #1b1424 !important;
+  color: #ffffff !important;
+}
+
+#checkoutForm textarea {
+  min-height: 110px !important;
+  resize: vertical !important;
+}
+
+/* DELIVERY ADDRESS */
+#checkoutForm #addressBox {
+  width: 100% !important;
+  min-width: 0 !important;
+  margin: 5px 0 !important;
+  gap: 10px !important;
+}
+
+/* LOCATION BUTTON */
+#checkoutForm #getLocation {
+  width: 100% !important;
+  min-height: 50px !important;
+  padding: 12px !important;
+  background: #2a211d !important;
+  border: 1px solid #ff914d60 !important;
+  border-radius: 12px !important;
+  color: #ffbd91 !important;
+  font-weight: 800 !important;
+}
+
+/* PLACE ORDER BUTTON */
+#checkoutForm #placeOrder {
+  width: 100% !important;
+  min-height: 54px !important;
+  padding: 15px !important;
+  margin: 10px 0 0 !important;
+  background: linear-gradient(135deg, #ffad72, #ff8040) !important;
+  border: none !important;
+  border-radius: 14px !important;
+  color: #24130d !important;
+  font-size: 16px !important;
+  font-weight: 900 !important;
+  box-shadow: 0 7px 20px #ff914d20 !important;
+}
+
+#checkoutForm #placeOrder:active {
+  transform: scale(.98) !important;
+}
+
+#checkoutForm #placeOrder:disabled {
+  opacity: .6 !important;
+}
+
+/* MOBILE SAFETY */
+@media (max-width: 480px) {
+  #cartLines #checkoutForm.checkout-form {
+    padding: 16px 12px !important;
+    gap: 10px !important;
+  }
+
+  #checkoutForm input,
+  #checkoutForm textarea,
+  #checkoutForm select {
+    font-size: 16px !important;
+  }
+}
