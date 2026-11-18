@@ -1,9 +1,10 @@
 
-const CACHE = "zaikabox-v1";
+const CACHE = "zaikabox-v2";
 
 const FILES = [
   "./",
   "./index.html",
+  "./styles.css",
   "./app.js",
   "./manifest.webmanifest"
 ];
