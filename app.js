@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
 
 import {
@@ -51,7 +50,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
 
-  setTimeout(() => toast.classList.remove("show"), 2500);
+  setTimeout(() => toast.classList.remove("show"), 4000);
 }
 
 function money(value) {
@@ -70,14 +69,17 @@ function escapeHTML(value) {
 
 // SECURE TRACKING CODE
 function generateTrackingCode() {
-  if (!crypto || !crypto.getRandomValues) {
+  if (
+    !globalThis.crypto ||
+    !globalThis.crypto.getRandomValues
+  ) {
     throw new Error("Secure code generation is not supported.");
   }
 
   const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   const bytes = new Uint8Array(20);
 
-  crypto.getRandomValues(bytes);
+  globalThis.crypto.getRandomValues(bytes);
 
   return Array.from(bytes)
     .map((byte) => alphabet[byte & 31])
@@ -820,7 +822,6 @@ async function placeOrder() {
       createdAt: serverTimestamp()
     };
 
-    // Tracking record now also stores orderType
     const trackingData = {
       orderId: orderRef.id,
       restaurantId: selectedRestaurant.id,
@@ -871,7 +872,12 @@ async function placeOrder() {
 
   } catch (error) {
     console.error("Order placement error:", error);
-    showToast("Order place nahi hua. Please try again.");
+
+    const errorMessage = error.code
+      ? `${error.code}: ${error.message}`
+      : error.message || "Unknown error";
+
+    showToast("Order Failed: " + errorMessage);
 
     if (placeButton) {
       placeButton.disabled = false;
@@ -900,7 +906,6 @@ function renderTrackingStatus(data) {
     return;
   }
 
-  // Identify Pickup or Home Delivery
   const isPickup =
     data.orderType === "Pickup" ||
     status === "Ready for Pickup" ||
