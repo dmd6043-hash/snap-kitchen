@@ -138,7 +138,7 @@ getAuth,signInWithEmailAndPassword,onAuthStateChanged,signOut
 } from
 "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
-// CORRECT FIREBASE CONFIG
+// FIREBASE CONFIG
 const firebaseConfig={
 apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
 authDomain:"snap-kitchen-b8a73.firebaseapp.com",
@@ -149,7 +149,7 @@ appId:"1:1060475241392:web:c3751859ecb085830b8c75",
 measurementId:"G-KRFFRFJY5X"
 };
 
-// Separate Firebase app instance for Partner
+// PARTNER FIREBASE APP
 const app=initializeApp(firebaseConfig,"ZaikaBoxPartnerApp");
 const db=getFirestore(app);
 const auth=getAuth(app);
@@ -536,7 +536,7 @@ return `
 }).join("");
 }
 
-// ORDER STATUS UPDATE
+// ORDER STATUS UPDATE — FIXED: ONLY STATUS FIELD
 $("ordersList").addEventListener("click",async event=>{
 const button=event.target.closest("button[data-order]");
 if(!button||!currentRestaurantId)return;
@@ -554,20 +554,21 @@ button.textContent="UPDATING...";
 try{
 const batch=writeBatch(db);
 
+// Orders document: status only
 batch.update(doc(db,"orders",orderId),{
-status,
-updatedAt:serverTimestamp()
+status
 });
 
+// Tracking document: status only
 if(order.trackingCode){
 const trackingCode=String(order.trackingCode).toUpperCase().replace(/[\s-]/g,"");
 batch.update(doc(db,"orderTracking",trackingCode),{
-status,
-updatedAt:serverTimestamp()
+status
 });
 }
 
 await batch.commit();
+
 setStatus("Order status updated: "+status);
 alert("Order status successfully updated: "+status);
 
