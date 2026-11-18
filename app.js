@@ -36,6 +36,7 @@ let cart = [];
 let category = "All";
 let userLocation = null;
 let isOpeningRestaurant = false;
+let isPlacingOrder = false;
 let unsubscribeMenu = null;
 let unsubscribeTracking = null;
 
@@ -51,7 +52,7 @@ function showToast(message) {
   toast.textContent = message;
   toast.classList.add("show");
 
-  setTimeout(() => toast.classList.remove("show"), 4000);
+  setTimeout(() => toast.classList.remove("show"), 3000);
 }
 
 function money(value) {
@@ -68,12 +69,8 @@ function escapeHTML(value) {
   }[char]));
 }
 
-// SECURE TRACKING CODE
 function generateTrackingCode() {
-  if (
-    !globalThis.crypto ||
-    !globalThis.crypto.getRandomValues
-  ) {
+  if (!globalThis.crypto?.getRandomValues) {
     throw new Error("Secure code generation is not supported.");
   }
 
@@ -163,8 +160,6 @@ function renderRestaurants() {
     card.style.textAlign = "left";
     card.style.cursor = "pointer";
     card.style.touchAction = "manipulation";
-    card.style.pointerEvents = "auto";
-    card.style.position = "relative";
 
     card.innerHTML = `
       <div class="restaurant-emoji">🍽️</div>
@@ -180,12 +175,7 @@ function renderRestaurants() {
       </div>
     `;
 
-    card.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      openRestaurant(restaurant);
-    });
-
+    card.addEventListener("click", () => openRestaurant(restaurant));
     grid.appendChild(card);
   });
 }
@@ -232,38 +222,29 @@ async function openRestaurant(restaurant) {
   try {
     loadSelectedRestaurantMenu();
 
-    if (menuSection) {
-      menuSection.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
+    menuSection?.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
   } finally {
     isOpeningRestaurant = false;
   }
 }
 
-// MENU AVAILABILITY CHECK
+// MENU AVAILABILITY
 function isMenuItemVisible(data) {
   const available = data.available ?? data.Available;
   const active = data.active ?? data.Active;
 
   if (available === false || active === false) return false;
 
-  if (
-    typeof available === "string" &&
-    available.toLowerCase() === "false"
-  ) return false;
-
-  if (
-    typeof active === "string" &&
-    active.toLowerCase() === "false"
-  ) return false;
+  if (String(available).toLowerCase() === "false") return false;
+  if (String(active).toLowerCase() === "false") return false;
 
   return true;
 }
 
-// LOAD LIVE MENU FROM FIREBASE
+// LOAD LIVE MENU
 function loadSelectedRestaurantMenu() {
   const products = $("products");
 
@@ -285,10 +266,7 @@ function loadSelectedRestaurantMenu() {
 
   unsubscribeMenu = onSnapshot(
     menuRef,
-
     (snapshot) => {
-      console.log("Menu documents found:", snapshot.size);
-
       menu = snapshot.docs
         .map((document) => {
           const data = document.data();
@@ -296,35 +274,31 @@ function loadSelectedRestaurantMenu() {
           return {
             id: document.id,
             ...data,
-            name: String(data.name || data.Name || data.title || data.Title || document.id).trim(),
+            name: String(
+              data.name || data.Name || data.title || data.Title || document.id
+            ).trim(),
             price: Number(data.price ?? data.Price ?? 0),
             category: String(data.category || data.Category || "Other").trim(),
             description: data.description || data.Description || "",
-            emoji: String(data.emoji || data.Emoji || "🍽️").trim() || "🍽️",
+            emoji: String(data.emoji || data.Emoji || "🍽️").trim(),
             available: isMenuItemVisible(data)
           };
         })
         .filter((item) => item.available);
 
-      cart = cart.filter((cartItem) =>
-        menu.some((menuItem) => menuItem.id === cartItem.id)
-      );
+      cart = cart
+        .filter((cartItem) => menu.some((menuItem) => menuItem.id === cartItem.id))
+        .map((cartItem) => {
+          const updatedItem = menu.find(
+            (menuItem) => menuItem.id === cartItem.id
+          );
 
-      cart = cart.map((cartItem) => {
-        const updatedItem = menu.find(
-          (menuItem) => menuItem.id === cartItem.id
-        );
-
-        return updatedItem
-          ? {
-              ...cartItem,
-              name: updatedItem.name,
-              price: updatedItem.price
-            }
-          : cartItem;
-      });
-
-      console.log("Live Firebase menu:", menu);
+          return {
+            ...cartItem,
+            name: updatedItem.name,
+            price: updatedItem.price
+          };
+        });
 
       renderCategories();
       renderMenu();
@@ -334,7 +308,6 @@ function loadSelectedRestaurantMenu() {
         console.warn("Menu subcollection is empty.");
       }
     },
-
     (error) => {
       console.error("Menu loading error:", error);
 
@@ -350,7 +323,7 @@ function loadSelectedRestaurantMenu() {
   );
 }
 
-// MENU CATEGORIES
+// CATEGORIES
 function renderCategories() {
   const cats = $("cats");
   if (!cats) return;
@@ -360,9 +333,7 @@ function renderCategories() {
     ...new Set(menu.map((item) => item.category).filter(Boolean))
   ];
 
-  if (!categories.includes(category)) {
-    category = "All";
-  }
+  if (!categories.includes(category)) category = "All";
 
   cats.innerHTML = "";
 
@@ -372,7 +343,6 @@ function renderCategories() {
     button.type = "button";
     button.textContent = cat;
     button.className = category === cat ? "active" : "";
-    button.style.touchAction = "manipulation";
 
     button.addEventListener("click", () => {
       category = cat;
@@ -384,7 +354,7 @@ function renderCategories() {
   });
 }
 
-// DISPLAY MENU
+// MENU DISPLAY
 function renderMenu() {
   const products = $("products");
   const empty = $("empty");
@@ -400,7 +370,7 @@ function renderMenu() {
       category === "All" || item.category === category;
 
     const matchesSearch =
-      (item.name || "").toLowerCase().includes(searchText);
+      item.name.toLowerCase().includes(searchText);
 
     return matchesCategory && matchesSearch;
   });
@@ -426,10 +396,9 @@ function renderMenu() {
     card.className = "product-card";
 
     const quantity = getQuantity(item.id);
-    const foodEmoji = item.emoji || "🍽️";
 
     card.innerHTML = `
-      <div class="product-emoji">${escapeHTML(foodEmoji)}</div>
+      <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
         <p>${escapeHTML(item.description)}</p>
@@ -440,8 +409,7 @@ function renderMenu() {
       </button>
     `;
 
-    card.querySelector(".add-button").addEventListener("click", (event) => {
-      event.stopPropagation();
+    card.querySelector(".add-button").addEventListener("click", () => {
       addToCart(item);
     });
 
@@ -449,13 +417,18 @@ function renderMenu() {
   });
 }
 
-// CART FUNCTIONS
+// CART DATA
 function getQuantity(id) {
   const item = cart.find((product) => product.id === id);
   return item ? item.quantity : 0;
 }
 
 function addToCart(item) {
+  if (!selectedRestaurant) {
+    showToast("Please select a restaurant first");
+    return;
+  }
+
   const existing = cart.find((product) => product.id === item.id);
 
   if (existing) {
@@ -469,9 +442,12 @@ function addToCart(item) {
     });
   }
 
-  renderMenu();
+  console.log("Updated cart:", cart);
+
   renderCart();
-  showToast("Item added to cart");
+  renderMenu();
+
+  showToast(item.name + " added to cart");
 }
 
 function changeQuantity(id, amount) {
@@ -489,26 +465,41 @@ function changeQuantity(id, amount) {
 }
 
 function getTotal() {
-  return cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  return cart.reduce(
+    (sum, item) => sum + Number(item.price) * Number(item.quantity),
+    0
+  );
 }
 
-// DISPLAY CART
+// CART DISPLAY
 function renderCart() {
   const lines = $("cartLines");
   const count = $("count");
   const total = $("total");
 
-  const totalQuantity = cart.reduce((sum, item) => sum + item.quantity, 0);
+  const totalQuantity = cart.reduce(
+    (sum, item) => sum + Number(item.quantity || 0),
+    0
+  );
 
   if (count) count.textContent = totalQuantity;
   if (total) total.textContent = money(getTotal());
 
-  if (!lines) return;
+  if (!lines) {
+    console.error("Cart element #cartLines not found in index.html");
+    return;
+  }
 
   lines.innerHTML = "";
 
   if (!cart.length) {
-    lines.innerHTML = "<p>Your cart is empty.</p>";
+    lines.innerHTML = `
+      <div class="cart-empty">
+        <div style="font-size:40px;text-align:center;">🛒</div>
+        <p style="text-align:center;">Your cart is empty.</p>
+        <p style="text-align:center;">Add something delicious!</p>
+      </div>
+    `;
     return;
   }
 
@@ -517,19 +508,26 @@ function renderCart() {
     row.className = "cart-item";
 
     row.innerHTML = `
-      <div>
+      <div class="cart-item-info">
         <strong>${escapeHTML(item.name)}</strong>
         <p>${money(item.price)} × ${item.quantity}</p>
+        <strong>${money(item.price * item.quantity)}</strong>
       </div>
+
       <div class="quantity-controls">
-        <button type="button" class="minus">−</button>
+        <button type="button" class="minus" aria-label="Decrease quantity">−</button>
         <span>${item.quantity}</span>
-        <button type="button" class="plus">+</button>
+        <button type="button" class="plus" aria-label="Increase quantity">+</button>
       </div>
     `;
 
-    row.querySelector(".minus").addEventListener("click", () => changeQuantity(item.id, -1));
-    row.querySelector(".plus").addEventListener("click", () => changeQuantity(item.id, 1));
+    row.querySelector(".minus").addEventListener("click", () => {
+      changeQuantity(item.id, -1);
+    });
+
+    row.querySelector(".plus").addEventListener("click", () => {
+      changeQuantity(item.id, 1);
+    });
 
     lines.appendChild(row);
   });
@@ -537,15 +535,26 @@ function renderCart() {
 
 // CART OPEN / CLOSE
 function openCart() {
-  if (!$("shade")) return;
+  const shade = $("shade");
+  const cartElement = $("cart");
 
-  $("shade").classList.add("show");
-  $("cart")?.classList.add("show");
+  if (!shade || !cartElement) {
+    console.error("Cart overlay elements not found. Check #shade and #cart in index.html");
+    showToast("Cart display issue. Please refresh.");
+    return;
+  }
+
+  renderCart();
+
+  shade.classList.add("show");
+  cartElement.classList.add("show");
+  document.body.classList.add("cart-open");
 }
 
 function closeCart() {
   $("shade")?.classList.remove("show");
   $("cart")?.classList.remove("show");
+  document.body.classList.remove("cart-open");
 }
 
 $("openCart")?.addEventListener("click", openCart);
@@ -576,6 +585,7 @@ function createCheckoutForm() {
 
   form.innerHTML = `
     <h3>Order Details</h3>
+
     <label for="customerName">Your Name</label>
     <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name">
 
@@ -627,7 +637,7 @@ $("checkout")?.addEventListener("click", () => {
   createCheckoutForm();
 });
 
-// GPS LOCATION
+// GPS
 async function getCurrentLocation() {
   if (!navigator.geolocation) {
     showToast("Location is not supported on this device");
@@ -668,12 +678,10 @@ async function getCurrentLocation() {
 
       showToast("Location added");
     },
-
     (error) => {
       console.error("GPS error:", error);
       showToast("Location permission allow kijiye");
     },
-
     {
       enableHighAccuracy: true,
       timeout: 15000
@@ -681,7 +689,7 @@ async function getCurrentLocation() {
   );
 }
 
-// SHOW ORDER SUCCESS CARD
+// ORDER SUCCESS
 function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   const trackSection = $("trackOrder");
 
@@ -697,8 +705,8 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
     successCard = document.createElement("div");
     successCard.id = "orderSuccess";
     successCard.style.cssText = `
-      background:#211538;
-      border:1px solid #7650a8;
+      background:#211b15;
+      border:1px solid #ff8a35;
       border-radius:18px;
       padding:18px;
       margin:16px 0;
@@ -719,13 +727,13 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
     <h3 style="text-align:center;">Order Placed Successfully!</h3>
     <p style="text-align:center;">Aapka order restaurant ko bhejne ke liye ready hai.</p>
 
-    <div style="background:#160e25;padding:12px;border-radius:12px;margin:12px 0;">
+    <div style="background:#160f0a;padding:12px;border-radius:12px;margin:12px 0;">
       <small>YOUR ORDER ID</small>
       <h3 style="margin:6px 0;word-break:break-all;">${escapeHTML(orderId)}</h3>
       <button type="button" id="copyOrderId">Copy Order ID</button>
     </div>
 
-    <div style="background:#160e25;padding:12px;border-radius:12px;margin:12px 0;">
+    <div style="background:#160f0a;padding:12px;border-radius:12px;margin:12px 0;">
       <small>YOUR SECRET TRACKING CODE</small>
       <h3 style="margin:6px 0;letter-spacing:2px;word-break:break-word;">${escapeHTML(formatTrackingCode(trackingCode))}</h3>
       <button type="button" id="copyTrackingCode">Copy Tracking Code</button>
@@ -744,17 +752,16 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
 
   successCard.hidden = false;
 
-  $("copyOrderId")?.addEventListener("click", () => {
-    copyText(orderId);
-  });
-
+  $("copyOrderId")?.addEventListener("click", () => copyText(orderId));
   $("copyTrackingCode")?.addEventListener("click", () => {
     copyText(formatTrackingCode(trackingCode));
   });
 
   $("trackThisOrder")?.addEventListener("click", () => {
     if ($("trackingOrderId")) $("trackingOrderId").value = orderId;
-    if ($("trackingCode")) $("trackingCode").value = formatTrackingCode(trackingCode);
+    if ($("trackingCode")) {
+      $("trackingCode").value = formatTrackingCode(trackingCode);
+    }
 
     trackSection.scrollIntoView({
       behavior: "smooth",
@@ -774,7 +781,7 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   });
 }
 
-// COPY TEXT
+// COPY
 async function copyText(value) {
   try {
     await navigator.clipboard.writeText(value);
@@ -786,6 +793,8 @@ async function copyText(value) {
 
 // PLACE ORDER
 async function placeOrder() {
+  if (isPlacingOrder) return;
+
   const name = $("customerName")?.value.trim() || "";
   const phone = $("customerPhone")?.value.trim() || "";
   const orderType = $("orderType")?.value || "Pickup";
@@ -813,6 +822,8 @@ async function placeOrder() {
     showToast("Your cart is empty");
     return;
   }
+
+  isPlacingOrder = true;
 
   const placeButton = $("placeOrder");
 
@@ -855,7 +866,7 @@ async function placeOrder() {
       orderId: orderRef.id,
       restaurantId: selectedRestaurant.id,
       restaurantName: orderData.restaurantName,
-      orderType: orderType,
+      orderType,
       status: "New",
       createdAt: serverTimestamp()
     };
@@ -912,10 +923,12 @@ async function placeOrder() {
       placeButton.disabled = false;
       placeButton.textContent = "Place Order";
     }
+  } finally {
+    isPlacingOrder = false;
   }
 }
 
-// DISPLAY TRACKING STATUS
+// TRACKING DISPLAY
 function renderTrackingStatus(data) {
   const result = $("trackingResult");
   if (!result) return;
@@ -941,20 +954,8 @@ function renderTrackingStatus(data) {
     status === "Picked Up";
 
   const steps = isPickup
-    ? [
-        "New",
-        "Accepted",
-        "Preparing",
-        "Ready for Pickup",
-        "Picked Up"
-      ]
-    : [
-        "New",
-        "Accepted",
-        "Preparing",
-        "Out for Delivery",
-        "Delivered"
-      ];
+    ? ["New", "Accepted", "Preparing", "Ready for Pickup", "Picked Up"]
+    : ["New", "Accepted", "Preparing", "Out for Delivery", "Delivered"];
 
   const labels = {
     "New": "Order Received",
@@ -975,7 +976,7 @@ function renderTrackingStatus(data) {
       <div class="tracking-step" style="
         padding:10px;
         margin:6px 0;
-        border-left:4px solid ${completed ? "#a879ed" : "#554766"};
+        border-left:4px solid ${completed ? "#ff8a35" : "#554766"};
         opacity:${completed ? "1" : "0.5"};
       ">
         ${completed ? "✅" : "○"}
@@ -984,13 +985,11 @@ function renderTrackingStatus(data) {
     `;
   }).join("");
 
-  const currentLabel = labels[status] || status;
-
   result.innerHTML = `
     <div class="tracking-status">
       <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
-      <p><strong>Current Status:</strong> ${escapeHTML(currentLabel)}</p>
+      <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Status automatically refresh hota rahega.</p>
     </div>
@@ -1027,7 +1026,6 @@ function trackOrder() {
 
   unsubscribeTracking = onSnapshot(
     trackingRef,
-
     (snapshot) => {
       if (!snapshot.exists()) {
         if (result) {
@@ -1035,11 +1033,8 @@ function trackOrder() {
           result.innerHTML = "<p>Order nahi mila. Order ID aur Tracking Code check kijiye.</p>";
         }
 
-        if (unsubscribeTracking) {
-          unsubscribeTracking();
-          unsubscribeTracking = null;
-        }
-
+        unsubscribeTracking?.();
+        unsubscribeTracking = null;
         return;
       }
 
@@ -1051,17 +1046,13 @@ function trackOrder() {
           result.innerHTML = "<p>Order nahi mila. Details dobara check kijiye.</p>";
         }
 
-        if (unsubscribeTracking) {
-          unsubscribeTracking();
-          unsubscribeTracking = null;
-        }
-
+        unsubscribeTracking?.();
+        unsubscribeTracking = null;
         return;
       }
 
       renderTrackingStatus(data);
     },
-
     (error) => {
       console.error("Tracking error:", error);
 
@@ -1070,10 +1061,8 @@ function trackOrder() {
         result.innerHTML = "<p>Tracking load nahi ho paayi. Dobara try kijiye.</p>";
       }
 
-      if (unsubscribeTracking) {
-        unsubscribeTracking();
-        unsubscribeTracking = null;
-      }
+      unsubscribeTracking?.();
+      unsubscribeTracking = null;
     }
   );
 }
