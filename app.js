@@ -26,6 +26,7 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const DEFAULT_WHATSAPP_NUMBER = "918319014718";
+const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
 
 const $ = (id) => document.getElementById(id);
 
@@ -92,6 +93,63 @@ function normalizeTrackingCode(code) {
   return String(code || "")
     .toUpperCase()
     .replace(/[\s-]/g, "");
+}
+
+// SAVE TRACKING DETAILS ON THIS DEVICE
+function saveTrackingDetails(orderId, trackingCode) {
+  const details = {
+    orderId: String(orderId),
+    trackingCode: normalizeTrackingCode(trackingCode),
+    savedAt: Date.now()
+  };
+
+  try {
+    localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(details));
+  } catch (error) {
+    console.error("Tracking save error:", error);
+    showToast("Tracking device par save nahi ho payi.");
+  }
+
+  if ($("trackingOrderId")) {
+    $("trackingOrderId").value = details.orderId;
+  }
+
+  if ($("trackingCode")) {
+    $("trackingCode").value = formatTrackingCode(details.trackingCode);
+  }
+}
+
+// READ SAVED TRACKING DETAILS
+function getSavedTrackingDetails() {
+  try {
+    const saved = localStorage.getItem(TRACKING_STORAGE_KEY);
+
+    if (!saved) return null;
+
+    const details = JSON.parse(saved);
+
+    if (
+      !details ||
+      !details.orderId ||
+      !/^[A-Z2-9]{20}$/.test(details.trackingCode || "")
+    ) {
+      return null;
+    }
+
+    return details;
+  } catch (error) {
+    console.error("Tracking restore error:", error);
+    return null;
+  }
+}
+
+// CLEAR SAVED TRACKING IF USER WANTS TO
+function clearSavedTracking() {
+  try {
+    localStorage.removeItem(TRACKING_STORAGE_KEY);
+  } catch (error) {
+    console.error("Tracking clear error:", error);
+  }
 }
 
 // LOAD RESTAURANTS
@@ -237,7 +295,6 @@ function isMenuItemVisible(data) {
   const active = data.active ?? data.Active;
 
   if (available === false || active === false) return false;
-
   if (String(available).toLowerCase() === "false") return false;
   if (String(active).toLowerCase() === "false") return false;
 
@@ -442,8 +499,6 @@ function addToCart(item) {
     });
   }
 
-  console.log("Updated cart:", cart);
-
   renderCart();
   renderMenu();
 
@@ -539,7 +594,6 @@ function openCart() {
   const cartElement = $("cart");
 
   if (!shade || !cartElement) {
-    console.error("Cart overlay elements not found. Check #shade and #cart in index.html");
     showToast("Cart display issue. Please refresh.");
     return;
   }
@@ -689,6 +743,230 @@ async function getCurrentLocation() {
   );
 }
 
+// TRACKING STATUS DISPLAY
+function renderTrackingStatus(data) {
+  const result = $("trackingResult");
+  if (!result) return;
+
+  result.hidden = false;
+
+  const status = String(data.status || "New");
+
+  if (status === "Rejected") {
+    result.innerHTML = `
+      <div class="tracking-status">
+        <h3>❌ Order Rejected</h3>
+        <p>Restaurant ne is order ko reject kar diya hai. Details ke liye restaurant se contact karein.</p>
+        <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+      </div>
+    `;
+    return;
+  }
+
+  const isPickup =
+    data.orderType === "Pickup" ||
+    status === "Ready for Pickup" ||
+    status === "Picked Up";
+
+  const steps = isPickup
+    ? ["New", "Accepted", "Preparing", "Ready for Pickup", "Picked Up"]
+    : ["New", "Accepted", "Preparing", "Out for Delivery", "Delivered"];
+
+  const labels = {
+    "New": "Order Received",
+    "Accepted": "Order Accepted",
+    "Preparing": "Food is Being Prepared",
+    "Ready for Pickup": "Ready for Pickup",
+    "Picked Up": "Order Picked Up",
+    "Out for Delivery": "Out for Delivery",
+    "Delivered": "Delivered"
+  };
+
+  const currentIndex = steps.indexOf(status);
+
+  const timeline = steps.map((step, index) => {
+    const completed = currentIndex >= index;
+
+    return `
+      <div class="tracking-step" style="
+        padding:10px;
+        margin:6px 0;
+        border-left:4px solid ${completed ? "#ff8a35" : "#554766"};
+        opacity:${completed ? "1" : "0.5"};
+      ">
+        ${completed ? "✅" : "○"}
+        <strong>${labels[step]}</strong>
+      </div>
+    `;
+  }).join("");
+
+  result.innerHTML = `
+    <div class="tracking-status">
+      <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
+      <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+      <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
+      <div class="tracking-order-items">${timeline}</div>
+      <p style="font-size:12px;">Order status automatically updates from the server.</p>
+      ${
+        status === "Delivered"
+          ? "<p>🎉 Your order has been delivered. Thank you for choosing ZaikaBox!</p>"
+          : ""
+      }
+    </div>
+  `;
+}
+
+// START LIVE TRACKING LISTENER
+function startTracking(orderId, trackingCode) {
+  const cleanOrderId = String(orderId || "").trim();
+  const cleanCode = normalizeTrackingCode(trackingCode);
+
+  const result = $("trackingResult");
+
+  if (!cleanOrderId || !/^[A-Z2-9]{20}$/.test(cleanCode)) {
+    if (result) {
+      result.hidden = false;
+      result.innerHTML = "<p>Order ID ya Tracking Code sahi nahi hai.</p>";
+    }
+    return;
+  }
+
+  if (unsubscribeTracking) {
+    unsubscribeTracking();
+    unsubscribeTracking = null;
+  }
+
+  if (result) {
+    result.hidden = false;
+    result.innerHTML = "<p>Loading your order tracking...</p>";
+  }
+
+  const trackingRef = doc(db, "orderTracking", cleanCode);
+
+  unsubscribeTracking = onSnapshot(
+    trackingRef,
+    (snapshot) => {
+      if (!snapshot.exists()) {
+        if (result) {
+          result.hidden = false;
+          result.innerHTML = "<p>Order nahi mila. Order ID aur Tracking Code check kijiye.</p>";
+        }
+
+        unsubscribeTracking?.();
+        unsubscribeTracking = null;
+        return;
+      }
+
+      const data = snapshot.data();
+
+      if (data.orderId !== cleanOrderId) {
+        if (result) {
+          result.hidden = false;
+          result.innerHTML = "<p>Order details match nahi hui. Dobara check kijiye.</p>";
+        }
+
+        unsubscribeTracking?.();
+        unsubscribeTracking = null;
+        return;
+      }
+
+      renderTrackingStatus(data);
+    },
+    (error) => {
+      console.error("Tracking error:", error);
+
+      if (result) {
+        result.hidden = false;
+        result.innerHTML = "<p>Tracking load nahi ho paayi. Dobara try kijiye.</p>";
+      }
+
+      unsubscribeTracking?.();
+      unsubscribeTracking = null;
+    }
+  );
+}
+
+// AUTOMATICALLY RESTORE SAVED ORDER
+function restoreSavedTracking() {
+  const saved = getSavedTrackingDetails();
+  const result = $("trackingResult");
+
+  if (!saved) {
+    if (result) {
+      result.hidden = false;
+      result.innerHTML = `
+        <div class="tracking-status">
+          <p>Abhi is device par koi saved order nahi hai.</p>
+          <p>Order place karne ke baad tracking yahan automatically dikhegi.</p>
+        </div>
+      `;
+    }
+    return;
+  }
+
+  if ($("trackingOrderId")) {
+    $("trackingOrderId").value = saved.orderId;
+  }
+
+  if ($("trackingCode")) {
+    $("trackingCode").value = formatTrackingCode(saved.trackingCode);
+  }
+
+  startTracking(saved.orderId, saved.trackingCode);
+}
+
+// TRACK FORM BUTTON
+function trackOrder() {
+  const orderId = $("trackingOrderId")?.value.trim() || "";
+  const trackingCode = normalizeTrackingCode($("trackingCode")?.value || "");
+
+  if (!orderId || !trackingCode) {
+    const saved = getSavedTrackingDetails();
+
+    if (saved) {
+      restoreSavedTracking();
+      return;
+    }
+
+    showToast("Order ID aur Tracking Code dono enter kijiye.");
+    return;
+  }
+
+  if (!/^[A-Z2-9]{20}$/.test(trackingCode)) {
+    showToast("Tracking Code sahi format mein enter kijiye.");
+    return;
+  }
+
+  saveTrackingDetails(orderId, trackingCode);
+  startTracking(orderId, trackingCode);
+}
+
+$("trackOrderBtn")?.addEventListener("click", trackOrder);
+
+// TRACK TAB AUTO LOAD
+document.querySelectorAll('.nav-item[data-screen="track"]').forEach((item) => {
+  item.addEventListener("click", () => {
+    restoreSavedTracking();
+  });
+});
+
+// ALSO RESTORE WHEN TRACK SCREEN IS OPENED DIRECTLY
+function setupTrackScreenObserver() {
+  const trackScreen = $("trackScreen");
+  if (!trackScreen) return;
+
+  const observer = new MutationObserver(() => {
+    if (trackScreen.classList.contains("active")) {
+      restoreSavedTracking();
+    }
+  });
+
+  observer.observe(trackScreen, {
+    attributes: true,
+    attributeFilter: ["class"]
+  });
+}
+
 // ORDER SUCCESS
 function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   const trackSection = $("trackOrder");
@@ -725,7 +1003,7 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   successCard.innerHTML = `
     <div style="font-size:30px;text-align:center;">🎉</div>
     <h3 style="text-align:center;">Order Placed Successfully!</h3>
-    <p style="text-align:center;">Aapka order restaurant ko bhejne ke liye ready hai.</p>
+    <p style="text-align:center;">Aapka order successfully place ho gaya hai.</p>
 
     <div style="background:#160f0a;padding:12px;border-radius:12px;margin:12px 0;">
       <small>YOUR ORDER ID</small>
@@ -739,10 +1017,10 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
       <button type="button" id="copyTrackingCode">Copy Tracking Code</button>
     </div>
 
-    <p style="font-size:13px;">Tracking Code ko sambhal kar rakhein. Iske bina order status nahi dekh paayenge.</p>
+    <p style="font-size:13px;">Your order tracking is now automatically saved on this device.</p>
 
     <button type="button" id="trackThisOrder" style="width:100%;margin:6px 0;">
-      📦 Track This Order
+      📦 View Live Order Tracking
     </button>
 
     <button type="button" id="sendWhatsAppOrder" style="width:100%;margin:6px 0;">
@@ -753,22 +1031,22 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   successCard.hidden = false;
 
   $("copyOrderId")?.addEventListener("click", () => copyText(orderId));
+
   $("copyTrackingCode")?.addEventListener("click", () => {
     copyText(formatTrackingCode(trackingCode));
   });
 
   $("trackThisOrder")?.addEventListener("click", () => {
-    if ($("trackingOrderId")) $("trackingOrderId").value = orderId;
-    if ($("trackingCode")) {
-      $("trackingCode").value = formatTrackingCode(trackingCode);
+    if (typeof window.zaikaGo === "function") {
+      window.zaikaGo("track");
     }
+
+    restoreSavedTracking();
 
     trackSection.scrollIntoView({
       behavior: "smooth",
       block: "start"
     });
-
-    trackOrder();
   });
 
   $("sendWhatsAppOrder")?.addEventListener("click", () => {
@@ -877,6 +1155,12 @@ async function placeOrder() {
 
     await batch.commit();
 
+    // SAVE TRACKING IMMEDIATELY AFTER SUCCESSFUL ORDER
+    saveTrackingDetails(orderRef.id, trackingCode);
+
+    // START AUTOMATIC FIREBASE TRACKING
+    startTracking(orderRef.id, trackingCode);
+
     let message = "*NEW ZAIKABOX ORDER*\n";
     message += `Order ID: ${orderRef.id}\n`;
     message += `Tracking Code: ${formatTrackingCode(trackingCode)}\n`;
@@ -928,147 +1212,6 @@ async function placeOrder() {
   }
 }
 
-// TRACKING DISPLAY
-function renderTrackingStatus(data) {
-  const result = $("trackingResult");
-  if (!result) return;
-
-  result.hidden = false;
-
-  const status = String(data.status || "New");
-
-  if (status === "Rejected") {
-    result.innerHTML = `
-      <div class="tracking-status">
-        <h3>❌ Order Rejected</h3>
-        <p>Restaurant ne is order ko reject kar diya hai. Details ke liye restaurant se contact karein.</p>
-        <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
-      </div>
-    `;
-    return;
-  }
-
-  const isPickup =
-    data.orderType === "Pickup" ||
-    status === "Ready for Pickup" ||
-    status === "Picked Up";
-
-  const steps = isPickup
-    ? ["New", "Accepted", "Preparing", "Ready for Pickup", "Picked Up"]
-    : ["New", "Accepted", "Preparing", "Out for Delivery", "Delivered"];
-
-  const labels = {
-    "New": "Order Received",
-    "Accepted": "Order Accepted",
-    "Preparing": "Food is Being Prepared",
-    "Ready for Pickup": "Ready for Pickup",
-    "Picked Up": "Order Picked Up",
-    "Out for Delivery": "Out for Delivery",
-    "Delivered": "Delivered"
-  };
-
-  const currentIndex = steps.indexOf(status);
-
-  const timeline = steps.map((step, index) => {
-    const completed = currentIndex >= index;
-
-    return `
-      <div class="tracking-step" style="
-        padding:10px;
-        margin:6px 0;
-        border-left:4px solid ${completed ? "#ff8a35" : "#554766"};
-        opacity:${completed ? "1" : "0.5"};
-      ">
-        ${completed ? "✅" : "○"}
-        <strong>${labels[step]}</strong>
-      </div>
-    `;
-  }).join("");
-
-  result.innerHTML = `
-    <div class="tracking-status">
-      <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
-      <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
-      <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
-      <div class="tracking-order-items">${timeline}</div>
-      <p style="font-size:12px;">Status automatically refresh hota rahega.</p>
-    </div>
-  `;
-}
-
-// TRACK ORDER
-function trackOrder() {
-  const orderId = $("trackingOrderId")?.value.trim() || "";
-  const trackingCode = normalizeTrackingCode($("trackingCode")?.value || "");
-  const result = $("trackingResult");
-
-  if (!orderId || !trackingCode) {
-    showToast("Order ID aur Tracking Code dono enter kijiye.");
-    return;
-  }
-
-  if (!/^[A-Z2-9]{20}$/.test(trackingCode)) {
-    showToast("Tracking Code sahi format mein enter kijiye.");
-    return;
-  }
-
-  if (unsubscribeTracking) {
-    unsubscribeTracking();
-    unsubscribeTracking = null;
-  }
-
-  if (result) {
-    result.hidden = false;
-    result.innerHTML = "<p>Checking your order...</p>";
-  }
-
-  const trackingRef = doc(db, "orderTracking", trackingCode);
-
-  unsubscribeTracking = onSnapshot(
-    trackingRef,
-    (snapshot) => {
-      if (!snapshot.exists()) {
-        if (result) {
-          result.hidden = false;
-          result.innerHTML = "<p>Order nahi mila. Order ID aur Tracking Code check kijiye.</p>";
-        }
-
-        unsubscribeTracking?.();
-        unsubscribeTracking = null;
-        return;
-      }
-
-      const data = snapshot.data();
-
-      if (data.orderId !== orderId) {
-        if (result) {
-          result.hidden = false;
-          result.innerHTML = "<p>Order nahi mila. Details dobara check kijiye.</p>";
-        }
-
-        unsubscribeTracking?.();
-        unsubscribeTracking = null;
-        return;
-      }
-
-      renderTrackingStatus(data);
-    },
-    (error) => {
-      console.error("Tracking error:", error);
-
-      if (result) {
-        result.hidden = false;
-        result.innerHTML = "<p>Tracking load nahi ho paayi. Dobara try kijiye.</p>";
-      }
-
-      unsubscribeTracking?.();
-      unsubscribeTracking = null;
-    }
-  );
-}
-
-$("trackOrderBtn")?.addEventListener("click", trackOrder);
-
 // SEARCH
 $("search")?.addEventListener("input", renderMenu);
 
@@ -1105,3 +1248,7 @@ $("backRestaurants")?.addEventListener("click", () => {
 // START APP
 renderCart();
 loadRestaurants();
+setupTrackScreenObserver();
+
+// RESTORE TRACKING AFTER PAGE LOAD
+restoreSavedTracking();
