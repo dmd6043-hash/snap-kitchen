@@ -226,8 +226,8 @@ function renderRestaurants() {
         <p>${escapeHTML(restaurant.description || restaurant.Description || "Fresh food and local favourites")}</p>
         <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
         ${
-          restaurant.isPureVeg === true || restaurant.isPureVeg === "true"
-            ? '<span class="veg-label">PURE VEG</span>'
+          (restaurant.foodCategory || (restaurant.isPureVeg === true || restaurant.isPureVeg === "true" ? "Veg Only" : ""))
+            ? '<span class="veg-label">' + escapeHTML(restaurant.foodCategory || "PURE VEG").toUpperCase() + '</span>'
             : ""
         }
       </div>
