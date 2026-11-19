@@ -31,6 +31,7 @@ const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
 const $ = (id) => document.getElementById(id);
 
 let restaurants = [];
+let restaurantFilter = "All";
 let selectedRestaurant = null;
 let menu = [];
 let cart = [];
@@ -208,7 +209,26 @@ function renderRestaurants() {
   grid.innerHTML = "";
   grid.style.display = "grid";
 
-  restaurants.forEach((restaurant) => {
+  const searchQuery = ($("restaurantSearch")?.value || "").toLowerCase().trim();
+  const visibleRestaurants = restaurants.filter((restaurant) => {
+    const foodType = String(restaurant.foodCategory || "").toLowerCase();
+    const legacyVeg = restaurant.isPureVeg === true || restaurant.isPureVeg === "true";
+    const isVeg = foodType === "veg only" || foodType === "veg + non-veg" || (!foodType && legacyVeg);
+    const isNonVeg = foodType === "non-veg only" || foodType === "veg + non-veg" || (!foodType && !legacyVeg);
+    const matchesType = restaurantFilter === "All"
+      || (restaurantFilter === "Veg" && isVeg)
+      || (restaurantFilter === "Non-Veg" && isNonVeg);
+    const searchable = [restaurant.name, restaurant.Name, restaurant.description, restaurant.Description, restaurant.city, restaurant.City, restaurant.foodCategory]
+      .filter(Boolean).join(" ").toLowerCase();
+    return matchesType && searchable.includes(searchQuery);
+  });
+
+  if (!visibleRestaurants.length) {
+    grid.innerHTML = '<p class="restaurant-empty">Is filter mein abhi koi restaurant nahi mila.</p>';
+    return;
+  }
+
+  visibleRestaurants.forEach((restaurant) => {
     const card = document.createElement("button");
 
     card.type = "button";
@@ -1212,7 +1232,21 @@ async function placeOrder() {
   }
 }
 
+// RESTAURANT VEG / NON-VEG FILTERS
+document.querySelectorAll("[data-restaurant-filter]").forEach((button) => {
+  button.addEventListener("click", () => {
+    restaurantFilter = button.dataset.restaurantFilter || "All";
+    document.querySelectorAll("[data-restaurant-filter]").forEach((item) => {
+      const active = item === button;
+      item.classList.toggle("active", active);
+      item.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    renderRestaurants();
+  });
+});
+
 // SEARCH
+$("restaurantSearch")?.addEventListener("input", renderRestaurants);
 $("search")?.addEventListener("input", renderMenu);
 
 // BACK TO RESTAURANTS
