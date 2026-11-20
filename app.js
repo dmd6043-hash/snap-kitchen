@@ -1452,6 +1452,43 @@ $("backRestaurants")?.addEventListener("click", () => {
   renderRestaurants();
 });
 
+// WALLET DEMO MODE ONLY: test balance stays on this device; no real payment.
+const WALLET_DEMO_KEY = "zaikabox_wallet_demo_v1";
+function renderDemoWallet() {
+  const balanceNode = $("walletBalance");
+  const historyNode = $("walletHistory");
+  if (!balanceNode || !historyNode) return;
+  let wallet = { balance: 0, transactions: [] };
+  try {
+    wallet = JSON.parse(localStorage.getItem(WALLET_DEMO_KEY) || '{"balance":0,"transactions":[]}');
+  } catch (error) {}
+  wallet.balance = Math.max(0, Number(wallet.balance) || 0);
+  wallet.transactions = Array.isArray(wallet.transactions) ? wallet.transactions : [];
+  balanceNode.textContent = money(wallet.balance);
+  historyNode.innerHTML = wallet.transactions.length
+    ? wallet.transactions.slice(0,30).map((tx) => '<div class="wallet-history-row"><span><strong>Demo balance added</strong><br><small>' + escapeHTML(new Date(tx.time).toLocaleString("en-IN")) + '</small></span><span class="wallet-credit">+₹' + Number(tx.amount).toFixed(2) + '</span></div>').join("")
+    : '<div class="wallet-history-row"><span>No demo transactions yet</span><span>—</span></div>';
+}
+$("walletAddDemo")?.addEventListener("click", () => {
+  const amount = Number($("walletDemoAmount")?.value);
+  if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
+    showToast("₹1 se ₹5,000 tak demo amount enter karein.");
+    return;
+  }
+  let wallet = { balance: 0, transactions: [] };
+  try { wallet = JSON.parse(localStorage.getItem(WALLET_DEMO_KEY) || '{"balance":0,"transactions":[]}'); } catch (error) {}
+  wallet.balance = Math.round(((Number(wallet.balance) || 0) + amount) * 100) / 100;
+  wallet.transactions = [{ amount, time: Date.now() }, ...(Array.isArray(wallet.transactions) ? wallet.transactions : [])].slice(0,30);
+  try {
+    localStorage.setItem(WALLET_DEMO_KEY, JSON.stringify(wallet));
+    $("walletDemoAmount").value = "";
+    renderDemoWallet();
+    showToast("Demo balance add ho gaya. Yeh real money nahi hai.");
+  } catch (error) { showToast("Demo balance save nahi ho paya."); }
+});
+document.querySelectorAll('.nav-item[data-screen="wallet"]').forEach((item) => item.addEventListener("click", renderDemoWallet));
+renderDemoWallet();
+
 // START APP
 renderCart();
 loadRestaurants();
