@@ -733,7 +733,7 @@ async function createCheckoutForm() {
       $("customerName")?.focus();
       return;
     }
-    if (!/^[6-9]\\d{9}$/.test(phone)) {
+    if (!/^[6-9]\d{9}$/.test(phone)) {
       showToast("Please enter a valid 10 digit mobile number");
       $("customerPhone")?.focus();
       return;
