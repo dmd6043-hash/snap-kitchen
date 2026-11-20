@@ -49,8 +49,8 @@ async function callAuthWorker(path, payload) {
 }
 
 function normalizeAccountPhone(rawPhone) {
-  const phone = String(rawPhone || "").replace(/\\D/g, "").replace(/^91/, "");
-  if (!/^[6-9]\\d{9}$/.test(phone)) {
+  const phone = String(rawPhone || "").replace(/\D/g, "").replace(/^91/, "");
+  if (!/^[6-9]\d{9}$/.test(phone)) {
     throw new Error("Valid 10-digit Indian mobile number daaliye.");
   }
   return phone;
