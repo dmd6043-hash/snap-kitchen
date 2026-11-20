@@ -1,6 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 import {
   getFirestore,
@@ -33,11 +33,27 @@ let activeUpiId = DEFAULT_UPI_ID;
 const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
 
 const $ = (id) => document.getElementById(id);
-// Mobile + password is mapped to a private Firebase email alias; no phone OTP verification.
-function phoneLoginAlias(rawPhone) {
-  const phone = String(rawPhone || "").replace(/\D/g, "").replace(/^91/, "");
-  if (!/^[6-9]\d{9}$/.test(phone)) throw new Error("Valid 10-digit Indian mobile number daaliye.");
-  return `${phone}@zaikabox-login.com`;
+const AUTH_WORKER_URL = "https://little-boat-b4f9.dmd6043.workers.dev";
+
+async function callAuthWorker(path, payload) {
+  const response = await fetch(AUTH_WORKER_URL + path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  const result = await response.json();
+  if (!response.ok || !result.success) {
+    throw new Error(result.error || "Request complete nahi ho payi.");
+  }
+  return result;
+}
+
+function normalizeAccountPhone(rawPhone) {
+  const phone = String(rawPhone || "").replace(/\\D/g, "").replace(/^91/, "");
+  if (!/^[6-9]\\d{9}$/.test(phone)) {
+    throw new Error("Valid 10-digit Indian mobile number daaliye.");
+  }
+  return phone;
 }
 
 function updateAccountUI(user) {
@@ -48,30 +64,50 @@ function updateAccountUI(user) {
   if (status) status.textContent = user ? "You are logged in." : "Login karein ya naya account banayein.";
   if (form) form.hidden = !!user;
   if (signedIn) signedIn.hidden = !user;
-  if (phoneLabel) phoneLabel.textContent = user ? user.email.split("@")[0] : "";
+  if (phoneLabel) phoneLabel.textContent = user?.email || "";
 }
 onAuthStateChanged(auth, updateAccountUI);
 $("accountButton")?.addEventListener("click", () => window.zaikaGo?.("account"));
+
 $("accountRegister")?.addEventListener("click", async () => {
   try {
-    const alias = phoneLoginAlias($("accountMobile")?.value);
+    const phone = normalizeAccountPhone($("accountMobile")?.value);
+    const email = String($("accountEmail")?.value || "").trim().toLowerCase();
     const password = $("accountPassword")?.value || "";
+    if (!email) throw new Error("Email address daaliye.");
     if (password.length < 8) throw new Error("Password kam se kam 8 characters ka rakhein.");
-    await createUserWithEmailAndPassword(auth, alias, password);
-    showToast("ZaikaBox account ban gaya.");
-  } catch (error) { showToast(error.message || "Account nahi ban paya."); }
-});
-$("accountLogin")?.addEventListener("click", async () => {
-  try {
-    const alias = phoneLoginAlias($("accountMobile")?.value);
-    const password = $("accountPassword")?.value || "";
-    if (!password) throw new Error("Password daaliye.");
-    await signInWithEmailAndPassword(auth, alias, password);
-    showToast("Login successful.");
+    await callAuthWorker("/signup", { phone, email, password });
+    await signInWithEmailAndPassword(auth, email, password);
+    showToast("ZaikaBox account ban gaya aur login ho gaya.");
   } catch (error) {
-    showToast(error.code === "auth/invalid-credential" ? "Mobile number ya password galat hai." : (error.message || "Login nahi ho paya."));
+    showToast(error.message || "Account nahi ban paya.");
   }
 });
+
+$("accountLogin")?.addEventListener("click", async () => {
+  try {
+    const phone = normalizeAccountPhone($("accountMobile")?.value);
+    const password = $("accountPassword")?.value || "";
+    if (!password) throw new Error("Password daaliye.");
+    const result = await callAuthWorker("/login", { phone, password });
+    await signInWithEmailAndPassword(auth, result.email, password);
+    showToast("Login successful.");
+  } catch (error) {
+    showToast(error.message || "Login nahi ho paya.");
+  }
+});
+
+$("accountForgot")?.addEventListener("click", async () => {
+  try {
+    const email = String($("accountEmail")?.value || "").trim().toLowerCase();
+    if (!email) throw new Error("Pehle registered email daaliye.");
+    const result = await callAuthWorker("/forgot-password", { email });
+    showToast(result.message || "Agar email registered hai to reset link bhej diya jayega.");
+  } catch (error) {
+    showToast(error.message || "Password reset request nahi ho payi.");
+  }
+});
+
 $("accountLogout")?.addEventListener("click", async () => {
   try { await signOut(auth); showToast("Logout ho gaya."); }
   catch (error) { showToast("Logout nahi ho paya."); }
