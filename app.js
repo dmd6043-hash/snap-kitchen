@@ -1,5 +1,6 @@
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
 
 import {
   getFirestore,
@@ -25,6 +26,51 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const auth = getAuth(app);
+
+// Mobile + password is mapped to a private Firebase email alias; no phone OTP verification.
+function phoneLoginAlias(rawPhone) {
+  const phone = String(rawPhone || "").replace(/\D/g, "").replace(/^91/, "");
+  if (!/^[6-9]\d{9}$/.test(phone)) throw new Error("Valid 10-digit Indian mobile number daaliye.");
+  return `${phone}@zaikabox-login.com`;
+}
+
+function updateAccountUI(user) {
+  const status = $("accountStatus");
+  const form = $("accountForm");
+  const signedIn = $("accountSignedIn");
+  const phoneLabel = $("accountPhone");
+  if (status) status.textContent = user ? "You are logged in." : "Login karein ya naya account banayein.";
+  if (form) form.hidden = !!user;
+  if (signedIn) signedIn.hidden = !user;
+  if (phoneLabel) phoneLabel.textContent = user ? user.email.split("@")[0] : "";
+}
+onAuthStateChanged(auth, updateAccountUI);
+$("accountButton")?.addEventListener("click", () => window.zaikaGo?.("account"));
+$("accountRegister")?.addEventListener("click", async () => {
+  try {
+    const alias = phoneLoginAlias($("accountMobile")?.value);
+    const password = $("accountPassword")?.value || "";
+    if (password.length < 8) throw new Error("Password kam se kam 8 characters ka rakhein.");
+    await createUserWithEmailAndPassword(auth, alias, password);
+    showToast("ZaikaBox account ban gaya.");
+  } catch (error) { showToast(error.message || "Account nahi ban paya."); }
+});
+$("accountLogin")?.addEventListener("click", async () => {
+  try {
+    const alias = phoneLoginAlias($("accountMobile")?.value);
+    const password = $("accountPassword")?.value || "";
+    if (!password) throw new Error("Password daaliye.");
+    await signInWithEmailAndPassword(auth, alias, password);
+    showToast("Login successful.");
+  } catch (error) {
+    showToast(error.code === "auth/invalid-credential" ? "Mobile number ya password galat hai." : (error.message || "Login nahi ho paya."));
+  }
+});
+$("accountLogout")?.addEventListener("click", async () => {
+  try { await signOut(auth); showToast("Logout ho gaya."); }
+  catch (error) { showToast("Logout nahi ho paya."); }
+});
 
 const DEFAULT_WHATSAPP_NUMBER = "918319014718";
 const DEFAULT_UPI_ID = "8269568200-3@ybl";
