@@ -770,20 +770,23 @@
   <main id="accountScreen" class="screen">
     <div class="eyebrow">Your ZaikaBox account</div>
     <h1 class="screen-title">Login / Sign Up 👤</h1>
-    <p class="screen-subtitle">Mobile number aur password se apna account banayein ya login karein.</p>
-    <div class="wallet-note" style="margin:16px 0">Phone number OTP se verify nahi hoga. Apna hi mobile number use karein. Password bhoolne par filhaal self-service reset available nahi hai.</div>
+    <p class="screen-subtitle">Naya account banane ke liye mobile, email aur password daalein. Login mobile aur password se hoga.</p>
+    <div class="wallet-note" style="margin:16px 0">Mobile number OTP se verify nahi hoga. Apna hi mobile number use karein. Password recovery registered email se hogi.</div>
     <div id="accountForm" class="track-card">
       <label for="accountMobile">Mobile Number</label>
       <input class="field" id="accountMobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
+      <label for="accountEmail">Email Address</label>
+      <input class="field" id="accountEmail" type="email" placeholder="you@example.com" autocomplete="email">
       <label for="accountPassword">Password</label>
       <input class="field" id="accountPassword" type="password" minlength="8" placeholder="At least 8 characters" autocomplete="current-password">
       <button class="primary-btn" id="accountLogin" type="button" style="width:100%;margin-top:14px">Login →</button>
       <button class="primary-btn" id="accountRegister" type="button" style="width:100%;margin-top:10px;background:#30251c;border:1px solid #ff8a35">Create New Account</button>
+      <button class="text-btn" id="accountForgot" type="button" style="width:100%;margin-top:12px">Forgot Password? Send reset link</button>
       <p style="font-size:11px;color:#b4a69a;margin-top:12px">Guest checkout pehle ki tarah available rahega.</p>
     </div>
     <div id="accountSignedIn" class="track-card" hidden>
       <h3>Account connected ✅</h3>
-      <p>Mobile: <strong id="accountPhone"></strong></p>
+      <p>Account: <strong id="accountPhone"></strong></p>
       <button class="primary-btn" id="accountLogout" type="button">Logout</button>
     </div>
     <p id="accountStatus" class="screen-subtitle">Login karein ya naya account banayein.</p>
