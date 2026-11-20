@@ -214,6 +214,19 @@
       font-size:12px;
     }
 
+    .wallet-demo-panel {
+      margin:16px 0;
+      padding:16px;
+      border:1px solid rgba(255,138,53,.2);
+      border-radius:17px;
+      background:linear-gradient(145deg,#251c15,#19140f);
+    }
+    .wallet-demo-panel label { display:block; color:#e7d5c7; font-size:12px; font-weight:700; }
+    .wallet-demo-caption { margin-top:10px; color:#b4a69a; font-size:11px; line-height:1.5; }
+    .wallet-history-row strong { color:#fffaf5; }
+    .wallet-credit { color:#65e5aa !important; font-weight:800; }
+    .wallet-debit { color:#ff9b83 !important; font-weight:800; }
+
     .cart-sheet {
       background:#1c1712;
       border-color:rgba(255,138,53,.14);
@@ -794,53 +807,49 @@
 
   <!-- WALLET SCREEN -->
   <main id="walletScreen" class="screen">
-    <div class="eyebrow">Your money, your control</div>
-    <h1 class="screen-title">ZaikaBox Wallet 💳</h1>
-    <p class="screen-subtitle">A simple place to manage your ZaikaBox payments.</p>
+    <div class="eyebrow">ZaikaBox Wallet · Demo Mode</div>
+    <h1 class="screen-title">My Wallet 💳</h1>
+    <p class="screen-subtitle">Wallet ka test balance aur activity yahan dekhein.</p>
 
     <div class="wallet-balance-card">
-      <div style="font-size:12px;color:#f0c6a6;font-weight:700;letter-spacing:1px">AVAILABLE BALANCE</div>
-      <div style="font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;color:#fff;margin:8px 0">₹0.00</div>
-      <div style="font-size:11px;color:#e7d5c7">Wallet is not activated yet · No money is stored</div>
+      <div style="font-size:12px;color:#f0c6a6;font-weight:700;letter-spacing:1px">DEMO AVAILABLE BALANCE</div>
+      <div id="walletBalance" style="font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;color:#fff;margin:8px 0">₹0.00</div>
+      <div style="font-size:11px;color:#e7d5c7">Sirf testing balance · Real money nahi</div>
+    </div>
+
+    <div class="wallet-demo-panel">
+      <label for="walletDemoAmount">Test amount (₹)</label>
+      <input class="field" id="walletDemoAmount" type="number" inputmode="decimal" min="1" max="5000" step="1" placeholder="Amount enter karein (max ₹5,000)">
+      <button class="primary-btn" id="walletAddDemo" type="button" style="width:100%;margin-top:12px">＋ Add Demo Balance</button>
+      <p class="wallet-demo-caption">Yeh sirf is device par demo balance banata hai. Isse koi payment ya bank transaction nahi hota.</p>
     </div>
 
     <div class="wallet-action-grid">
       <button class="wallet-action" type="button" disabled>
-        <span style="font-size:25px">➕</span>
-        <strong>Add Money</strong>
-        <small>Coming after payment setup</small>
-      </button>
-      <button class="wallet-action" type="button" disabled>
         <span style="font-size:25px">🍽️</span>
         <strong>Pay from Wallet</strong>
-        <small>Coming soon</small>
+        <small>Order checkout integration next step</small>
       </button>
       <button class="wallet-action" type="button" disabled>
-        <span style="font-size:25px">🏦</span>
-        <strong>Withdraw to Bank</strong>
-        <small>Bank verification required</small>
-      </button>
-      <button class="wallet-action" type="button" disabled>
-        <span style="font-size:25px">↻</span>
-        <strong>Refunds</strong>
-        <small>Wallet refund history</small>
+        <span style="font-size:25px">↗️</span>
+        <strong>Withdraw</strong>
+        <small>Not available</small>
       </button>
     </div>
 
     <div class="wallet-note">
-      <strong style="color:#ffb16f">Wallet activation in progress</strong><br>
-      Real-money Add Money, order payments and bank withdrawals will be enabled only after the authorised payment partner, customer verification and secure wallet ledger are connected. No payment will be taken from this screen right now.
+      <strong style="color:#ffb16f">DEMO MODE ONLY</strong><br>
+      Abhi Add Demo Balance ka amount nakli test balance hai. Real customer money top-up aur multi-restaurant wallet tabhi activate hoga jab compliant payment arrangement tayyar hoga. Order cancellation par wallet-credit ka test flow baad mein jodega.
     </div>
 
     <div class="section-head" style="margin-top:24px">
       <div>
         <h2>Transaction History</h2>
-        <p>Your wallet activity will appear here.</p>
+        <p>Demo activity on this device</p>
       </div>
     </div>
-    <div class="wallet-history-row">
-      <span>No wallet transactions yet</span>
-      <span>—</span>
+    <div id="walletHistory">
+      <div class="wallet-history-row"><span>No demo transactions yet</span><span>—</span></div>
     </div>
   </main>
 
