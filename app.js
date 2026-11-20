@@ -688,7 +688,7 @@ async function createCheckoutForm() {
       <h3 style="margin-top:0;">Pay Online via UPI</h3>
       <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
       <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
-        <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&cu=INR`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="lazy">
+        <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="lazy">
         <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
       </div>
       <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke UPI app mein order amount manually enter karein.</p>
