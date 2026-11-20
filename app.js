@@ -1452,15 +1452,37 @@ $("backRestaurants")?.addEventListener("click", () => {
   renderRestaurants();
 });
 
-// WALLET DEMO MODE ONLY: test balance stays on this device; no real payment.
+// WALLET DEMO MODE ONLY: separate test balance for each signed-in account on this device.
 const WALLET_DEMO_KEY = "zaikabox_wallet_demo_v1";
+function walletStorageKey() {
+  return auth.currentUser ? WALLET_DEMO_KEY + "_" + auth.currentUser.uid : null;
+}
 function renderDemoWallet() {
   const balanceNode = $("walletBalance");
   const historyNode = $("walletHistory");
+  const addButton = $("walletAddDemo");
   if (!balanceNode || !historyNode) return;
+  const key = walletStorageKey();
+  if (!key) {
+    balanceNode.textContent = money(0);
+    historyNode.innerHTML = '<div class="wallet-history-row"><span>Wallet dekhne ke liye pehle Customer Account Login karein.</span><span>🔒</span></div>';
+    if (addButton) addButton.disabled = true;
+    return;
+  }
+  if (addButton) addButton.disabled = false;
   let wallet = { balance: 0, transactions: [] };
   try {
-    wallet = JSON.parse(localStorage.getItem(WALLET_DEMO_KEY) || '{"balance":0,"transactions":[]}');
+    let saved = localStorage.getItem(key);
+    // One-time migration of the old device-only demo balance into the currently signed-in account.
+    if (!saved) {
+      const legacy = localStorage.getItem(WALLET_DEMO_KEY);
+      if (legacy) {
+        saved = legacy;
+        localStorage.setItem(key, legacy);
+        localStorage.removeItem(WALLET_DEMO_KEY);
+      }
+    }
+    wallet = JSON.parse(saved || '{"balance":0,"transactions":[]}');
   } catch (error) {}
   wallet.balance = Math.max(0, Number(wallet.balance) || 0);
   wallet.transactions = Array.isArray(wallet.transactions) ? wallet.transactions : [];
@@ -1470,22 +1492,25 @@ function renderDemoWallet() {
     : '<div class="wallet-history-row"><span>No demo transactions yet</span><span>—</span></div>';
 }
 $("walletAddDemo")?.addEventListener("click", () => {
+  const key = walletStorageKey();
+  if (!key) { showToast("Pehle Customer Account Login karein."); return; }
   const amount = Number($("walletDemoAmount")?.value);
   if (!Number.isFinite(amount) || amount < 1 || amount > 5000) {
     showToast("₹1 se ₹5,000 tak demo amount enter karein.");
     return;
   }
   let wallet = { balance: 0, transactions: [] };
-  try { wallet = JSON.parse(localStorage.getItem(WALLET_DEMO_KEY) || '{"balance":0,"transactions":[]}'); } catch (error) {}
+  try { wallet = JSON.parse(localStorage.getItem(key) || '{"balance":0,"transactions":[]}'); } catch (error) {}
   wallet.balance = Math.round(((Number(wallet.balance) || 0) + amount) * 100) / 100;
   wallet.transactions = [{ amount, time: Date.now() }, ...(Array.isArray(wallet.transactions) ? wallet.transactions : [])].slice(0,30);
   try {
-    localStorage.setItem(WALLET_DEMO_KEY, JSON.stringify(wallet));
+    localStorage.setItem(key, JSON.stringify(wallet));
     $("walletDemoAmount").value = "";
     renderDemoWallet();
-    showToast("Demo balance add ho gaya. Yeh real money nahi hai.");
+    showToast("Is account ka Demo Balance add ho gaya. Real money nahi hai.");
   } catch (error) { showToast("Demo balance save nahi ho paya."); }
 });
+onAuthStateChanged(auth, () => renderDemoWallet());
 document.querySelectorAll('.nav-item[data-screen="wallet"]').forEach((item) => item.addEventListener("click", renderDemoWallet));
 renderDemoWallet();
 
