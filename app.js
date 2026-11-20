@@ -684,14 +684,16 @@ async function createCheckoutForm() {
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
-    <div style="background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
+    <button type="button" id="continueToPayment" style="width:100%;margin:14px 0;">CONTINUE TO PAYMENT</button>
+
+    <div id="paymentSection" hidden style="background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
       <h3 style="margin-top:0;">Pay Online via UPI</h3>
       <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
       <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
         <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="lazy">
         <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
       </div>
-      <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke UPI app mein order amount manually enter karein.</p>
+      <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karte hi order ka exact amount UPI app mein aana chahiye.</p>
       <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
       <button type="button" id="copyCheckoutUpi">COPY UPI ID</button>
       <button type="button" id="openUpiApp">PAY VIA UPI APP</button>
@@ -710,7 +712,7 @@ async function createCheckoutForm() {
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
 
-    <button type="button" id="placeOrder">Place Order</button>
+    <button type="button" id="placeOrder">I HAVE PAID — SUBMIT ORDER</button>
   `;
 
   lines.appendChild(form);
@@ -721,6 +723,30 @@ async function createCheckoutForm() {
   });
 
   $("getLocation").addEventListener("click", getCurrentLocation);
+  $("continueToPayment").addEventListener("click", () => {
+    const name = $("customerName")?.value.trim() || "";
+    const phone = $("customerPhone")?.value.trim() || "";
+    const orderType = $("orderType")?.value || "Pickup";
+    const address = $("customerAddress")?.value.trim() || "";
+    if (!name) {
+      showToast("Please enter your name");
+      $("customerName")?.focus();
+      return;
+    }
+    if (!/^[6-9]\\d{9}$/.test(phone)) {
+      showToast("Please enter a valid 10 digit mobile number");
+      $("customerPhone")?.focus();
+      return;
+    }
+    if (orderType === "Home Delivery" && !address) {
+      showToast("Please enter your delivery address");
+      $("customerAddress")?.focus();
+      return;
+    }
+    $("paymentSection").hidden = false;
+    $("continueToPayment").hidden = true;
+    $("paymentSection").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
   $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
   $("openUpiApp").addEventListener("click", () => {
     const amount = Number(getTotal()).toFixed(2);
