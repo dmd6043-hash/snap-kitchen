@@ -5,6 +5,7 @@ import {
   getFirestore,
   collection,
   getDocs,
+  getDoc,
   doc,
   writeBatch,
   serverTimestamp,
@@ -26,6 +27,8 @@ const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const DEFAULT_WHATSAPP_NUMBER = "918319014718";
+const DEFAULT_UPI_ID = "8269568200-3@ybl";
+let activeUpiId = DEFAULT_UPI_ID;
 const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
 
 const $ = (id) => document.getElementById(id);
@@ -641,7 +644,16 @@ $("shade")?.addEventListener("click", (event) => {
 });
 
 // CHECKOUT FORM
-function createCheckoutForm() {
+async function createCheckoutForm() {
+  try {
+    const paymentSettings = await getDoc(doc(db, "platformSettings", "payments"));
+    if (paymentSettings.exists() && paymentSettings.data().upiId) {
+      activeUpiId = String(paymentSettings.data().upiId).trim();
+    }
+  } catch (error) {
+    console.warn("Using temporary default UPI ID:", error);
+    activeUpiId = DEFAULT_UPI_ID;
+  }
   if ($("checkoutForm")) {
     $("checkoutForm").scrollIntoView({
       behavior: "smooth",
@@ -672,6 +684,21 @@ function createCheckoutForm() {
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
+    <div style="background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
+      <h3 style="margin-top:0;">Pay Online via UPI</h3>
+      <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
+      <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
+      <button type="button" id="copyCheckoutUpi">COPY UPI ID</button>
+      <button type="button" id="openUpiApp">PAY VIA UPI APP</button>
+      <label for="paymentUtr" style="display:block;margin-top:12px;">UPI UTR / Transaction ID</label>
+      <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad UTR enter karein" autocomplete="off">
+      <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
+        <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
+        Maine UPI app mein payment complete kar diya hai.
+      </label>
+      <p style="font-size:12px;color:#ffbd87;">Payment aapke UTR ko admin verify karne ke baad hi confirm hoga.</p>
+    </div>
+
     <div id="addressBox" style="display:none;">
       <label for="customerAddress">Delivery Address</label>
       <textarea id="customerAddress" placeholder="Enter your full address"></textarea>
@@ -689,6 +716,12 @@ function createCheckoutForm() {
   });
 
   $("getLocation").addEventListener("click", getCurrentLocation);
+  $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
+  $("openUpiApp").addEventListener("click", () => {
+    const amount = Number(getTotal()).toFixed(2);
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(activeUpiId)}&pn=${encodeURIComponent("ZaikaBox")}&am=${amount}&cu=INR&tn=${encodeURIComponent("ZaikaBox Order")}`;
+    window.location.href = upiUrl;
+  });
   $("placeOrder").addEventListener("click", placeOrder);
 
   form.scrollIntoView({
@@ -771,6 +804,18 @@ function renderTrackingStatus(data) {
   result.hidden = false;
 
   const status = String(data.status || "New");
+
+  if (status === "Payment Pending" || status === "Payment Failed") {
+    result.innerHTML = `
+      <div class="tracking-status">
+        <h3>${status === "Payment Pending" ? "⏳ Payment Verification Pending" : "❌ Payment Verification Failed"}</h3>
+        <p>${status === "Payment Pending" ? "Aapka UPI payment reference admin verify kar raha hai. Payment confirm hone ke baad restaurant ko order milega." : "Payment verify nahi ho paaya. UTR aur payment details check karke support se sampark karein."}</p>
+        <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+        <p><strong>Status:</strong> ${escapeHTML(status)}</p>
+      </div>
+    `;
+    return;
+  }
 
   if (status === "Rejected") {
     result.innerHTML = `
@@ -1022,8 +1067,8 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
 
   successCard.innerHTML = `
     <div style="font-size:30px;text-align:center;">🎉</div>
-    <h3 style="text-align:center;">Order Placed Successfully!</h3>
-    <p style="text-align:center;">Aapka order successfully place ho gaya hai.</p>
+    <h3 style="text-align:center;">Order Submitted — Payment Pending</h3>
+    <p style="text-align:center;">Aapka UPI reference admin verify karega. Verification ke baad hi restaurant order accept kar payega.</p>
 
     <div style="background:#160f0a;padding:12px;border-radius:12px;margin:12px 0;">
       <small>YOUR ORDER ID</small>
@@ -1121,6 +1166,17 @@ async function placeOrder() {
     return;
   }
 
+  const utr = $("paymentUtr")?.value.trim() || "";
+  if (!/^[A-Za-z0-9]{6,30}$/.test(utr)) {
+    showToast("Valid UTR / Transaction ID enter kijiye (6–30 characters).");
+    $("paymentUtr")?.focus();
+    return;
+  }
+  if (!$("paymentConfirmed")?.checked) {
+    showToast("Pehle UPI payment complete karke confirmation tick kijiye.");
+    return;
+  }
+
   isPlacingOrder = true;
 
   const placeButton = $("placeOrder");
@@ -1155,7 +1211,10 @@ async function placeOrder() {
       restaurantName: selectedRestaurant.name || selectedRestaurant.Name || "Restaurant",
       items: orderItems,
       total: orderTotal,
-      status: "New",
+      paymentMethod: "UPI",
+      paymentStatus: "Pending",
+      utr,
+      status: "Payment Pending",
       trackingCode,
       createdAt: serverTimestamp()
     };
@@ -1165,7 +1224,7 @@ async function placeOrder() {
       restaurantId: selectedRestaurant.id,
       restaurantName: orderData.restaurantName,
       orderType,
-      status: "New",
+      status: "Payment Pending",
       createdAt: serverTimestamp()
     };
 
@@ -1188,6 +1247,8 @@ async function placeOrder() {
     message += `Name: ${name}\n`;
     message += `Mobile: ${phone}\n`;
     message += `Order Type: ${orderType}\n`;
+    message += `Payment: UPI — Pending Verification\n`;
+    message += `UTR: ${utr}\n`;
 
     if (orderType === "Home Delivery") {
       message += `Address: ${address}\n`;
@@ -1199,7 +1260,8 @@ async function placeOrder() {
       message += `${item.name} × ${item.quantity} = ₹${item.subtotal}\n`;
     });
 
-    message += `\n*TOTAL: ₹${orderTotal}*`;
+    message += `\n*TOTAL: ₹${orderTotal}*\n`;
+    message += "*STATUS: PAYMENT PENDING — ADMIN VERIFICATION REQUIRED*";
 
     const whatsappURL =
       `https://wa.me/${DEFAULT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -1212,7 +1274,7 @@ async function placeOrder() {
     $("checkoutForm")?.remove();
 
     showOrderSuccess(orderRef.id, trackingCode, whatsappURL);
-    showToast("Order placed successfully!");
+    showToast("Order submitted. Payment verification pending.");
 
   } catch (error) {
     console.error("Order placement error:", error);
