@@ -27,7 +27,12 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 const auth = getAuth(app);
+const DEFAULT_WHATSAPP_NUMBER = "918319014718";
+const DEFAULT_UPI_ID = "8269568200-3@ybl";
+let activeUpiId = DEFAULT_UPI_ID;
+const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
 
+const $ = (id) => document.getElementById(id);
 // Mobile + password is mapped to a private Firebase email alias; no phone OTP verification.
 function phoneLoginAlias(rawPhone) {
   const phone = String(rawPhone || "").replace(/\D/g, "").replace(/^91/, "");
@@ -71,13 +76,6 @@ $("accountLogout")?.addEventListener("click", async () => {
   try { await signOut(auth); showToast("Logout ho gaya."); }
   catch (error) { showToast("Logout nahi ho paya."); }
 });
-
-const DEFAULT_WHATSAPP_NUMBER = "918319014718";
-const DEFAULT_UPI_ID = "8269568200-3@ybl";
-let activeUpiId = DEFAULT_UPI_ID;
-const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
-
-const $ = (id) => document.getElementById(id);
 
 let restaurants = [];
 let restaurantFilter = "All";
