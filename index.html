@@ -163,6 +163,55 @@
     .bottom-nav {
       background:rgba(24,19,15,.97);
       border-top-color:rgba(255,138,53,.12);
+      grid-template-columns:repeat(6,minmax(0,1fr));
+    }
+
+    .nav-item small { font-size:8px; }
+
+    /* ZAIKABOX WALLET PREVIEW */
+    .wallet-balance-card {
+      padding:22px;
+      border-radius:22px;
+      background:radial-gradient(circle at 90% 10%,rgba(255,177,111,.22),transparent 35%),linear-gradient(135deg,#4a2818,#21150f 75%);
+      border:1px solid rgba(255,138,53,.28);
+      box-shadow:0 14px 35px rgba(0,0,0,.18);
+    }
+    .wallet-action-grid {
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:16px 0;
+    }
+    .wallet-action {
+      min-height:100px;
+      padding:16px 12px;
+      border-radius:17px;
+      background:linear-gradient(145deg,#251c15,#19140f);
+      border:1px solid rgba(255,138,53,.17);
+      color:#fffaf5;
+      text-align:left;
+    }
+    .wallet-action strong { display:block; margin-top:10px; font-size:13px; }
+    .wallet-action small { display:block; margin-top:4px; color:#b4a69a; font-size:10px; }
+    .wallet-action:disabled { opacity:.58; cursor:not-allowed; }
+    .wallet-note {
+      padding:14px;
+      border:1px solid rgba(255,177,111,.2);
+      border-radius:14px;
+      background:rgba(255,138,53,.07);
+      color:#e7d5c7;
+      font-size:12px;
+      line-height:1.6;
+    }
+    .wallet-history-row {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:14px 0;
+      border-bottom:1px solid rgba(255,255,255,.08);
+      color:#b4a69a;
+      font-size:12px;
     }
 
     .cart-sheet {
@@ -714,6 +763,58 @@
     </div>
   </main>
 
+  <!-- WALLET SCREEN -->
+  <main id="walletScreen" class="screen">
+    <div class="eyebrow">Your money, your control</div>
+    <h1 class="screen-title">ZaikaBox Wallet 💳</h1>
+    <p class="screen-subtitle">A simple place to manage your ZaikaBox payments.</p>
+
+    <div class="wallet-balance-card">
+      <div style="font-size:12px;color:#f0c6a6;font-weight:700;letter-spacing:1px">AVAILABLE BALANCE</div>
+      <div style="font-family:'Outfit',sans-serif;font-size:38px;font-weight:800;color:#fff;margin:8px 0">₹0.00</div>
+      <div style="font-size:11px;color:#e7d5c7">Wallet is not activated yet · No money is stored</div>
+    </div>
+
+    <div class="wallet-action-grid">
+      <button class="wallet-action" type="button" disabled>
+        <span style="font-size:25px">➕</span>
+        <strong>Add Money</strong>
+        <small>Coming after payment setup</small>
+      </button>
+      <button class="wallet-action" type="button" disabled>
+        <span style="font-size:25px">🍽️</span>
+        <strong>Pay from Wallet</strong>
+        <small>Coming soon</small>
+      </button>
+      <button class="wallet-action" type="button" disabled>
+        <span style="font-size:25px">🏦</span>
+        <strong>Withdraw to Bank</strong>
+        <small>Bank verification required</small>
+      </button>
+      <button class="wallet-action" type="button" disabled>
+        <span style="font-size:25px">↻</span>
+        <strong>Refunds</strong>
+        <small>Wallet refund history</small>
+      </button>
+    </div>
+
+    <div class="wallet-note">
+      <strong style="color:#ffb16f">Wallet activation in progress</strong><br>
+      Real-money Add Money, order payments and bank withdrawals will be enabled only after the authorised payment partner, customer verification and secure wallet ledger are connected. No payment will be taken from this screen right now.
+    </div>
+
+    <div class="section-head" style="margin-top:24px">
+      <div>
+        <h2>Transaction History</h2>
+        <p>Your wallet activity will appear here.</p>
+      </div>
+    </div>
+    <div class="wallet-history-row">
+      <span>No wallet transactions yet</span>
+      <span>—</span>
+    </div>
+  </main>
+
 </div>
 
 <!-- BOTTOM NAVIGATION -->
@@ -736,6 +837,11 @@
   <button class="nav-item" data-screen="rewards">
     <span class="nav-icon">✦</span>
     <small>Rewards</small>
+  </button>
+
+  <button class="nav-item" data-screen="wallet">
+    <span class="nav-icon">💳</span>
+    <small>Wallet</small>
   </button>
 
   <button class="nav-item" id="navCart">
@@ -789,7 +895,8 @@
     home: document.getElementById("homeScreen"),
     explore: document.getElementById("exploreScreen"),
     track: document.getElementById("trackScreen"),
-    rewards: document.getElementById("rewardsScreen")
+    rewards: document.getElementById("rewardsScreen"),
+    wallet: document.getElementById("walletScreen")
   };
 
   const navItems = document.querySelectorAll(".nav-item[data-screen]");
