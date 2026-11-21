@@ -556,6 +556,7 @@ function renderMenu() {
   filtered.forEach((item) => {
     const card = document.createElement("div");
     card.className = "product-card";
+    card.dataset.productId = String(item.id);
 
     const quantity = getQuantity(item.id);
 
@@ -572,6 +573,7 @@ function renderMenu() {
     `;
 
     card.querySelector(".add-button").addEventListener("click", () => {
+      animateFoodToCart(card);
       addToCart(item);
     });
 
@@ -585,6 +587,31 @@ function getQuantity(id) {
   return item ? item.quantity : 0;
 }
 
+function animateFoodToCart(productCard) {
+  const source = productCard?.querySelector(".product-emoji");
+  const target = $("navCart")?.querySelector(".nav-cart-icon") || $("navCart");
+  if (!source || !target || !source.textContent.trim()) return;
+  const from = source.getBoundingClientRect();
+  const to = target.getBoundingClientRect();
+  const flyer = document.createElement("div");
+  flyer.textContent = source.textContent.trim();
+  Object.assign(flyer.style, {
+    position: "fixed", left: (from.left + from.width / 2 - 18) + "px",
+    top: (from.top + from.height / 2 - 18) + "px", width: "36px", height: "36px",
+    display: "grid", placeItems: "center", fontSize: "29px", zIndex: "99999",
+    pointerEvents: "none", filter: "drop-shadow(0 5px 8px rgba(255,145,30,.55))",
+    willChange: "transform,opacity"
+  });
+  document.body.appendChild(flyer);
+  const dx = to.left + to.width / 2 - (from.left + from.width / 2);
+  const dy = to.top + to.height / 2 - (from.top + from.height / 2);
+  const animation = flyer.animate([
+    { transform: "translate(0,0) scale(1) rotate(0deg)", opacity: 1 },
+    { transform: "translate(" + (dx * .55) + "px," + (dy * .45 - 42) + "px) scale(1.18) rotate(18deg)", opacity: 1, offset: .55 },
+    { transform: "translate(" + dx + "px," + dy + "px) scale(.22) rotate(35deg)", opacity: .12 }
+  ], { duration: 720, easing: "cubic-bezier(.18,.78,.25,1)" });
+  animation.onfinish = () => flyer.remove();
+}
 function addToCart(item) {
   if (!selectedRestaurant) {
     showToast("Please select a restaurant first");
@@ -642,7 +669,10 @@ function renderCart() {
     0
   );
 
-  if (count) count.textContent = totalQuantity;
+  if (count) {
+    count.textContent = totalQuantity;
+    count.style.display = totalQuantity > 0 ? "inline-flex" : "none";
+  }
   if (total) total.textContent = money(getTotal());
 
   if (!lines) {
