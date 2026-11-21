@@ -743,6 +743,32 @@
     @media(max-width:420px){.home-categories{gap:7px}.home-category{padding:12px 3px}.home-category-icon{font-size:24px}.restaurant-card{min-height:100px!important;padding:12px!important}}
     @media(prefers-reduced-motion:reduce){.home-category,.promo-icon,.hero:after{animation:none!important}}
 
+  
+    /* ZAIKABOX HERO: animated 3D opening food box — visual-only enhancement */
+    .hero:after{content:none!important}
+    .hero-box-scene{position:absolute;z-index:1;right:2%;bottom:2px;width:44%;height:190px;perspective:850px;pointer-events:none;isolation:isolate}
+    .hero-box{position:absolute;left:12%;bottom:17px;width:78%;height:92px;transform-style:preserve-3d;animation:zb-box-breathe 4.8s ease-in-out infinite;filter:drop-shadow(0 16px 14px rgba(0,0,0,.38))}
+    .box-inner{position:absolute;left:5%;right:5%;top:-24px;height:42px;border-radius:12px 12px 4px 4px;background:linear-gradient(145deg,#fff8ef,#d9d1c8);transform:rotateX(68deg);transform-origin:bottom;box-shadow:inset 0 -12px 18px rgba(92,49,20,.28);z-index:1}
+    .box-back-flap{position:absolute;left:5%;right:5%;top:-42px;height:55px;border-radius:9px 9px 2px 2px;background:linear-gradient(145deg,#fff,#e5ddd4);border:2px solid #f4a05c;transform-origin:bottom;transform:rotateX(0deg);animation:zb-flap-open 4.8s cubic-bezier(.2,.75,.25,1) infinite;z-index:0;box-shadow:0 0 18px rgba(255,138,53,.25)}
+    .box-front{position:absolute;left:0;right:0;bottom:0;height:69px;border-radius:7px 7px 14px 14px;background:linear-gradient(150deg,#fffefa 0%,#f3eee8 55%,#d9d0c7 100%);border:2px solid #ff9b4a;transform:translateZ(19px);display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -8px 0 rgba(220,103,34,.12),0 0 20px rgba(255,138,53,.18);z-index:4}
+    .box-front:before{content:"";position:absolute;left:0;right:0;top:0;height:7px;background:linear-gradient(90deg,#ff8a35,#ffc18e,#ff8a35);border-radius:5px 5px 0 0}
+    .box-front span{font-family:'Outfit',sans-serif;font-size:clamp(13px,3.4vw,20px);font-weight:900;letter-spacing:-.8px;text-shadow:0 1px 0 #fff;white-space:nowrap}
+    .box-front b{color:#ed6b1f}.box-front strong{color:#fff;background:#211811;padding:1px 4px;border-radius:4px;margin-left:2px}
+    .box-side{position:absolute;bottom:0;width:20px;height:68px;background:linear-gradient(90deg,#e5dcd2,#fff);border:1px solid #e7a06c;z-index:3}
+    .box-side-left{left:-9px;transform:skewY(17deg);border-radius:5px 0 0 10px}.box-side-right{right:-9px;transform:skewY(-17deg);border-radius:0 5px 10px 0}
+    .hero-food{position:absolute;z-index:3;font-size:clamp(24px,7vw,37px);filter:drop-shadow(0 5px 5px rgba(0,0,0,.28));opacity:0;transform:translateY(25px) scale(.55);animation:zb-food-pop 4.8s ease-in-out infinite}
+    .food-burger{left:27%;bottom:83px;animation-delay:.55s}.food-pizza{left:53%;bottom:88px;animation-delay:.8s}.food-fries{left:66%;bottom:75px;animation-delay:1.05s}.food-momos{left:8%;bottom:77px;animation-delay:1.25s}
+    .hero-steam{position:absolute;z-index:2;bottom:128px;width:9px;height:34px;border:3px solid rgba(255,177,111,.9);border-top:0;border-bottom:0;border-radius:50%;filter:drop-shadow(0 0 7px #ff8a35);opacity:0;animation:zb-steam-rise 2.1s ease-in-out infinite}
+    .steam-one{left:37%;animation-delay:.7s}.steam-two{left:51%;height:43px;animation-delay:1s}.steam-three{left:64%;height:29px;animation-delay:1.3s}
+    .box-ground-glow{position:absolute;left:12%;right:8%;bottom:5px;height:20px;border-radius:50%;background:rgba(255,119,39,.38);filter:blur(14px);animation:zb-glow-pulse 2.4s ease-in-out infinite}
+    @keyframes zb-flap-open{0%,12%{transform:rotateX(0deg)}32%,72%{transform:rotateX(-116deg)}92%,100%{transform:rotateX(0deg)}}
+    @keyframes zb-food-pop{0%,18%,88%,100%{opacity:0;transform:translateY(24px) scale(.55) rotate(-9deg)}34%,74%{opacity:1;transform:translateY(-5px) scale(1) rotate(0)}}
+    @keyframes zb-steam-rise{0%,20%,100%{opacity:0;transform:translateY(12px) scaleY(.65)}45%,75%{opacity:.9;transform:translateY(-12px) scaleY(1.1)}}
+    @keyframes zb-box-breathe{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-4px) rotate(1deg)}}
+    @keyframes zb-glow-pulse{0%,100%{opacity:.55;transform:scaleX(.85)}50%{opacity:1;transform:scaleX(1.08)}}
+    @media(max-width:420px){.hero-box-scene{right:-2%;width:47%;height:174px}.hero-box{left:9%;width:82%;transform:scale(.92);transform-origin:bottom center}.hero-food{font-size:27px}.box-front span{font-size:13px}.hero h1,.hero p{max-width:58%}}
+    @media(prefers-reduced-motion:reduce){.hero-box,.hero-food,.hero-steam,.box-back-flap,.box-ground-glow{animation:none!important}.box-back-flap{transform:rotateX(-116deg)}.hero-food{opacity:1;transform:none}}
+
   </style>
 </head>
 
@@ -778,6 +804,22 @@
       <button class="primary-btn" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         Explore Food <span>→</span>
       </button>
+
+      <div class="hero-box-scene" aria-label="ZaikaBox food box opening animation" aria-hidden="true">
+        <div class="hero-steam steam-one"></div><div class="hero-steam steam-two"></div><div class="hero-steam steam-three"></div>
+        <div class="hero-food food-burger">🍔</div>
+        <div class="hero-food food-pizza">🍕</div>
+        <div class="hero-food food-fries">🍟</div>
+        <div class="hero-food food-momos">🥟</div>
+        <div class="hero-box">
+          <div class="box-back-flap"></div>
+          <div class="box-inner"></div>
+          <div class="box-side box-side-left"></div>
+          <div class="box-side box-side-right"></div>
+          <div class="box-front"><span><b>Zaika</b><strong>Box</strong></span></div>
+        </div>
+        <div class="box-ground-glow"></div>
+      </div>
     </div>
 
     <div class="section-head">
