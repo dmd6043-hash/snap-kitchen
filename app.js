@@ -724,18 +724,16 @@ function renderMenu() {
         <p>${escapeHTML(item.description)}</p>
         <strong>${money(item.price)}</strong>
       </div>
-      <button type="button" class="add-button">
-        ${quantity > 0 ? "Added " + quantity : "ADD +"}
-      </button>
+      <div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
+        <button type="button" class="add-button" style="flex:1;min-width:0;">${quantity > 0 ? "Added " + quantity : "ADD +"}</button>
+        <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
+      </div>
     `;
 
     card.addEventListener("click", () => openProductDetails(item));
     card.style.cursor = "pointer";
-    card.querySelector(".add-button").addEventListener("click", (event) => {
-      event.stopPropagation();
-      animateFoodToCart(card);
-      addToCart(item);
-    });
+    card.querySelector(".add-button").addEventListener("click", (event) => { event.stopPropagation(); animateFoodToCart(card); addToCart(item); });
+    card.querySelector(".buy-now-button").addEventListener("click", (event) => { event.stopPropagation(); buyNow(item); });
 
     products.appendChild(card);
   });
@@ -761,7 +759,7 @@ function openProductDetails(item) {
         <h2 id="productDetailsName" style="font-size:23px;margin:8px 0;color:#fff;"></h2>
         <p id="productDetailsDescription" style="font-size:14px;line-height:1.6;color:#d8c9be;margin:0 0 14px;"></p>
         <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 18px;"></div>
-        <button type="button" id="productDetailsAdd" style="width:100%;min-height:50px;border:0;border-radius:13px;background:#ff8a35;color:#17110d;font-size:15px;font-weight:900;box-shadow:0 6px 20px rgba(255,138,53,.24);">ADD TO CART +</button>
+        <div style="display:flex;gap:9px;margin-top:8px;"><button type="button" id="productDetailsAdd" style="flex:1;min-height:50px;border:1px solid #ff8a35;border-radius:13px;background:#302016;color:#fff;font-size:13px;font-weight:900;">ADD TO CART +</button><button type="button" id="productDetailsBuyNow" style="flex:1;min-height:50px;border:1px solid #ffad70;border-radius:13px;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;font-size:13px;font-weight:900;">BUY NOW</button></div>
       </div>`;
     document.body.appendChild(overlay);
     $("closeProductDetails").addEventListener("click", () => { overlay.style.display = "none"; });
@@ -778,6 +776,7 @@ function openProductDetails(item) {
     addToCart(item);
     overlay.style.display = "none";
   };
+  $("productDetailsBuyNow").onclick = () => { overlay.style.display = "none"; buyNow(item); };
   overlay.style.display = "flex";
 }
 
@@ -811,6 +810,16 @@ function animateFoodToCart(productCard) {
     { transform: "translate(" + dx + "px," + dy + "px) scale(.22) rotate(35deg)", opacity: .12 }
   ], { duration: 720, easing: "cubic-bezier(.18,.78,.25,1)" });
   animation.onfinish = () => flyer.remove();
+}
+function buyNow(item) {
+  const itemRestaurant = item.restaurantId ? (restaurants.find((r) => r.id === item.restaurantId) || { id: item.restaurantId, name: item.restaurantName || "Restaurant" }) : selectedRestaurant;
+  if (!itemRestaurant) { showToast("Please select a restaurant first"); return; }
+  // Buy Now starts checkout with this item only.
+  cart = [{ id: item.restaurantId ? item.restaurantId + "__" + item.id : item.id, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, price: Number(item.price) || 0, quantity: 1 }];
+  selectedRestaurant = itemRestaurant;
+  const existingCheckout = $("checkoutForm"); if (existingCheckout) existingCheckout.remove();
+  renderCart(); openCart(); createCheckoutForm();
+  showToast("Single item checkout ready");
 }
 function addToCart(item) {
   const itemRestaurant=item.restaurantId?(restaurants.find((r)=>r.id===item.restaurantId)||{id:item.restaurantId,name:item.restaurantName||"Restaurant"}):selectedRestaurant;
