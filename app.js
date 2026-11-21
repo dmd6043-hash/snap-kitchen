@@ -715,7 +715,7 @@ function renderMenu() {
     card.className = "product-card";
     card.dataset.productId = String(item.id);
 
-    const quantity = getQuantity(item.id);
+    const quantity = getQuantity(item.restaurantId ? item.restaurantId + "__" + item.id : item.id);
 
     card.innerHTML = `
       <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
