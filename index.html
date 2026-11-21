@@ -188,7 +188,7 @@
     .bottom-nav {
       background:rgba(24,19,15,.97);
       border-top-color:rgba(255,138,53,.12);
-      grid-template-columns:repeat(5,minmax(0,1fr));
+      grid-template-columns:repeat(4,minmax(0,1fr));
     }
 
     .nav-item small { font-size:8px; }
@@ -590,6 +590,16 @@
       }
     }
   
+    /* LIVE SCOOTER DELIVERY TRACKING */
+    .zb-scooter-track{position:relative;margin:18px 0 16px;padding:15px 12px 12px;border:1px solid rgba(255,138,53,.22);border-radius:17px;background:linear-gradient(135deg,#251b13,#17120e);overflow:hidden}
+    .zb-scooter-track .zb-road{height:5px;margin:28px 8px 8px;border-radius:99px;background:repeating-linear-gradient(90deg,#80614a 0 17px,transparent 17px 27px);position:relative}
+    .zb-scooter-track .zb-scooter{position:absolute;left:5%;top:-31px;font-size:31px;filter:drop-shadow(0 4px 5px #0009);transform:scaleX(-1)}
+    .zb-scooter-track.is-moving .zb-scooter{animation:zbScooterRide 5s ease-in-out infinite alternate}
+    .zb-scooter-track.is-done .zb-scooter{left:84%}
+    .zb-scooter-track .zb-track-label{display:flex;justify-content:space-between;gap:8px;color:#b4a69a;font-size:10px}
+    .zb-scooter-track .zb-track-caption{font-size:12px;color:#ffe0c5;font-weight:700;text-align:center}
+    @keyframes zbScooterRide{from{left:5%}to{left:84%}}
+    @media(prefers-reduced-motion:reduce){.zb-scooter-track.is-moving .zb-scooter{animation:none;left:48%}}
     /* ZAIKA AI ASSISTANT */
     .zaika-ai-launcher{position:fixed;right:16px;bottom:88px;z-index:1200;border:0;border-radius:999px;padding:12px 17px;background:linear-gradient(135deg,#ffad62,#ed681f);color:#20140d;font-weight:900;box-shadow:0 8px 28px #0008;cursor:pointer}
     .zaika-ai-panel{position:fixed;right:12px;bottom:145px;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100dvh - 175px));z-index:1201;display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(255,166,94,.35);border-radius:22px;background:#171411;color:#fffaf5;box-shadow:0 18px 55px #000b}
@@ -708,7 +718,7 @@
       <h1>Cravings Ka <span>Perfect</span> Match!</h1>
       <p>Discover your favourite local food and order something delicious today.</p>
 
-      <button class="primary-btn" onclick="window.zaikaGo('explore')">
+      <button class="primary-btn" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         Explore Food <span>→</span>
       </button>
     </div>
@@ -745,31 +755,31 @@
         <h2>Hungry Right Now?</h2>
         <p>What are you craving today?</p>
       </div>
-      <button class="text-btn" onclick="window.zaikaGo('explore')">
-        Explore →
+      <button class="text-btn" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
+        View Restaurants →
       </button>
     </div>
 
     <div class="home-categories">
-      <button class="home-category" onclick="window.zaikaGo('explore')">
+      <button class="home-category" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         <span class="home-category-icon">🍔</span>
         <strong>Burger</strong>
         <small>Explore food</small>
       </button>
 
-      <button class="home-category" onclick="window.zaikaGo('explore')">
+      <button class="home-category" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         <span class="home-category-icon">🍕</span>
         <strong>Pizza</strong>
         <small>Explore food</small>
       </button>
 
-      <button class="home-category" onclick="window.zaikaGo('explore')">
+      <button class="home-category" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         <span class="home-category-icon">🥟</span>
         <strong>Momos</strong>
         <small>Explore food</small>
       </button>
 
-      <button class="home-category" onclick="window.zaikaGo('explore')">
+      <button class="home-category" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
         <span class="home-category-icon">🍜</span>
         <strong>Chinese</strong>
         <small>Explore food</small>
@@ -803,8 +813,8 @@
         <h3>Your next favourite meal awaits!</h3>
         <p>Explore restaurants around you on ZaikaBox.</p>
 
-        <button class="primary-btn" style="margin-top:13px" onclick="window.zaikaGo('explore')">
-          Find Food →
+        <button class="primary-btn" style="margin-top:13px" onclick="window.zaikaGo('home');document.querySelector('.home-restaurant-section')?.scrollIntoView({behavior:'smooth'})">
+          View Restaurants →
         </button>
       </div>
 
@@ -954,11 +964,6 @@
   <button class="nav-item active" data-screen="home">
     <span class="nav-icon">⌂</span>
     <small>Home</small>
-  </button>
-
-  <button class="nav-item" data-screen="explore">
-    <span class="nav-icon">▦</span>
-    <small>Explore</small>
   </button>
 
   <button class="nav-item" data-screen="track">
@@ -1156,7 +1161,7 @@ if ("serviceWorker" in navigator) {
     if(/track|tracking|order status|mera order|ऑर्डर/.test(s))return "Aap Track screen par Order ID aur Tracking Code daalkar apna order check kar sakte hain. Main abhi live order record nahi dekh sakti.";
     if(/payment|upi|utr|पेमेंट/.test(s))return "Payment ke liye checkout instructions follow karein. UTR payment ka proof nahi hota; payment verify karwana zaroori hai. Dikkat ho to Support se baat karein.";
     if(/cancel|refund|रिफंड/.test(s))return "Order cancellation ya refund ke liye Support se sampark karein. Main bina order verify kiye refund confirm nahi kar sakti.";
-    if(/restaurant|hotel|खाना|food|menu|मेन्यू/.test(s))return "Explore Food section kholiye. Restaurants search kar sakte hain aur Veg ya Non-Veg filter bhi laga sakte hain.";
+    if(/restaurant|hotel|खाना|food|menu|मेन्यू/.test(s))return "Home par Popular Restaurants section mein restaurants search kar sakte hain aur Veg ya Non-Veg filter bhi laga sakte hain.";
     if(/support|help|complaint|शिकायत/.test(s))return "ZaikaBox Support number 8319014718 hai. Aap Call ya WhatsApp kar sakte hain.";
     if(/hello|hi|namaste|नमस्ते/.test(s))return "Namaste! 😊 Main Zaika AI hoon. Bataiye, main aapki kya madad kar sakti hoon?";
     if(/delivery|deliver|address|डिलीवरी/.test(s))return "Delivery address checkout ke dauran enter karein. Delivery issue ke liye Support 8319014718 par sampark karein.";
