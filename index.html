@@ -1021,17 +1021,16 @@
     <button type="button" data-ai-prompt="Restaurant kaise dhoondhun?">Find restaurant</button>
   </div>
   <form class="zaika-ai-compose" id="zaikaAiForm">
-    <button type="button" class="voice" id="zaikaAiMic" aria-label="Speak to Zaika AI">🎙</button>
-    <input id="zaikaAiInput" type="text" placeholder="Yahan likhein ya mic dabayein..." autocomplete="off" aria-label="Message Zaika AI">
+    <input id="zaikaAiInput" type="text" placeholder="Yahan apna message likhein..." autocomplete="off" aria-label="Message Zaika AI">
     <button type="submit" aria-label="Send message">➤</button>
   </form>
-  <div class="zaika-ai-note">Basic assistant · Microphone permission is optional · AI abhi live order data access nahi karti</div>
+  <div class="zaika-ai-note">Text assistant · AI abhi live order data access nahi karti</div>
 </section>
 
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-zaika-ai4"></script>
+<script type="module" src="./app.js?v=20261121-zaika-ai5"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
@@ -1103,8 +1102,8 @@ if ("serviceWorker" in navigator) {
 <!-- ZAIKA AI CHAT + OPTIONAL SPEECH INPUT -->
 <script>
 (function(){
-  const panel=document.getElementById("zaikaAiPanel"),openBtn=document.getElementById("zaikaAiOpen"),closeBtn=document.getElementById("zaikaAiClose"),messages=document.getElementById("zaikaAiMessages"),form=document.getElementById("zaikaAiForm"),input=document.getElementById("zaikaAiInput"),mic=document.getElementById("zaikaAiMic");
-  if(!panel||!openBtn||!messages||!form||!input||!mic)return;
+  const panel=document.getElementById("zaikaAiPanel"),openBtn=document.getElementById("zaikaAiOpen"),closeBtn=document.getElementById("zaikaAiClose"),messages=document.getElementById("zaikaAiMessages"),form=document.getElementById("zaikaAiForm"),input=document.getElementById("zaikaAiInput");
+  if(!panel||!openBtn||!messages||!form||!input)return;
   function addMessage(text,who){const el=document.createElement("div");el.className="zaika-ai-msg "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
   function answerFor(q){
     const s=q.toLowerCase();
@@ -1123,11 +1122,7 @@ if ("serviceWorker" in navigator) {
   closeBtn.addEventListener("click",()=>{panel.classList.remove("open");if("speechSynthesis"in window)window.speechSynthesis.cancel();});
   form.addEventListener("submit",e=>{e.preventDefault();respond(input.value);input.value="";});
   panel.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>respond(btn.dataset.aiPrompt)));
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  mic.addEventListener("click",()=>{
-    if(!SpeechRecognition){addMessage("Is browser mein voice input support nahi hai. Aap type karke poochh sakte hain.","bot");return;}
-    try{const recognition=new SpeechRecognition();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onresult=e=>respond(e.results[0][0].transcript);recognition.onerror=()=>addMessage("Microphone nahi chal paya. Permission check karein ya message type karein.","bot");recognition.start();}catch(e){addMessage("Microphone start nahi ho paya. Dobara try karein.","bot");}
-  });
+
 })();
 </script>
 </body>
