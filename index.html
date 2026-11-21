@@ -619,6 +619,34 @@
 @keyframes zaikaCallPulse{50%{box-shadow:0 0 0 5px #e35d5d22}}
     @media(prefers-reduced-motion:reduce){.zaika-ai-panel,.zaika-ai-msg{animation:none!important;transition:none!important}}
 
+    /* TOP-RIGHT CUSTOMER SUPPORT PROFILE */
+    .support-profile-trigger{position:relative;width:40px;height:40px;display:grid;place-items:center;border:1px solid rgba(255,177,111,.42);border-radius:14px;background:linear-gradient(145deg,#3b2518,#211710);color:#fff;box-shadow:0 5px 18px #0006;cursor:pointer;isolation:isolate}
+    .support-profile-trigger:before{content:"";position:absolute;inset:-4px;border:1px solid rgba(255,157,83,.42);border-radius:17px;animation:supportHalo 2.2s ease-out infinite;z-index:-1}
+    .support-headset{font-size:21px;filter:drop-shadow(0 2px 5px #ff8a3566)}
+    .support-profile-trigger i{position:absolute;width:9px;height:9px;right:4px;top:4px;border:2px solid #211710;border-radius:50%;background:#48dfa0}
+    @keyframes supportHalo{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.35);opacity:0}}
+    .support-profile-backdrop{position:fixed;inset:0;z-index:1290;background:rgba(0,0,0,.58);opacity:0;visibility:hidden;transition:opacity .22s,visibility .22s}
+    .support-profile-backdrop.open{opacity:1;visibility:visible}
+    .support-profile-card{position:fixed;z-index:1291;top:72px;right:12px;width:min(330px,calc(100vw - 24px));padding:0;overflow:hidden;border:1px solid rgba(255,166,94,.3);border-radius:23px;background:linear-gradient(155deg,#211811,#14110e 70%);color:#fffaf5;box-shadow:0 20px 60px #000b;opacity:0;visibility:hidden;transform:translateY(-12px) scale(.96);transform-origin:top right;transition:opacity .24s ease,transform .3s cubic-bezier(.2,.8,.2,1),visibility .24s}
+    .support-profile-card.open{opacity:1;visibility:visible;transform:translateY(0) scale(1)}
+    .support-profile-cover{height:100px;position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 5%,#ffb16f55,transparent 55%),linear-gradient(120deg,#4b2a19,#21150f)}
+    .support-profile-cover:after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,#ffb16f88,transparent)}
+    .support-profile-avatar{width:68px;height:68px;display:grid;place-items:center;border:2px solid #ffd0a6;border-radius:24px;background:linear-gradient(145deg,#ffb16f,#e96e2c);font-size:36px;box-shadow:0 8px 25px #0007;animation:supportAvatarIn .55s cubic-bezier(.2,.8,.2,1) both}
+    @keyframes supportAvatarIn{from{opacity:0;transform:translateY(12px) rotate(-8deg) scale(.75)}to{opacity:1;transform:translateY(0) rotate(0) scale(1)}}
+    .support-profile-close{position:absolute;right:11px;top:10px;width:32px;height:32px;border:1px solid #ffffff25;border-radius:50%;background:#160f0bd9;color:#fff;font-size:20px}
+    .support-profile-body{padding:15px 16px 17px;text-align:center}
+    .support-profile-body h3{margin:0;font:800 20px 'Outfit',sans-serif}
+    .support-profile-sub{margin:5px 0 12px;color:#c9b4a2;font-size:12px}
+    .support-online{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border:1px solid #48dfa033;border-radius:99px;background:#48dfa012;color:#8af0bf;font-size:10px;font-weight:800}
+    .support-online:before{content:"";width:7px;height:7px;border-radius:50%;background:#48dfa0;box-shadow:0 0 9px #48dfa0}
+    .support-profile-desc{margin:13px 0;color:#d2c2b4;font-size:12px;line-height:1.55}
+    .support-profile-number{margin:0 0 13px;color:#ffbd8b;font-size:17px;font-weight:900;letter-spacing:.4px}
+    .support-profile-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+    .support-profile-actions a{display:flex;align-items:center;justify-content:center;gap:7px;min-height:44px;border-radius:13px;text-decoration:none;font-size:12px;font-weight:800}
+    .support-call{background:linear-gradient(135deg,#ffad62,#ed681f);color:#21140c}
+    .support-whatsapp{border:1px solid #3acb82;background:#153b2a;color:#a8f4cb}
+    @media(prefers-reduced-motion:reduce){.support-profile-trigger:before,.support-profile-avatar{animation:none!important}.support-profile-card,.support-profile-backdrop{transition:none!important}}
+
 </style>
 </head>
 
@@ -638,6 +666,7 @@
     </div>
 
     <div style="display:flex;align-items:center;gap:8px">
+      <button type="button" class="support-profile-trigger" id="supportProfileOpen" aria-label="Open customer support profile" title="Customer Support"><span class="support-headset">🎧</span><i></i></button>
       <button class="top-cart" id="accountButton" aria-label="Login or account" style="font-size:18px">👤</button>
       <button class="top-cart" id="openCart" aria-label="Open cart">
         🛒
@@ -950,6 +979,26 @@
 </div>
 
 
+<!-- CUSTOMER SUPPORT PROFILE -->
+<div class="support-profile-backdrop" id="supportProfileBackdrop"></div>
+<section class="support-profile-card" id="supportProfileCard" role="dialog" aria-label="ZaikaBox Customer Support" aria-modal="true">
+  <div class="support-profile-cover">
+    <div class="support-profile-avatar" aria-hidden="true">👩🏻‍💼</div>
+    <button type="button" class="support-profile-close" id="supportProfileClose" aria-label="Close customer support">×</button>
+  </div>
+  <div class="support-profile-body">
+    <h3>ZaikaBox Care</h3>
+    <p class="support-profile-sub">Customer Support Team</p>
+    <span class="support-online">Support available</span>
+    <p class="support-profile-desc">Order, payment, delivery ya kisi bhi problem mein hamari support team se sampark karein.</p>
+    <div class="support-profile-number">8319014718</div>
+    <div class="support-profile-actions">
+      <a class="support-call" href="tel:8319014718">📞 Call Support</a>
+      <a class="support-whatsapp" href="https://wa.me/918319014718" target="_blank" rel="noopener">◉ WhatsApp</a>
+    </div>
+  </div>
+</section>
+
 <!-- ZAIKA AI CUSTOMER ASSISTANT -->
 <button type="button" class="zaika-ai-launcher" id="zaikaAiOpen" aria-label="Open Zaika AI">✨ Ask Zaika AI</button>
 <section class="zaika-ai-panel" id="zaikaAiPanel" role="dialog" aria-label="Zaika AI Assistant" aria-modal="false">
@@ -1045,6 +1094,24 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 
+
+<!-- CUSTOMER SUPPORT PROFILE INTERACTION -->
+<script>
+(function(){
+  const open=document.getElementById("supportProfileOpen");
+  const card=document.getElementById("supportProfileCard");
+  const backdrop=document.getElementById("supportProfileBackdrop");
+  const close=document.getElementById("supportProfileClose");
+  if(!open||!card||!backdrop||!close)return;
+  function show(){card.classList.add("open");backdrop.classList.add("open");open.setAttribute("aria-expanded","true");}
+  function hide(){card.classList.remove("open");backdrop.classList.remove("open");open.setAttribute("aria-expanded","false");}
+  open.setAttribute("aria-expanded","false");
+  open.addEventListener("click",()=>card.classList.contains("open")?hide():show());
+  close.addEventListener("click",hide);
+  backdrop.addEventListener("click",hide);
+  document.addEventListener("keydown",event=>{if(event.key==="Escape")hide();});
+})();
+</script>
 
 <!-- ZAIKA AI CHAT + OPTIONAL SPEECH INPUT -->
 <script>
