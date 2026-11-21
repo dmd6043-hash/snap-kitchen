@@ -917,8 +917,16 @@ async function createCheckoutForm() {
 
     <div id="paymentSection" hidden style="display:none;background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
       <h3 style="margin-top:0;">Choose Payment Method</h3>
-      <label for="paymentMethod">Payment Option</label>
-      <select id="paymentMethod" style="width:100%;margin:6px 0 14px;">
+      <label style="display:block;margin-bottom:9px;">Select how you want to pay</label>
+      <div id="paymentChoiceCards" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:8px 0 14px;">
+        <button type="button" id="chooseUpi" style="min-height:76px;padding:10px 8px;border:2px solid #ff8a35;border-radius:13px;background:#ff8a35;color:#17110d;font-weight:900;font-size:13px;box-shadow:0 4px 16px rgba(255,138,53,.22);">
+          <span style="display:block;font-size:22px;margin-bottom:4px;">📱</span>PAY ONLINE<br><small style="font-size:10px;font-weight:700;">UPI / QR</small>
+        </button>
+        <button type="button" id="chooseCod" style="min-height:76px;padding:10px 8px;border:2px solid #ff8a35;border-radius:13px;background:#29211b;color:#fff;font-weight:900;font-size:13px;box-shadow:0 0 14px rgba(255,138,53,.16);">
+          <span style="display:block;font-size:22px;margin-bottom:4px;">💵</span>CASH ON DELIVERY<br><small style="font-size:10px;font-weight:800;color:#ffbd87;">PAY AT YOUR DOOR</small>
+        </button>
+      </div>
+      <select id="paymentMethod" aria-label="Payment method" style="display:none;">
         <option value="UPI">Pay Online via UPI</option>
         <option value="COD">Cash on Delivery (COD)</option>
       </select>
@@ -1007,11 +1015,26 @@ async function createCheckoutForm() {
     $("continueToPayment").style.display = "none";
     $("paymentSection").scrollIntoView({ behavior: "smooth", block: "center" });
   });
-  $("paymentMethod").addEventListener("change", () => {
+  const updatePaymentChoice = () => {
     const isUpi = $("paymentMethod").value === "UPI";
     $("upiPaymentDetails").style.display = isUpi ? "block" : "none";
     $("codPaymentDetails").style.display = isUpi ? "none" : "block";
     $("placeOrder").textContent = isUpi ? "I HAVE PAID" : "PLACE COD ORDER";
+    $("chooseUpi").style.background = isUpi ? "#ff8a35" : "#29211b";
+    $("chooseUpi").style.color = isUpi ? "#17110d" : "#fff";
+    $("chooseCod").style.background = isUpi ? "#29211b" : "#ff8a35";
+    $("chooseCod").style.color = isUpi ? "#fff" : "#17110d";
+    $("chooseCod").style.boxShadow = isUpi ? "0 0 14px rgba(255,138,53,.16)" : "0 4px 18px rgba(255,138,53,.3)";
+    $("chooseUpi").style.boxShadow = isUpi ? "0 4px 16px rgba(255,138,53,.22)" : "none";
+  };
+  $("paymentMethod").addEventListener("change", updatePaymentChoice);
+  $("chooseUpi").addEventListener("click", () => {
+    $("paymentMethod").value = "UPI";
+    updatePaymentChoice();
+  });
+  $("chooseCod").addEventListener("click", () => {
+    $("paymentMethod").value = "COD";
+    updatePaymentChoice();
   });
   $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
   $("openUpiApp").addEventListener("click", () => {
