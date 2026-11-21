@@ -697,13 +697,56 @@ function renderMenu() {
       </button>
     `;
 
-    card.querySelector(".add-button").addEventListener("click", () => {
+    card.addEventListener("click", () => openProductDetails(item));
+    card.style.cursor = "pointer";
+    card.querySelector(".add-button").addEventListener("click", (event) => {
+      event.stopPropagation();
       animateFoodToCart(card);
       addToCart(item);
     });
 
     products.appendChild(card);
   });
+}
+
+// PRODUCT DETAILS POPUP
+function openProductDetails(item) {
+  let overlay = $("productDetailsOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "productDetailsOverlay";
+    Object.assign(overlay.style, {
+      position: "fixed", inset: "0", zIndex: "100000",
+      display: "none", alignItems: "center", justifyContent: "center",
+      padding: "18px", background: "rgba(0,0,0,.78)",
+      backdropFilter: "blur(7px)"
+    });
+    overlay.innerHTML = `
+      <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="productDetailsName" style="position:relative;width:100%;max-width:390px;max-height:85vh;overflow:auto;background:linear-gradient(150deg,#282019,#121212 70%);border:1px solid rgba(255,138,53,.7);border-radius:22px;padding:22px 18px 18px;box-shadow:0 18px 55px rgba(0,0,0,.6),0 0 24px rgba(255,138,53,.16);color:#fff;text-align:center;animation:loginWelcomeIn .35s ease both;">
+        <button type="button" id="closeProductDetails" aria-label="Close item details" style="position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;border:1px solid #ff8a35;background:#171311;color:#ff8a35;font-size:22px;font-weight:800;">×</button>
+        <div id="productDetailsEmoji" style="font-size:76px;line-height:1.3;margin:12px 0 8px;filter:drop-shadow(0 8px 12px rgba(255,138,53,.2));"></div>
+        <div style="font-size:10px;letter-spacing:2px;color:#ffbd87;font-weight:900;">ZAIKABOX MENU ITEM</div>
+        <h2 id="productDetailsName" style="font-size:23px;margin:8px 0;color:#fff;"></h2>
+        <p id="productDetailsDescription" style="font-size:14px;line-height:1.6;color:#d8c9be;margin:0 0 14px;"></p>
+        <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 18px;"></div>
+        <button type="button" id="productDetailsAdd" style="width:100%;min-height:50px;border:0;border-radius:13px;background:#ff8a35;color:#17110d;font-size:15px;font-weight:900;box-shadow:0 6px 20px rgba(255,138,53,.24);">ADD TO CART +</button>
+      </div>`;
+    document.body.appendChild(overlay);
+    $("closeProductDetails").addEventListener("click", () => { overlay.style.display = "none"; });
+    overlay.addEventListener("click", (event) => {
+      if (event.target === overlay) overlay.style.display = "none";
+    });
+  }
+  $("productDetailsEmoji").textContent = item.emoji || "🍽️";
+  $("productDetailsName").textContent = item.name || "Menu Item";
+  $("productDetailsDescription").textContent = item.description || "Freshly prepared with care.";
+  $("productDetailsPrice").textContent = money(item.price);
+  const addButton = $("productDetailsAdd");
+  addButton.onclick = () => {
+    addToCart(item);
+    overlay.style.display = "none";
+  };
+  overlay.style.display = "flex";
 }
 
 // CART DATA
