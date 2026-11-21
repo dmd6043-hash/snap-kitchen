@@ -394,6 +394,7 @@ async function loadRestaurants() {
     if (status) status.textContent = "";
 
     renderRestaurants();
+    renderHomeFoodCategories();
 
   } catch (error) {
     console.error("Restaurant loading error:", error);
@@ -610,6 +611,61 @@ function loadSelectedRestaurantMenu() {
       }
     }
   );
+}
+
+// BUILD HOME FOOD CATEGORIES FROM LIVE, AVAILABLE MENU ITEMS
+function homeCategoryIcon(categoryName, itemEmoji) {
+  const value = String(categoryName || "").toLowerCase();
+  const icons = [
+    [/momo|dumpling/, "🥟"], [/burger/, "🍔"], [/pizza/, "🍕"],
+    [/soya.?chaap|chaap/, "🍢"], [/pasta/, "🍝"], [/sandwich/, "🥪"],
+    [/roll|wrap|kathi/, "🌯"], [/chinese|noodle|chowmein|manchurian/, "🍜"],
+    [/fries|potato|aloo|tikki/, "🍟"], [/biryani|rice|pulao/, "🍛"],
+    [/cake|dessert|sweet|ice.?cream/, "🍰"], [/drink|juice|shake|beverage/, "🥤"],
+    [/south.?indian|dosa|idli/, "🥞"], [/paneer|curry|thali|meal/, "🍲"]
+  ];
+  const match = icons.find(([pattern]) => pattern.test(value));
+  return match ? match[1] : (itemEmoji && itemEmoji !== "🍽️" ? itemEmoji : "🍽️");
+}
+
+async function renderHomeFoodCategories() {
+  const container = $("homeCategories");
+  if (!container) return;
+  container.innerHTML = '<p class="home-category-loading">Loading food categories...</p>';
+  try {
+    if (!restaurants.length) {
+      container.innerHTML = "";
+      return;
+    }
+    const menuGroups = await Promise.all(restaurants.map(async (restaurant) => {
+      const snapshot = await getDocs(collection(db, "restaurants", restaurant.id, "menuItems"));
+      return snapshot.docs.map((entry) => {
+        const data = entry.data();
+        const itemName = String(data.name || data.Name || data.title || data.Title || entry.id).trim();
+        const rawCategory = String(data.category || data.Category || "").trim();
+        const categoryName = rawCategory && rawCategory.toLowerCase() !== "other" ? rawCategory : itemName;
+        return { categoryName, emoji: String(data.emoji || data.Emoji || "🍽️"), available: isMenuItemVisible(data) };
+      }).filter((item) => item.available && item.categoryName);
+    }));
+    const unique = new Map();
+    menuGroups.flat().forEach((item) => {
+      const key = item.categoryName.toLocaleLowerCase();
+      if (!unique.has(key)) unique.set(key, item);
+    });
+    container.innerHTML = "";
+    [...unique.values()].sort((a, b) => a.categoryName.localeCompare(b.categoryName)).forEach((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "home-category";
+      button.innerHTML = '<span class="home-category-icon">' + escapeHTML(homeCategoryIcon(item.categoryName, item.emoji)) + '</span><strong>' + escapeHTML(item.categoryName) + '</strong><small>Explore food</small>';
+      button.addEventListener("click", () => browseFoodCategory(item.categoryName));
+      container.appendChild(button);
+    });
+    if (!unique.size) container.innerHTML = '<p class="home-category-loading">Abhi koi food category available nahi hai.</p>';
+  } catch (error) {
+    console.error("Home food categories load error:", error);
+    container.innerHTML = '<p class="home-category-loading">Food categories load nahi ho payi.</p>';
+  }
 }
 
 function categoryMatchesItem(item, selectedCategory) {
