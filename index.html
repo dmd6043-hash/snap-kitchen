@@ -616,8 +616,7 @@
     .zaika-ai-panel.open{opacity:1;transform:translateY(0) scale(1)}
     .zaika-ai-msg{animation:zaikaAiPop .22s ease both}
     @keyframes zaikaAiPop{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
-    #zaikaAiCall.active{background:#a63232!important;animation:zaikaCallPulse 1.5s infinite}
-    @keyframes zaikaCallPulse{50%{box-shadow:0 0 0 5px #e35d5d22}}
+@keyframes zaikaCallPulse{50%{box-shadow:0 0 0 5px #e35d5d22}}
     @media(prefers-reduced-motion:reduce){.zaika-ai-panel,.zaika-ai-msg{animation:none!important;transition:none!important}}
 
 </style>
@@ -1009,7 +1008,7 @@
   <div class="zaika-ai-head">
     <div class="zaika-ai-avatar">🤖</div>
     <div><strong>Zaika AI</strong><small id="zaikaAiStatus">Food & Customer Assistant</small></div>
-    <button type="button" id="zaikaAiCall" style="margin-left:auto;border:0;border-radius:18px;padding:8px 10px;background:#315b43;color:white;font-weight:800;font-size:11px">📞 Voice Call</button>
+    
     <button type="button" class="zaika-ai-close" id="zaikaAiClose" aria-label="Close assistant">×</button>
   </div>
   <div class="zaika-ai-messages" id="zaikaAiMessages" aria-live="polite">
@@ -1032,7 +1031,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-zaika-ai2"></script>
+<script type="module" src="./app.js?v=20261121-zaika-ai3"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
@@ -1101,13 +1100,11 @@ if ("serviceWorker" in navigator) {
 </script>
 
 
-<!-- ZAIKA AI CHAT + HANDS-FREE VOICE CONVERSATION -->
+<!-- ZAIKA AI CHAT + OPTIONAL SPEECH INPUT -->
 <script>
 (function(){
-  const panel=document.getElementById("zaikaAiPanel"),openBtn=document.getElementById("zaikaAiOpen"),closeBtn=document.getElementById("zaikaAiClose"),messages=document.getElementById("zaikaAiMessages"),form=document.getElementById("zaikaAiForm"),input=document.getElementById("zaikaAiInput"),mic=document.getElementById("zaikaAiMic"),callBtn=document.getElementById("zaikaAiCall"),status=document.getElementById("zaikaAiStatus");
-  if(!panel||!openBtn||!messages||!form||!input||!mic||!callBtn)return;
-  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
-  let recognition=null,callActive=false,recognitionRunning=false;
+  const panel=document.getElementById("zaikaAiPanel"),openBtn=document.getElementById("zaikaAiOpen"),closeBtn=document.getElementById("zaikaAiClose"),messages=document.getElementById("zaikaAiMessages"),form=document.getElementById("zaikaAiForm"),input=document.getElementById("zaikaAiInput"),mic=document.getElementById("zaikaAiMic");
+  if(!panel||!openBtn||!messages||!form||!input||!mic)return;
   function addMessage(text,who){const el=document.createElement("div");el.className="zaika-ai-msg "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
   function answerFor(q){
     const s=q.toLowerCase();
@@ -1120,51 +1117,17 @@ if ("serviceWorker" in navigator) {
     if(/delivery|deliver|address|डिलीवरी/.test(s))return "Delivery address checkout ke dauran enter karein. Delivery issue ke liye Support 8319014718 par sampark karein.";
     return "Main abhi basic help de sakti hoon. Order tracking, payment, cancellation, restaurant, menu ya customer support ke baare mein poochhiye.";
   }
-  function restartListening(){
-    if(!callActive||!recognition||recognitionRunning)return;
-    try{recognition.start();recognitionRunning=true;}catch(e){}
-  }
-  function speak(text){
-    if(!("speechSynthesis" in window)){if(callActive)restartListening();return;}
-    window.speechSynthesis.cancel();
-    const utterance=new SpeechSynthesisUtterance(text);
-    utterance.lang="hi-IN";utterance.rate=.94;utterance.pitch=1.12;
-    const voices=window.speechSynthesis.getVoices(),hindi=voices.filter(v=>/^hi(-|_)/i.test(v.lang));
-    const female=hindi.find(v=>/female|woman|heera|kalpana/i.test(v.name))||hindi[0];
-    if(female)utterance.voice=female;
-    utterance.onend=()=>{if(callActive)setTimeout(restartListening,250);};
-    utterance.onerror=()=>{if(callActive)setTimeout(restartListening,400);};
-    window.speechSynthesis.speak(utterance);
-  }
+  function speak(text){if(!("speechSynthesis"in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="hi-IN";utterance.rate=.96;utterance.pitch=1.08;const voices=window.speechSynthesis.getVoices(),hindi=voices.filter(v=>/^hi(-|_)/i.test(v.lang));const preferred=hindi.find(v=>/female|woman|heera|kalpana/i.test(v.name))||hindi[0];if(preferred)utterance.voice=preferred;window.speechSynthesis.speak(utterance);}
   function respond(q){const clean=String(q||"").trim();if(!clean)return;addMessage(clean,"user");const reply=answerFor(clean);addMessage(reply,"bot");speak(reply);}
-  function stopCall(){
-    callActive=false;callBtn.classList.remove("active");callBtn.textContent="📞 Voice Call";if(status)status.textContent="Food & Customer Assistant";
-    if(recognition){try{recognition.stop();}catch(e){}}recognitionRunning=false;
-    if("speechSynthesis"in window)window.speechSynthesis.cancel();
-  }
-  function startCall(){
-    if(!SpeechRecognition){addMessage("Aapke browser mein continuous voice calling support nahi hai. Chat aur normal mic use kar sakte hain.","bot");return;}
-    callActive=true;callBtn.classList.add("active");callBtn.textContent="☎ End Call";if(status)status.textContent="Voice conversation active";
-    addMessage("Voice conversation shuru ho gayi. Aap boliye, main sun rahi hoon. Band karne ke liye End Call dabayein.","bot");
-    restartListening();
-  }
-  if(SpeechRecognition){
-    recognition=new SpeechRecognition();recognition.lang="hi-IN";recognition.continuous=true;recognition.interimResults=false;recognition.maxAlternatives=1;
-    recognition.onresult=e=>{const result=e.results[e.results.length-1];if(result.isFinal)respond(result[0].transcript);};
-    recognition.onerror=e=>{recognitionRunning=false;if(e.error==="not-allowed"||e.error==="service-not-allowed"){stopCall();addMessage("Microphone permission allow karein, phir Voice Call dobara start karein.","bot");}};
-    recognition.onend=()=>{recognitionRunning=false;if(callActive&&!window.speechSynthesis?.speaking)setTimeout(restartListening,350);};
-  }
   openBtn.addEventListener("click",()=>{panel.classList.add("open");input.focus();});
-  closeBtn.addEventListener("click",()=>{stopCall();panel.classList.remove("open");});
-  callBtn.addEventListener("click",()=>callActive?stopCall():startCall());
+  closeBtn.addEventListener("click",()=>{panel.classList.remove("open");if("speechSynthesis"in window)window.speechSynthesis.cancel();});
   form.addEventListener("submit",e=>{e.preventDefault();respond(input.value);input.value="";});
   panel.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>respond(btn.dataset.aiPrompt)));
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
   mic.addEventListener("click",()=>{
-    if(!SpeechRecognition){addMessage("Is browser mein voice input support nahi hai. Type karke poochhein.","bot");return;}
-    if(callActive){addMessage("Voice Call pehle se active hai. Aap seedha bol sakte hain.","bot");return;}
-    try{const once=new SpeechRecognition();once.lang="hi-IN";once.interimResults=false;once.onresult=e=>respond(e.results[0][0].transcript);once.onerror=()=>addMessage("Mic nahi chal paya. Permission check karein.","bot");once.start();}catch(e){addMessage("Microphone start nahi ho paya. Dobara try karein.","bot");}
+    if(!SpeechRecognition){addMessage("Is browser mein voice input support nahi hai. Aap type karke poochh sakte hain.","bot");return;}
+    try{const recognition=new SpeechRecognition();recognition.lang="hi-IN";recognition.interimResults=false;recognition.maxAlternatives=1;recognition.onresult=e=>respond(e.results[0][0].transcript);recognition.onerror=()=>addMessage("Microphone nahi chal paya. Permission check karein ya message type karein.","bot");recognition.start();}catch(e){addMessage("Microphone start nahi ho paya. Dobara try karein.","bot");}
   });
-  document.addEventListener("visibilitychange",()=>{if(document.hidden&&callActive)stopCall();});
 })();
 </script>
 </body>
