@@ -7,6 +7,7 @@ import {
   collection,
   getDocs,
   getDoc,
+  setDoc,
   doc,
   writeBatch,
   serverTimestamp,
@@ -56,7 +57,30 @@ function normalizeAccountPhone(rawPhone) {
   return phone;
 }
 
-function updateAccountUI(user) {
+let customerProfile = { name: "", phone: "", address: "" };
+const CUSTOMER_PROFILE_STORAGE_KEY = "zaikabox_customer_profile_v1";
+
+function readSavedCustomerProfile() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(CUSTOMER_PROFILE_STORAGE_KEY) || "{}");
+    customerProfile = {
+      name: String(saved.name || ""),
+      phone: String(saved.phone || ""),
+      address: String(saved.address || "")
+    };
+  } catch (error) {
+    customerProfile = { name: "", phone: "", address: "" };
+  }
+}
+readSavedCustomerProfile();
+
+function fillProfileFields() {
+  if ($("profileName")) $("profileName").value = customerProfile.name;
+  if ($("profileMobile")) $("profileMobile").value = customerProfile.phone;
+  if ($("profileAddress")) $("profileAddress").value = customerProfile.address;
+}
+
+async function updateAccountUI(user) {
   const status = $("accountStatus");
   const form = $("accountForm");
   const signedIn = $("accountSignedIn");
@@ -65,8 +89,43 @@ function updateAccountUI(user) {
   if (form) form.hidden = !!user;
   if (signedIn) signedIn.hidden = !user;
   if (phoneLabel) phoneLabel.textContent = user?.email || "";
+  if (user) {
+    try {
+      const profileSnap = await getDoc(doc(db, "customerProfiles", user.uid));
+      if (profileSnap.exists()) {
+        const data = profileSnap.data();
+        customerProfile = {
+          name: String(data.name || ""),
+          phone: String(data.phone || ""),
+          address: String(data.address || "")
+        };
+        localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
+      }
+    } catch (error) {
+      console.warn("Customer profile cloud load unavailable:", error);
+    }
+    fillProfileFields();
+  }
 }
 onAuthStateChanged(auth, updateAccountUI);
+
+$("saveCustomerProfile")?.addEventListener("click", async () => {
+  try {
+    if (!auth.currentUser) throw new Error("Profile edit karne ke liye login kijiye.");
+    const name = $("profileName")?.value.trim() || "";
+    const phone = normalizeAccountPhone($("profileMobile")?.value);
+    const address = $("profileAddress")?.value.trim() || "";
+    if (!name) throw new Error("Apna naam enter kijiye.");
+    const profile = { name, phone, address, updatedAt: serverTimestamp() };
+    await setDoc(doc(db, "customerProfiles", auth.currentUser.uid), profile, { merge: true });
+    customerProfile = { name, phone, address };
+    localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
+    fillProfileFields();
+    showToast("Profile save ho gayi.");
+  } catch (error) {
+    showToast(error.message || "Profile save nahi ho payi.");
+  }
+});
 $("accountButton")?.addEventListener("click", () => window.zaikaGo?.("account"));
 
 $("accountRegister")?.addEventListener("click", async () => {
@@ -785,10 +844,10 @@ async function createCheckoutForm() {
     <h3>Order Details</h3>
 
     <label for="customerName">Your Name</label>
-    <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name">
+    <input id="customerName" type="text" placeholder="Enter your name" autocomplete="name" value="${escapeHTML(customerProfile.name)}">
 
     <label for="customerPhone">Mobile Number</label>
-    <input id="customerPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
+    <input id="customerPhone" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel" value="${escapeHTML(customerProfile.phone)}">
 
     <label for="orderType">Order Type</label>
     <select id="orderType">
@@ -831,7 +890,7 @@ async function createCheckoutForm() {
 
     <div id="addressBox" style="display:none;">
       <label for="customerAddress">Delivery Address</label>
-      <textarea id="customerAddress" placeholder="Enter your full address"></textarea>
+      <textarea id="customerAddress" placeholder="Enter your full address">${escapeHTML(customerProfile.address)}</textarea>
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
 
@@ -1409,6 +1468,17 @@ async function placeOrder() {
     batch.set(trackingRef, trackingData);
 
     await batch.commit();
+
+    // SAVE CUSTOMER DETAILS FOR THE NEXT CHECKOUT
+    customerProfile = { name, phone, address };
+    localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
+    try {
+      await setDoc(doc(db, "customerProfiles", auth.currentUser.uid), {
+        name, phone, address, updatedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (profileError) {
+      console.warn("Profile cloud save unavailable:", profileError);
+    }
 
     // SAVE TRACKING IMMEDIATELY AFTER SUCCESSFUL ORDER
     saveTrackingDetails(orderRef.id, trackingCode);
