@@ -914,14 +914,14 @@ async function createCheckoutForm() {
 
     <button type="button" id="continueToPayment" style="width:100%;margin:14px 0;">CONTINUE TO PAYMENT</button>
 
-    <div id="paymentSection" hidden style="background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
+    <div id="paymentSection" hidden style="display:none;background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
       <h3 style="margin-top:0;">Choose Payment Method</h3>
       <label for="paymentMethod">Payment Option</label>
       <select id="paymentMethod" style="width:100%;margin:6px 0 14px;">
         <option value="UPI">Pay Online via UPI</option>
         <option value="COD">Cash on Delivery (COD)</option>
       </select>
-      <div id="upiPaymentDetails">
+      <div id="upiPaymentDetails" style="display:block;">
         <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
         <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
           <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
@@ -939,10 +939,11 @@ async function createCheckoutForm() {
         </label>
         <p style="font-size:12px;color:#ffbd87;">Payment UTR admin verify karne ke baad confirm hoga.</p>
       </div>
-      <div id="codPaymentDetails" hidden style="padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
+      <div id="codPaymentDetails" style="display:none;padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
         <strong>Cash on Delivery selected</strong>
         <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Abhi online payment ya UTR ki zaroorat nahi hai.</p>
       </div>
+      <button type="button" id="placeOrder" style="width:100%;margin-top:14px;">I HAVE PAID</button>
     </div>
 
     <div id="addressBox" style="display:none;">
@@ -950,8 +951,6 @@ async function createCheckoutForm() {
       <textarea id="customerAddress" placeholder="Enter your full address">${escapeHTML(customerProfile.address)}</textarea>
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
-
-    <button type="button" id="placeOrder">I HAVE PAID</button>
   `;
 
   lines.appendChild(form);
@@ -983,13 +982,15 @@ async function createCheckoutForm() {
       return;
     }
     $("paymentSection").hidden = false;
+    $("paymentSection").style.display = "block";
     $("continueToPayment").hidden = true;
+    $("continueToPayment").style.display = "none";
     $("paymentSection").scrollIntoView({ behavior: "smooth", block: "center" });
   });
   $("paymentMethod").addEventListener("change", () => {
     const isUpi = $("paymentMethod").value === "UPI";
-    $("upiPaymentDetails").hidden = !isUpi;
-    $("codPaymentDetails").hidden = isUpi;
+    $("upiPaymentDetails").style.display = isUpi ? "block" : "none";
+    $("codPaymentDetails").style.display = isUpi ? "none" : "block";
     $("placeOrder").textContent = isUpi ? "I HAVE PAID" : "PLACE COD ORDER";
   });
   $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
