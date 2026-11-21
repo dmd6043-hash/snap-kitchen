@@ -808,7 +808,7 @@ async function createCheckoutForm() {
       <div id="upiPaymentDetails">
         <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
         <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
-          <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
+          <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
           <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
         </div>
         <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
@@ -879,7 +879,7 @@ async function createCheckoutForm() {
   $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
   $("openUpiApp").addEventListener("click", () => {
     const amount = Number(getTotal()).toFixed(2);
-    const upiUrl = `upi://pay?pa=${encodeURIComponent(activeUpiId)}&pn=${encodeURIComponent("ZaikaBox")}&am=${amount}&cu=INR&tn=${encodeURIComponent("ZaikaBox Order")}`;
+    const upiUrl = `upi://pay?pa=${encodeURIComponent(activeUpiId)}&pn=${encodeURIComponent("MOHAMMAD DANISH")}&am=${amount}&cu=INR&tn=${encodeURIComponent("ZaikaBox Order")}`;
     window.location.href = upiUrl;
   });
   $("placeOrder").addEventListener("click", placeOrder);
