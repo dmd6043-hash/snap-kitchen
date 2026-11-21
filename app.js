@@ -792,7 +792,7 @@ async function createCheckoutForm() {
       <button type="button" id="getLocation">📍 Use My Current Location</button>
     </div>
 
-    <button type="button" id="placeOrder">I HAVE PAID — SUBMIT ORDER</button>
+    <button type="button" id="placeOrder">I HAVE PAID</button>
   `;
 
   lines.appendChild(form);
