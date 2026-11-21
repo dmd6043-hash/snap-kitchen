@@ -1,0 +1,417 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#100d0a">
+<link rel="manifest" href="./manifest.webmanifest">
+<title>ZaikaBox Super Admin</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+ margin:0;padding:16px;background:#100d0a;color:#fff;
+ font-family:Arial,sans-serif
+}
+.wrap{max-width:1000px;margin:auto}
+header{padding:12px 0 20px}
+.logo{font-size:27px;font-weight:bold;color:#ff8a35}
+.sub{color:#aaa;font-size:12px;letter-spacing:2px}
+.card{
+ background:#1c1814;border:1px solid #3a2b20;
+ padding:17px;border-radius:16px;margin:13px 0
+}
+h2{font-size:18px;margin:0 0 14px}
+h3{font-size:16px;color:#ffb16f}
+input{
+ width:100%;padding:14px;margin:7px 0;
+ border:1px solid #49372a;border-radius:10px;
+ background:#100d0a;color:white;font-size:15px
+}
+button{
+ border:0;border-radius:10px;padding:12px 15px;
+ font-weight:bold;cursor:pointer;margin:4px
+}
+button:disabled{opacity:.5}
+.primary{background:#ff8a35;color:#160d07}
+.secondary{background:#33271d;color:white}
+.danger{background:#9e3840;color:white}
+.hidden{display:none!important}
+.grid{
+ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+ gap:10px
+}
+.stat{
+ background:#211b16;padding:16px;border-radius:13px;
+ border:1px solid #443226
+}
+.stat strong{font-size:26px;color:#ff9a4d;display:block}
+.stat span{font-size:12px;color:#aaa}
+.nav{
+ display:flex;gap:7px;overflow-x:auto;
+ padding:8px 0
+}
+.nav button{white-space:nowrap;background:#292019;color:#ddd}
+.nav button.active{background:#ff8a35;color:#160d07}
+.item{
+ background:#211b16;border:1px solid #443226;
+ border-radius:13px;padding:14px;margin:10px 0;
+ overflow-wrap:anywhere
+}
+.item p{font-size:13px;line-height:1.6;color:#ddd}
+.muted{color:#aaa;font-size:12px;line-height:1.5}
+.tag{
+ display:inline-block;padding:5px 9px;
+ border-radius:20px;background:#3b2b1e;
+ color:#ffbd87;font-size:11px
+}
+#status{
+ padding:12px;background:#292019;border-radius:10px;
+ color:#ffbd87;font-size:13px;line-height:1.5;
+ overflow-wrap:anywhere
+}
+@media(min-width:650px){
+ .grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+ <div class="logo">ZAIKABOX 👑</div>
+ <div class="sub">SUPER ADMIN CONTROL CENTER</div>
+</header>
+
+<div id="status">Super Admin starting...</div>
+
+<section id="login" class="card">
+ <h2>Super Admin Login</h2>
+ <input id="email" type="email" placeholder="Admin email">
+ <input id="password" type="password" placeholder="Password">
+ <button class="primary" id="loginBtn">LOGIN</button>
+</section>
+
+<section id="panel" class="hidden">
+
+ <div class="card">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+   <div>
+    <h2 style="margin:0">Control Center</h2>
+    <p class="muted" id="adminEmail"></p>
+   </div>
+   <button class="danger" id="logoutBtn">LOGOUT</button>
+  </div>
+  <button class="secondary" id="refreshBtn">↻ REFRESH DATA</button>
+ </div>
+
+ <div class="grid">
+  <div class="stat"><strong id="totalOrders">0</strong><span>Total Orders</span></div>
+  <div class="stat"><strong id="totalRestaurants">0</strong><span>Restaurants</span></div>
+  <div class="stat"><strong id="totalDelivery">0</strong><span>Delivery Partners</span></div>
+  <div class="stat"><strong id="totalSales">₹0</strong><span>Order Sales Total</span></div>
+ </div>
+
+ <div class="nav">
+  <button class="active" data-tab="overview">Overview</button>
+  <button data-tab="restaurants">Restaurants</button>
+  <button data-tab="delivery">Delivery Partners</button>
+  <button data-tab="orders">Orders</button>
+ </div>
+
+ <section id="overviewTab" class="tab">
+  <div class="card">
+   <h2>Business Overview</h2>
+   <div id="overviewDetails" class="muted">Loading...</div>
+  </div>
+ </section>
+
+ <section id="restaurantsTab" class="tab hidden">
+  <div class="card">
+   <h2>Restaurant Management</h2>
+   <p class="muted">Registered restaurants from Firestore.</p>
+   <div id="restaurantList">Loading...</div>
+  </div>
+ </section>
+
+ <section id="deliveryTab" class="tab hidden">
+  <div class="card">
+   <h2>Delivery Partner Management</h2>
+   <div id="deliveryList">Loading...</div>
+  </div>
+ </section>
+
+ <section id="ordersTab" class="tab hidden">
+  <div class="card">
+   <h2>All Orders</h2>
+   <div id="orderList">Loading...</div>
+  </div>
+ </section>
+
+</section>
+</div>
+
+<script type="module">
+import {initializeApp}
+from "https://www.gstatic.com/firebasejs/12.5.0/firebase-app.js";
+
+import {
+ getFirestore,collection,getDocs
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-firestore.js";
+
+import {
+ getAuth,signInWithEmailAndPassword,
+ onAuthStateChanged,signOut
+} from "https://www.gstatic.com/firebasejs/12.5.0/firebase-auth.js";
+
+const firebaseConfig={
+ apiKey:"AIzaSyCiG0M2iO59aJGUge5SokM8nHkC8k4SByE",
+ authDomain:"snap-kitchen-b8a73.firebaseapp.com",
+ projectId:"snap-kitchen-b8a73",
+ storageBucket:"snap-kitchen-b8a73.firebasestorage.app",
+ messagingSenderId:"1060475241392",
+ appId:"1:1060475241392:web:c3751859ecb085830b8c75",
+ measurementId:"G-KRFFRFJY5X"
+};
+
+const app=initializeApp(firebaseConfig,"ZaikaBoxSuperAdmin");
+const db=getFirestore(app);
+const auth=getAuth(app);
+
+const ADMIN_UID="RjDxrTXlLAgNfns668SgUWxBjBv1";
+const $=id=>document.getElementById(id);
+
+let restaurantData=[];
+let deliveryData=[];
+let orderData=[];
+let loading=false;
+
+function status(message){
+ $("status").textContent=message;
+}
+
+function safe(value){
+ return String(value??"").replace(/[&<>"']/g,c=>({
+  "&":"&amp;","<":"&lt;",">":"&gt;",
+  '"':"&quot;","'":"&#039;"
+ })[c]);
+}
+
+function money(value){
+ return "₹"+Number(value||0).toLocaleString("en-IN");
+}
+
+function valueOf(obj,keys){
+ for(const key of keys){
+  if(obj[key]!==undefined && obj[key]!==null)return obj[key];
+ }
+ return "";
+}
+
+$("loginBtn").onclick=async()=>{
+ const email=$("email").value.trim();
+ const password=$("password").value;
+ if(!email||!password){
+  status("Email aur password bhariye.");
+  return;
+ }
+ $("loginBtn").disabled=true;
+ status("Logging in...");
+ try{
+  await signInWithEmailAndPassword(auth,email,password);
+ }catch(e){
+  status("Login error: "+e.message);
+ }finally{
+  $("loginBtn").disabled=false;
+ }
+};
+
+$("password").addEventListener("keydown",e=>{
+ if(e.key==="Enter")$("loginBtn").click();
+});
+
+$("logoutBtn").onclick=()=>signOut(auth);
+
+onAuthStateChanged(auth,async user=>{
+ if(!user){
+  $("login").classList.remove("hidden");
+  $("panel").classList.add("hidden");
+  return;
+ }
+
+ if(user.uid!==ADMIN_UID){
+  status("Access denied: Super Admin UID match nahi hui.");
+  await signOut(auth);
+  return;
+ }
+
+ $("login").classList.add("hidden");
+ $("panel").classList.remove("hidden");
+ $("adminEmail").textContent="Admin: "+(user.email||"");
+ await loadAll();
+});
+
+async function loadAll(){
+ if(loading)return;
+ loading=true;
+ status("Firebase se data load ho raha hai...");
+
+ try{
+  const [restaurants,accounts,users,orders]=await Promise.all([
+   getDocs(collection(db,"restaurants")),
+   getDocs(collection(db,"accounts")),
+   getDocs(collection(db,"users")),
+   getDocs(collection(db,"orders"))
+  ]);
+
+  restaurantData=restaurants.docs.map(d=>({id:d.id,...d.data()}));
+
+  const accountUsers=accounts.docs.map(d=>({id:d.id,...d.data()}));
+  const regularUsers=users.docs.map(d=>({id:d.id,...d.data()}));
+
+  const combined=new Map();
+  [...accountUsers,...regularUsers].forEach(p=>{
+   if(String(p.role||"").trim().toLowerCase()==="delivery"){
+    combined.set(p.id,p);
+   }
+  });
+  deliveryData=[...combined.values()];
+
+  orderData=orders.docs.map(d=>({id:d.id,...d.data()}));
+
+  renderAll();
+  status("SUCCESS: Super Admin data loaded.");
+
+ }catch(e){
+  console.error(e);
+  status("DATA ERROR: "+(e.code||"")+" "+e.message);
+ }finally{
+  loading=false;
+ }
+}
+
+function renderAll(){
+ $("totalOrders").textContent=orderData.length;
+ $("totalRestaurants").textContent=restaurantData.length;
+ $("totalDelivery").textContent=deliveryData.length;
+
+ const sales=orderData.reduce((sum,o)=>{
+  return sum+Number(valueOf(o,["total","totalAmount","grandTotal"])||0);
+ },0);
+
+ $("totalSales").textContent=money(sales);
+
+ const pending=orderData.filter(o=>
+  !["delivered","cancelled","rejected"].includes(
+   String(o.status||"").toLowerCase()
+  )
+ ).length;
+
+ $("overviewDetails").innerHTML=`
+  <p>Total orders: <b>${orderData.length}</b></p>
+  <p>Active/pending orders: <b>${pending}</b></p>
+  <p>Registered restaurants: <b>${restaurantData.length}</b></p>
+  <p>Delivery partner accounts: <b>${deliveryData.length}</b></p>
+  <p>Total order value: <b>${money(sales)}</b></p>
+  <p class="muted">Sales figure is the sum of available order totals, not confirmed platform revenue or commission.</p>
+ `;
+
+ renderRestaurants();
+ renderDelivery();
+ renderOrders();
+}
+
+function renderRestaurants(){
+ if(!restaurantData.length){
+  $("restaurantList").innerHTML="No restaurants found.";
+  return;
+ }
+
+ $("restaurantList").innerHTML=restaurantData.map(r=>{
+  const name=valueOf(r,["name","restaurantName"])||r.id;
+  const city=valueOf(r,["city","location"])||"";
+  const active=r.active===true?"Active":r.active===false?"Inactive":"Not specified";
+  return `
+   <div class="item">
+    <h3>${safe(name)}</h3>
+    <span class="tag">${safe(active)}</span>
+    <p>Restaurant ID: ${safe(r.id)}</p>
+    <p>City: ${safe(city)}</p>
+    <p>Pure Veg: ${r.isPureVeg===true?"Yes":r.isPureVeg===false?"No":"Not specified"}</p>
+    <p class="muted">${safe(r.description||"")}</p>
+   </div>
+  `;
+ }).join("");
+}
+
+function renderDelivery(){
+ if(!deliveryData.length){
+  $("deliveryList").innerHTML="No delivery partners found.";
+  return;
+ }
+
+ $("deliveryList").innerHTML=deliveryData.map(p=>{
+  const active=p.active===true?"Active":p.active===false?"Inactive":"Not specified";
+  return `
+   <div class="item">
+    <h3>${safe(p.name||p.displayName||p.email||p.id)}</h3>
+    <span class="tag">${safe(active)}</span>
+    <p>UID: ${safe(p.id)}</p>
+    <p>Email: ${safe(p.email||"Not available")}</p>
+    <p>Role: ${safe(p.role||"")}</p>
+   </div>
+  `;
+ }).join("");
+}
+
+function renderOrders(){
+ if(!orderData.length){
+  $("orderList").innerHTML="No orders found.";
+  return;
+ }
+
+ const sorted=[...orderData].sort((a,b)=>{
+  const at=a.createdAt?.toMillis?.()||0;
+  const bt=b.createdAt?.toMillis?.()||0;
+  return bt-at;
+ });
+
+ $("orderList").innerHTML=sorted.map(o=>{
+  const name=valueOf(o,["customerName","name","userName"])||"Customer";
+  const total=valueOf(o,["total","totalAmount","grandTotal"]);
+  const date=o.createdAt?.toDate
+   ?o.createdAt.toDate().toLocaleString("en-IN")
+   :"Time unavailable";
+
+  return `
+   <div class="item">
+    <h3>Order #${safe(o.id.slice(-8))}</h3>
+    <span class="tag">${safe(o.status||"Unknown")}</span>
+    <p>Customer: ${safe(name)}</p>
+    <p>Restaurant: ${safe(o.restaurantName||o.restaurantId||"Not specified")}</p>
+    <p>Order type: ${safe(o.orderType||"Not specified")}</p>
+    <p>Amount: ${money(total)}</p>
+    <p>Delivery UID: ${safe(o.assignedTo||"Not assigned")}</p>
+    <p class="muted">${safe(date)}</p>
+   </div>
+  `;
+ }).join("");
+}
+
+document.querySelectorAll("[data-tab]").forEach(button=>{
+ button.onclick=()=>{
+  document.querySelectorAll("[data-tab]").forEach(b=>b.classList.remove("active"));
+  button.classList.add("active");
+
+  document.querySelectorAll(".tab").forEach(t=>t.classList.add("hidden"));
+  $(button.dataset.tab+"Tab").classList.remove("hidden");
+ };
+});
+
+$("refreshBtn").onclick=loadAll;
+</script>
+</body>
+</html>
+
