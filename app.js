@@ -1355,6 +1355,7 @@ async function placeOrder() {
     const orderData = {
       customerName: name,
       customerPhone: phone,
+      customerUid: auth.currentUser?.uid || null,
       orderType,
       address: orderType === "Home Delivery" ? address : "",
       restaurantId: selectedRestaurant.id,
