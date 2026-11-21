@@ -88,7 +88,16 @@ async function updateAccountUI(user) {
   const phoneLabel = $("accountPhone");
   if (status) status.textContent = user ? "You are logged in." : "Login karein ya naya account banayein.";
   if (form) form.hidden = !!user;
-  if (signedIn) signedIn.hidden = !user;
+  if (signedIn) {
+    signedIn.hidden = !user;
+    if (user) {
+      signedIn.classList.remove("login-welcome-animation");
+      void signedIn.offsetWidth;
+      signedIn.classList.add("login-welcome-animation");
+    } else {
+      signedIn.classList.remove("login-welcome-animation");
+    }
+  }
   if (phoneLabel) phoneLabel.textContent = user?.email || "";
   if (user) {
     try {
