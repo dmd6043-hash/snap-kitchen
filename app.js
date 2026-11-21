@@ -915,9 +915,14 @@ async function createCheckoutForm() {
       </select>
       <div id="upiPaymentDetails" style="display:block;">
         <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
-        <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
-          <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
-          <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
+        <div style="position:relative;overflow:hidden;text-align:center;background:linear-gradient(145deg,#342116 0%,#171311 55%,#2b1b12 100%);border:1px solid rgba(255,138,53,.75);border-radius:20px;padding:18px 14px 16px;margin:16px auto;max-width:310px;box-shadow:0 10px 28px rgba(0,0,0,.32),0 0 22px rgba(255,138,53,.12);">
+          <div style="font-family:Outfit,sans-serif;font-size:21px;font-weight:900;letter-spacing:.2px;margin-bottom:3px;"><span style="color:#ff8a35;">Zaika</span><span style="color:#fff;">Box</span></div>
+          <div style="font-size:10px;letter-spacing:2px;color:#ffc18f;font-weight:800;margin-bottom:13px;">SECURE UPI PAYMENT</div>
+          <div style="background:#fff;border:5px solid #fff;border-radius:15px;padding:7px;margin:0 auto;max-width:252px;box-shadow:0 5px 18px rgba(0,0,0,.28);">
+            <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
+          </div>
+          <div style="display:inline-block;margin-top:13px;padding:7px 15px;border-radius:30px;background:#ff8a35;color:#17110d;font-size:12px;font-weight:900;letter-spacing:1px;">SCAN &amp; PAY</div>
+          <p style="color:#f8e9df;font-size:12px;line-height:1.5;margin:10px 0 0;">Apne UPI app se QR scan karke payment karein</p>
         </div>
         <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
         <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
