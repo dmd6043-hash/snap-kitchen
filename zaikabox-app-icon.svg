@@ -1,15 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-<defs><linearGradient id="o" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffc16b"/><stop offset=".5" stop-color="#ff941e"/><stop offset="1" stop-color="#c94d00"/></linearGradient><linearGradient id="d" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#323840"/><stop offset="1" stop-color="#090a0c"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>
-<rect width="512" height="512" rx="112" fill="#090a0c"/>
-<circle cx="256" cy="240" r="190" fill="#ff8b1710"/>
-<g fill="none" stroke="#e9edf1" stroke-width="13" stroke-linecap="round" opacity=".9"><path d="M190 137 C147 92 216 77 204 42"/><path d="M260 132 C220 85 288 72 278 38"/><path d="M324 141 C288 102 348 84 341 52"/></g>
+<defs>
+ <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb13b"/><stop offset=".55" stop-color="#ff7900"/><stop offset="1" stop-color="#e95700"/></linearGradient>
+ <linearGradient id="whiteBox" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#dce1e6"/></linearGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect x="12" y="12" width="488" height="488" rx="112" fill="#0c0e12" stroke="url(#orange)" stroke-width="15"/>
+<circle cx="256" cy="235" r="185" fill="#ff8500" opacity=".08"/>
+<g fill="none" stroke="url(#orange)" stroke-width="15" stroke-linecap="round" filter="url(#glow)">
+ <path d="M207 142 C168 98 231 84 216 39"/>
+ <path d="M270 135 C232 91 297 76 280 30"/>
+ <path d="M330 144 C299 109 353 91 342 57"/>
+</g>
+<!-- foods rising from the box -->
 <g filter="url(#glow)">
-<path d="M95 223 L254 147 L417 224 L255 304 Z" fill="url(#o)" stroke="#ffc16b" stroke-width="7"/>
-<path d="M95 223 L255 304 L255 438 L95 355 Z" fill="#171a1e" stroke="#ff941e" stroke-width="7"/>
-<path d="M255 304 L417 224 L417 355 L255 438 Z" fill="url(#d)" stroke="#ff941e" stroke-width="7"/>
-<path d="M95 223 L55 178 L215 105 L254 147 Z" fill="#ff9c25" stroke="#ffc16b" stroke-width="5"/>
-<path d="M417 224 L458 178 L296 105 L254 147 Z" fill="#d75c05" stroke="#ffad45" stroke-width="5"/>
-<path d="M174 205 C158 169 200 147 224 170 C239 137 284 151 281 183 C317 180 332 218 303 235 L188 235 C164 234 157 218 174 205Z" fill="#fffaf2" stroke="#ffb34d" stroke-width="5"/>
-<path d="M191 161 C168 124 220 108 238 128 C254 95 300 113 290 148" stroke="url(#o)" stroke-width="12" stroke-linecap="round"/>
-<circle cx="139" cy="139" r="12" fill="#ff9a22"/><circle cx="370" cy="139" r="10" fill="#ffb34d"/>
-</g></svg>
+ <path d="M135 191 Q135 153 181 153 Q225 153 225 191Z" fill="#ff9a18"/>
+ <path d="M142 190 Q181 210 219 190 L212 205 Q180 220 149 205Z" fill="#fff"/>
+ <path d="M151 173 Q181 151 211 173" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+ <path d="M282 191 L326 137 L370 191Z" fill="#fff"/>
+ <path d="M282 191 L326 137 L370 191" fill="none" stroke="url(#orange)" stroke-width="8" stroke-linejoin="round"/>
+ <circle cx="325" cy="168" r="7" fill="#ff7900"/><circle cx="341" cy="183" r="6" fill="#ff7900"/>
+ <path d="M231 185 Q251 152 275 185 Q281 203 253 207 Q226 204 231 185Z" fill="#ff8a12"/>
+ <path d="M235 186 Q253 170 271 186" fill="none" stroke="#fff" stroke-width="6"/>
+</g>
+<!-- open box flaps -->
+<path d="M256 246 L83 183 L119 137 L256 198Z" fill="url(#orange)" stroke="#ffc16a" stroke-width="6" stroke-linejoin="round"/>
+<path d="M256 198 L393 137 L429 183 L256 246Z" fill="#ff8a12" stroke="#ffc16a" stroke-width="6" stroke-linejoin="round"/>
+<path d="M256 246 L119 183 L119 354 L256 435Z" fill="url(#whiteBox)" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+<path d="M256 246 L393 183 L393 354 L256 435Z" fill="#f3f5f7" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+<path d="M119 183 L256 246 L393 183" fill="none" stroke="#ff9a18" stroke-width="7"/>
+<path d="M214 286 L302 286 L302 309 L244 359 L305 359 L305 389 L205 389 L205 365 L265 315 L214 315Z" fill="url(#orange)"/>
+<path d="M119 354 L256 435 L393 354" fill="none" stroke="#d9dde2" stroke-width="5"/>
+</svg>
