@@ -352,6 +352,8 @@ async function openRestaurant(restaurant) {
     unsubscribeMenu = null;
   }
 
+  if (typeof window.zaikaGo === "function") window.zaikaGo("explore");
+
   selectedRestaurant = restaurant;
   menu = [];
   cart = [];
@@ -1424,6 +1426,7 @@ $("search")?.addEventListener("input", renderMenu);
 
 // BACK TO RESTAURANTS
 $("backRestaurants")?.addEventListener("click", () => {
+  if (typeof window.zaikaGo === "function") window.zaikaGo("home");
   if (unsubscribeMenu) {
     unsubscribeMenu();
     unsubscribeMenu = null;
