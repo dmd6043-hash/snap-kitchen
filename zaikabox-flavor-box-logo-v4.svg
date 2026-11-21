@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs>
+ <linearGradient id="box" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#dfe4e9"/></linearGradient>
+ <linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb13b"/><stop offset=".55" stop-color="#ff8500"/><stop offset="1" stop-color="#e85b00"/></linearGradient>
+ <filter id="glow" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<rect x="10" y="10" width="492" height="492" rx="112" fill="#0b0e12" stroke="url(#orange)" stroke-width="16"/>
+<circle cx="256" cy="225" r="186" fill="#ff8700" opacity=".07"/>
+<!-- rising steam -->
+<g fill="none" stroke="url(#orange)" stroke-width="13" stroke-linecap="round" filter="url(#glow)">
+ <path d="M188 133 C151 94 212 78 196 39"/>
+ <path d="M257 120 C221 77 284 63 267 24"/>
+ <path d="M326 133 C294 98 350 82 337 48"/>
+</g>
+<!-- burger -->
+<g filter="url(#glow)">
+ <path d="M105 192 C109 148 151 127 193 148 C215 159 224 175 226 192Z" fill="#ff9d20" stroke="#e86a00" stroke-width="5"/>
+ <g fill="#fff4ce"><ellipse cx="145" cy="160" rx="4" ry="7"/><ellipse cx="170" cy="151" rx="4" ry="7"/><ellipse cx="193" cy="165" rx="4" ry="7"/></g>
+ <path d="M109 195 Q166 209 225 195 L217 211 Q164 225 117 210Z" fill="#fff"/>
+ <path d="M115 211 Q166 225 220 211 L212 225 Q164 238 122 224Z" fill="#6e3415"/>
+</g>
+<!-- pizza slice -->
+<g filter="url(#glow)">
+ <path d="M286 196 L339 119 L389 196Z" fill="#fff4d8" stroke="#ff8a12" stroke-width="8" stroke-linejoin="round"/>
+ <path d="M302 174 L339 132 L373 174Z" fill="#ffb12d"/>
+ <g fill="#ed5424"><circle cx="332" cy="157" r="7"/><circle cx="352" cy="177" r="7"/><circle cx="342" cy="190" r="6"/></g>
+</g>
+<!-- fries and drumstick -->
+<g filter="url(#glow)">
+ <path d="M222 184 L232 120 L248 121 L248 187Z" fill="#ffb02b"/>
+ <path d="M244 185 L260 111 L276 116 L266 192Z" fill="#ff8a12"/>
+ <path d="M268 190 L291 130 L306 137 L287 198Z" fill="#ffc04c"/>
+ <path d="M365 184 Q382 149 408 159 Q424 168 408 191 L391 218 Q372 228 360 208Z" fill="#fff" stroke="#ff8a12" stroke-width="7"/>
+ <path d="M397 211 L420 231 M408 204 L433 216" stroke="#fff" stroke-width="9" stroke-linecap="round"/>
+</g>
+<!-- open carton and front panels -->
+<path d="M256 252 L77 181 L116 145 L256 207Z" fill="url(#orange)" stroke="#ffc16a" stroke-width="6" stroke-linejoin="round"/>
+<path d="M256 207 L396 145 L435 181 L256 252Z" fill="#ff8a12" stroke="#ffc16a" stroke-width="6" stroke-linejoin="round"/>
+<path d="M256 240 L111 183 L111 355 L256 438Z" fill="url(#box)" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+<path d="M256 240 L401 183 L401 355 L256 438Z" fill="#f6f7f8" stroke="#fff" stroke-width="7" stroke-linejoin="round"/>
+<path d="M111 183 L256 240 L401 183" fill="none" stroke="#ff9b20" stroke-width="7"/>
+<path d="M216 290 L300 290 L300 313 L246 359 L304 359 L304 392 L205 392 L205 367 L263 320 L216 320Z" fill="url(#orange)"/>
+<path d="M111 355 L256 438 L401 355" fill="none" stroke="#d6dbe0" stroke-width="5"/>
+</svg>
