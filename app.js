@@ -1013,39 +1013,34 @@ async function createCheckoutForm() {
   });
 }
 
-$("checkout")?.addEventListener("click", async () => {
+window.zaikaCheckoutClick = async function () {
   const checkoutButton = $("checkout");
   try {
+    showToast("Checkout open ho raha hai...");
     if (!selectedRestaurant) {
       showToast("Restaurant select nahi hua. Restaurant page par wapas jaakar item add karein.");
       console.error("Checkout blocked: selectedRestaurant is missing.");
       return;
     }
-
     if (!cart.length) {
       showToast("Your cart is empty");
       return;
     }
-
     if (!auth.currentUser) {
       closeCart();
       window.zaikaGo?.("account");
       showToast("Order place karne ke liye pehle login ya sign up karein.");
       return;
     }
-
     if (checkoutButton) {
       checkoutButton.disabled = true;
       checkoutButton.textContent = "Opening Checkout...";
     }
-
     await createCheckoutForm();
-
     const checkoutForm = $("checkoutForm");
-    if (!checkoutForm) {
-      throw new Error("Checkout form create nahi hua. Cart details check kijiye.");
-    }
-
+    if (!checkoutForm) throw new Error("Checkout form create nahi hua.");
+    checkoutForm.hidden = false;
+    checkoutForm.style.display = "block";
     checkoutForm.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("Proceed to Checkout error:", error);
@@ -1056,7 +1051,7 @@ $("checkout")?.addEventListener("click", async () => {
       checkoutButton.textContent = "Proceed to Checkout →";
     }
   }
-});
+};
 
 // GPS
 async function getCurrentLocation() {
