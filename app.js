@@ -244,6 +244,8 @@ let selectedRestaurant = null;
 let menu = [];
 let cart = [];
 let category = "All";
+let globalCategoryMode = false;
+let globalBrowseCategory = "";
 let userLocation = null;
 let isOpeningRestaurant = false;
 let isPlacingOrder = false;
@@ -610,10 +612,40 @@ function loadSelectedRestaurantMenu() {
   );
 }
 
+function categoryMatchesItem(item, selectedCategory) {
+ const c=String(item.category||"").toLowerCase();
+ const s=(String(item.name||"")+" "+String(item.description||"")+" "+c).toLowerCase();
+ const words={Burger:["burger","hamburger"],Pizza:["pizza"],Momos:["momo","momos","dumpling"],Chinese:["chinese","noodles","chowmein","chow mein","manchurian","fried rice","spring roll","schezwan","szechuan","chilli","chili"]};
+ return c.includes(selectedCategory.toLowerCase()) || (words[selectedCategory]||[selectedCategory.toLowerCase()]).some((w)=>s.includes(w));
+}
+async function browseFoodCategory(selectedCategory) {
+ globalCategoryMode=true; globalBrowseCategory=selectedCategory; selectedRestaurant=null; menu=[]; category="All";
+ if(unsubscribeMenu){unsubscribeMenu();unsubscribeMenu=null;}
+ if(typeof window.zaikaGo==="function") window.zaikaGo("explore");
+ const grid=$("restaurantGrid")||$("restaurants"); if(grid) grid.style.display="none";
+ const section=$("menu"); if(section){section.hidden=false;section.style.display="block";}
+ if($("selectedRestaurantName")) $("selectedRestaurantName").textContent="All "+selectedCategory+" Items";
+ if($("backRestaurants")){$("backRestaurants").textContent="← Home";$("backRestaurants").style.display="inline-flex";}
+ if($("cats")) $("cats").style.display="none"; if($("search")) $("search").value="";
+ if($("products")) $("products").innerHTML="<p>Loading "+escapeHTML(selectedCategory)+" items...</p>";
+ try {
+  if(!restaurants.length) await loadRestaurants();
+  const groups=await Promise.all(restaurants.map(async(r)=>{
+   const snap=await getDocs(collection(db,"restaurants",r.id,"menuItems"));
+   return snap.docs.map((d)=>{const x=d.data();return {id:d.id,...x,name:String(x.name||x.Name||x.title||x.Title||d.id).trim(),price:Number(x.price??x.Price??0),category:String(x.category||x.Category||"Other").trim(),description:x.description||x.Description||"",emoji:String(x.emoji||x.Emoji||"🍽️"),available:isMenuItemVisible(x),restaurantId:r.id,restaurantName:r.name||r.Name||"Restaurant"};}).filter((x)=>x.available&&categoryMatchesItem(x,selectedCategory));
+  }));
+  if(!globalCategoryMode||globalBrowseCategory!==selectedCategory)return;
+  menu=groups.flat();renderMenu();
+  if(!menu.length&&$("empty")){$("empty").hidden=false;$("empty").style.display="block";$("empty").textContent="Abhi "+selectedCategory+" ke items available nahi hain.";}
+ } catch(e){console.error("Category items loading error:",e);if($("products"))$("products").textContent="Food items load nahi ho paye. Please try again.";}
+}
+window.zaikaBrowseCategory=browseFoodCategory;
 // CATEGORIES
 function renderCategories() {
   const cats = $("cats");
   if (!cats) return;
+  if (globalCategoryMode) { cats.style.display = "none"; return; }
+  cats.style.display = "";
 
   const categories = [
     "All",
@@ -781,18 +813,20 @@ function animateFoodToCart(productCard) {
   animation.onfinish = () => flyer.remove();
 }
 function addToCart(item) {
-  if (!selectedRestaurant) {
-    showToast("Please select a restaurant first");
-    return;
-  }
-
-  const existing = cart.find((product) => product.id === item.id);
+  const itemRestaurant=item.restaurantId?(restaurants.find((r)=>r.id===item.restaurantId)||{id:item.restaurantId,name:item.restaurantName||"Restaurant"}):selectedRestaurant;
+  if(!itemRestaurant){showToast("Please select a restaurant first");return;}
+  if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("Ek order mein ek hi restaurant se items add kar sakte hain. Pehle current cart complete karein.");return;}
+  selectedRestaurant=itemRestaurant;
+  const cartItemId=item.restaurantId?item.restaurantId+"__"+item.id:item.id;
+  const existing=cart.find((product)=>product.id===cartItemId);
 
   if (existing) {
     existing.quantity += 1;
   } else {
     cart.push({
-      id: item.id,
+      id: cartItemId,
+      menuItemId: item.id,
+      restaurantId: itemRestaurant.id,
       name: item.name,
       price: Number(item.price) || 0,
       quantity: 1
@@ -1711,6 +1745,7 @@ $("search")?.addEventListener("input", renderMenu);
 // BACK TO RESTAURANTS
 $("backRestaurants")?.addEventListener("click", () => {
   if (typeof window.zaikaGo === "function") window.zaikaGo("home");
+  if(globalCategoryMode){globalCategoryMode=false;globalBrowseCategory="";menu=[];category="All";selectedRestaurant=cart.length?restaurants.find((r)=>r.id===cart[0].restaurantId)||null:null;if($("cats"))$("cats").style.display="";if($("backRestaurants"))$("backRestaurants").style.display="none";if($("menu")){$("menu").hidden=true;$("menu").style.display="none";}if($("restaurantGrid"))$("restaurantGrid").style.display="grid";renderCart();renderRestaurants();return;}
   if (unsubscribeMenu) {
     unsubscribeMenu();
     unsubscribeMenu = null;
