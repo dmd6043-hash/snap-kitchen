@@ -4,11 +4,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#100d0a">
+  <meta name="theme-color" content="#0b0d10">
   <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261119">
+  <link rel="stylesheet" href="./styles.css?v=20261121-sleek2">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -686,7 +686,64 @@
     button,a{ -webkit-tap-highlight-color:transparent }
     @media(prefers-reduced-motion:reduce){.screen.active,.restaurant-card,#checkoutForm,.checkout-form{animation:none!important}}
 
-</style>
+
+    /* ZAIKABOX — SLEEK ORANGE NEUMORPHIC FINAL THEME */
+    :root{--bg:#0b0d10;--surface:#15191e;--surface2:#1b2026;--surface3:#252c33;--text:#f7f8fa;--muted:#a6adb6;--orange:#ff8617;--purple:#ff8617;--purple2:#ffb15c;--border:rgba(255,255,255,.09)}
+    body{background:radial-gradient(ellipse at 50% -12%,rgba(255,132,20,.13),transparent 42%),linear-gradient(180deg,#0b0d10,#101419 55%,#0b0d10);color:#f7f8fa}
+    .topbar{background:rgba(12,15,19,.92);border-bottom:1px solid rgba(255,139,31,.13);box-shadow:0 8px 28px #0005}
+    .brand-logo,.support-profile-trigger,.top-cart{border-radius:16px;box-shadow:7px 7px 16px #050608,-5px -5px 14px #20252b}
+    .brand-name{letter-spacing:-.8px}.brand-name::first-letter{color:#fff}
+    .hero{border-radius:25px;background:radial-gradient(circle at 84% 20%,rgba(255,151,55,.20),transparent 34%),linear-gradient(145deg,#242a31,#11151a 72%);border:1px solid rgba(255,145,40,.35);box-shadow:inset 1px 1px 1px #ffffff12,inset -5px -5px 14px #0008,0 14px 32px #0007}
+    .hero:after{filter:drop-shadow(0 12px 18px #ff851755);animation:floatFood 3.4s ease-in-out infinite}
+    .hero h1 span,.text-btn,.product-card .price,#total{color:#ff9b3d}
+    .hero p,.section-head p{color:#b7bec7}
+    .eyebrow{color:#ff9b3d}
+    .primary-btn,#checkout,#checkoutForm #placeOrder{background:linear-gradient(145deg,#ffad4d,#f4770b);color:#17100a;box-shadow:0 5px 18px #ff851744,inset 1px 1px 1px #ffffff70;font-weight:900}
+    .primary-btn:active,#checkout:active,.home-category:active{transform:scale(.96);box-shadow:inset 4px 4px 9px #0006}
+    .feature-grid{display:none}
+    .section-head:has(+ .feature-grid){display:none}
+    .home-categories{grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+    .home-category{background:linear-gradient(145deg,#20262d,#11151a);border:1px solid #ffffff10;border-radius:18px;box-shadow:6px 6px 13px #05070a,-4px -4px 12px #20262d;transition:transform .25s,border-color .25s,box-shadow .25s;animation:zbNeumoIn .55s both}
+    .home-category:nth-child(2){animation-delay:.06s}.home-category:nth-child(3){animation-delay:.12s}.home-category:nth-child(4){animation-delay:.18s}
+    .home-category-icon{filter:drop-shadow(0 3px 7px #ff8b2540)}
+    .home-restaurant-section{background:linear-gradient(145deg,#171c22,#101419);border:1px solid #ffffff10;border-radius:24px;box-shadow:inset 1px 1px 1px #ffffff0b,9px 12px 28px #0007}
+    .home-section-tag{border-color:#ff922d55;color:#ffb66c;background:#ff8b1710}
+    #restaurantGrid{grid-template-columns:minmax(0,1fr);gap:12px}
+    .restaurant-card{background:linear-gradient(145deg,#20262d,#11151a)!important;border:1px solid #ffffff12!important;border-radius:20px!important;box-shadow:7px 8px 18px #05070a,-4px -4px 13px #20262d!important}
+    .restaurant-card:active{border-color:#ff922d!important;box-shadow:inset 4px 4px 10px #05070a!important}
+    .restaurant-emoji{background:radial-gradient(circle at 30% 25%,#ffb45c55,#4a2b16)!important;box-shadow:inset 2px 2px 6px #ffffff20,4px 5px 12px #0008}
+    .restaurant-filter-btn,.search-wrap input,.field,#checkoutForm input,#checkoutForm textarea,#checkoutForm select{background:linear-gradient(145deg,#1d232a,#11151a);border:1px solid #ffffff12;box-shadow:inset 3px 3px 7px #07090c,inset -2px -2px 6px #242a31;color:#f7f8fa}
+    .restaurant-filter-btn.active,#cats button.active,#cats button.selected{background:linear-gradient(145deg,#ffad4d,#f4770b);border-color:#ff9b3d;color:#1c1209;box-shadow:0 4px 14px #ff851744}
+    .promo{background:linear-gradient(145deg,#20262d,#11151a);border:1px solid #ff922d55;border-radius:20px;box-shadow:inset 1px 1px 1px #ffffff12,8px 9px 20px #0007}
+    .promo-icon{filter:drop-shadow(0 5px 12px #ff851755);animation:floatFood 3.5s ease-in-out infinite}
+    .search-wrap input:focus,input:focus,textarea:focus,select:focus{border-color:#ff922d!important;box-shadow:0 0 0 3px #ff922d20, inset 2px 2px 5px #07090c}
+    .bottom-nav{background:rgba(16,20,25,.96);border-top:1px solid #ffffff12;box-shadow:0 -10px 30px #0008;backdrop-filter:blur(22px)}
+    .nav-item{transition:color .25s,transform .25s}.nav-item.active{color:#ff9c3e}.nav-item.active .nav-icon{filter:drop-shadow(0 0 9px #ff8b24aa);transform:translateY(-3px) scale(1.08)}
+    .cart-sheet,#cart.cart-sheet{background:linear-gradient(145deg,#1b2026,#101419)!important;border:1px solid #ff922d33!important}
+    #cart .cart-item{background:linear-gradient(145deg,#20262d,#11151a)!important;border-color:#ffffff12!important;box-shadow:5px 5px 12px #05070a}
+    .track-card,.reward-card,.reward-step,.product-card{background:linear-gradient(145deg,#20262d,#11151a);border:1px solid #ffffff12;box-shadow:6px 7px 16px #05070a,-3px -3px 10px #20262d}
+    .reward-hero{background:radial-gradient(circle at 50% 0,#ff922d30,transparent 60%),linear-gradient(145deg,#242a31,#11151a);border:1px solid #ff922d44}
+    .product-card button{background:#ff8b1718;border-color:#ff922d66;color:#ffb66c}
+    .zb-scooter-track{background:linear-gradient(145deg,#20262d,#11151a);border-color:#ff922d55}
+    .zaika-ai-launcher{background:linear-gradient(145deg,#ffad4d,#f4770b);color:#17100a;box-shadow:0 0 22px #ff851755}
+    .zaika-ai-panel,.support-profile-card{background:linear-gradient(145deg,#1c2229,#101419);border-color:#ff922d55}
+    .zaika-ai-head,.support-profile-cover{background:radial-gradient(circle at 50% 0,#ff922d33,transparent 65%),linear-gradient(145deg,#242a31,#11151a)}
+    .zaika-ai-msg.bot{background:#242b33;color:#fff}.zaika-ai-msg.user{background:linear-gradient(145deg,#ffad4d,#f4770b);color:#1c1209}
+    .zaika-ai-compose{background:#151a20}.zaika-ai-compose input{background:#0e1216;border-color:#ffffff20}
+    .zaika-ai-compose button{background:#ff982f;color:#1b1209}
+    .support-call{background:linear-gradient(145deg,#ffad4d,#f4770b);color:#1b1209}
+    .support-profile-trigger{background:linear-gradient(145deg,#242a31,#11151a);border-color:#ff922d66}
+    .support-profile-trigger:before{border-color:#ff922d77}
+    .support-profile-number{color:#ffb66c}
+    .cart-count{background:#ff8b17;color:#17100a}
+    @keyframes zbNeumoIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+    @keyframes zbOrangePulse{0%,100%{box-shadow:0 0 0 0 #ff8b1700}50%{box-shadow:0 0 0 5px #ff8b171c}}
+    .support-profile-trigger:before{animation:supportHalo 2.2s ease-out infinite}
+    .home-category:focus-visible,.restaurant-card:focus-visible,.primary-btn:focus-visible{outline:2px solid #ffad4d;outline-offset:3px}
+    @media(max-width:420px){.home-categories{gap:7px}.home-category{padding:12px 3px}.home-category-icon{font-size:24px}.restaurant-card{min-height:100px!important;padding:12px!important}}
+    @media(prefers-reduced-motion:reduce){.home-category,.promo-icon,.hero:after{animation:none!important}}
+
+  </style>
 </head>
 
 <body>
