@@ -904,7 +904,7 @@ async function createCheckoutForm() {
       <option value="Home Delivery">Home Delivery</option>
     </select>
 
-    <button type="button" id="continueToPayment" style="width:100%;margin:14px 0;">CONTINUE TO PAYMENT</button>
+    <button type="button" id="continueToPayment" style="width:100%;min-height:50px;margin:14px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:800;font-size:15px;letter-spacing:.4px;box-shadow:0 5px 18px rgba(255,138,53,.22);">CONTINUE TO PAYMENT →</button>
 
     <div id="paymentSection" hidden style="display:none;background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
       <h3 style="margin-top:0;">Choose Payment Method</h3>
