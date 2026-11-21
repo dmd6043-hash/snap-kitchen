@@ -1013,25 +1013,49 @@ async function createCheckoutForm() {
   });
 }
 
-$("checkout")?.addEventListener("click", () => {
-  if (!selectedRestaurant) {
-    showToast("Please select a restaurant first");
-    return;
-  }
+$("checkout")?.addEventListener("click", async () => {
+  const checkoutButton = $("checkout");
+  try {
+    if (!selectedRestaurant) {
+      showToast("Restaurant select nahi hua. Restaurant page par wapas jaakar item add karein.");
+      console.error("Checkout blocked: selectedRestaurant is missing.");
+      return;
+    }
 
-  if (!cart.length) {
-    showToast("Your cart is empty");
-    return;
-  }
+    if (!cart.length) {
+      showToast("Your cart is empty");
+      return;
+    }
 
-  if (!auth.currentUser) {
-    closeCart();
-    window.zaikaGo?.("account");
-    showToast("Order place karne ke liye pehle login ya sign up karein.");
-    return;
-  }
+    if (!auth.currentUser) {
+      closeCart();
+      window.zaikaGo?.("account");
+      showToast("Order place karne ke liye pehle login ya sign up karein.");
+      return;
+    }
 
-  createCheckoutForm();
+    if (checkoutButton) {
+      checkoutButton.disabled = true;
+      checkoutButton.textContent = "Opening Checkout...";
+    }
+
+    await createCheckoutForm();
+
+    const checkoutForm = $("checkoutForm");
+    if (!checkoutForm) {
+      throw new Error("Checkout form create nahi hua. Cart details check kijiye.");
+    }
+
+    checkoutForm.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (error) {
+    console.error("Proceed to Checkout error:", error);
+    showToast("Checkout open nahi hua: " + (error?.message || "Please refresh and try again."));
+  } finally {
+    if (checkoutButton) {
+      checkoutButton.disabled = false;
+      checkoutButton.textContent = "Proceed to Checkout →";
+    }
+  }
 });
 
 // GPS
