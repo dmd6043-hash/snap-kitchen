@@ -799,23 +799,34 @@ async function createCheckoutForm() {
     <button type="button" id="continueToPayment" style="width:100%;margin:14px 0;">CONTINUE TO PAYMENT</button>
 
     <div id="paymentSection" hidden style="background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
-      <h3 style="margin-top:0;">Pay Online via UPI</h3>
-      <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
-      <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
-        <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="lazy">
-        <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
+      <h3 style="margin-top:0;">Choose Payment Method</h3>
+      <label for="paymentMethod">Payment Option</label>
+      <select id="paymentMethod" style="width:100%;margin:6px 0 14px;">
+        <option value="UPI">Pay Online via UPI</option>
+        <option value="COD">Cash on Delivery (COD)</option>
+      </select>
+      <div id="upiPaymentDetails">
+        <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
+        <div style="text-align:center;background:#fff;border-radius:12px;padding:12px;margin:12px auto;max-width:280px;">
+          <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=ZaikaBox&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
+          <p style="color:#111;margin:8px 0 0;font-weight:600;">SCAN &amp; PAY</p>
+        </div>
+        <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
+        <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
+        <button type="button" id="copyCheckoutUpi">COPY UPI ID</button>
+        <button type="button" id="openUpiApp">PAY VIA UPI APP</button>
+        <label for="paymentUtr" style="display:block;margin-top:12px;">UPI UTR / Transaction ID</label>
+        <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad UTR enter karein" autocomplete="off">
+        <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
+          <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
+          Maine UPI app mein payment complete kar diya hai.
+        </label>
+        <p style="font-size:12px;color:#ffbd87;">Payment UTR admin verify karne ke baad confirm hoga.</p>
       </div>
-      <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karte hi order ka exact amount UPI app mein aana chahiye.</p>
-      <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
-      <button type="button" id="copyCheckoutUpi">COPY UPI ID</button>
-      <button type="button" id="openUpiApp">PAY VIA UPI APP</button>
-      <label for="paymentUtr" style="display:block;margin-top:12px;">UPI UTR / Transaction ID</label>
-      <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad UTR enter karein" autocomplete="off">
-      <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
-        <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
-        Maine UPI app mein payment complete kar diya hai.
-      </label>
-      <p style="font-size:12px;color:#ffbd87;">Payment aapke UTR ko admin verify karne ke baad hi confirm hoga.</p>
+      <div id="codPaymentDetails" hidden style="padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
+        <strong>Cash on Delivery selected</strong>
+        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Abhi online payment ya UTR ki zaroorat nahi hai.</p>
+      </div>
     </div>
 
     <div id="addressBox" style="display:none;">
@@ -858,6 +869,12 @@ async function createCheckoutForm() {
     $("paymentSection").hidden = false;
     $("continueToPayment").hidden = true;
     $("paymentSection").scrollIntoView({ behavior: "smooth", block: "center" });
+  });
+  $("paymentMethod").addEventListener("change", () => {
+    const isUpi = $("paymentMethod").value === "UPI";
+    $("upiPaymentDetails").hidden = !isUpi;
+    $("codPaymentDetails").hidden = isUpi;
+    $("placeOrder").textContent = isUpi ? "I HAVE PAID" : "PLACE COD ORDER";
   });
   $("copyCheckoutUpi").addEventListener("click", () => copyText(activeUpiId));
   $("openUpiApp").addEventListener("click", () => {
@@ -1323,13 +1340,14 @@ async function placeOrder() {
     return;
   }
 
+  const paymentMethod = $("paymentMethod")?.value || "UPI";
   const utr = $("paymentUtr")?.value.trim() || "";
-  if (!/^[A-Za-z0-9]{6,30}$/.test(utr)) {
+  if (paymentMethod === "UPI" && !/^[A-Za-z0-9]{6,30}$/.test(utr)) {
     showToast("Valid UTR / Transaction ID enter kijiye (6–30 characters).");
     $("paymentUtr")?.focus();
     return;
   }
-  if (!$("paymentConfirmed")?.checked) {
+  if (paymentMethod === "UPI" && !$("paymentConfirmed")?.checked) {
     showToast("Pehle UPI payment complete karke confirmation tick kijiye.");
     return;
   }
@@ -1369,10 +1387,10 @@ async function placeOrder() {
       restaurantName: selectedRestaurant.name || selectedRestaurant.Name || "Restaurant",
       items: orderItems,
       total: orderTotal,
-      paymentMethod: "UPI",
+      paymentMethod,
       paymentStatus: "Pending",
-      utr,
-      status: "Payment Pending",
+      utr: paymentMethod === "UPI" ? utr : "",
+      status: paymentMethod === "UPI" ? "Payment Pending" : "New",
       trackingCode,
       createdAt: serverTimestamp()
     };
@@ -1382,7 +1400,7 @@ async function placeOrder() {
       restaurantId: selectedRestaurant.id,
       restaurantName: orderData.restaurantName,
       orderType,
-      status: "Payment Pending",
+      status: paymentMethod === "UPI" ? "Payment Pending" : "New",
       createdAt: serverTimestamp()
     };
 
@@ -1419,7 +1437,9 @@ async function placeOrder() {
     });
 
     message += `\n*TOTAL: ₹${orderTotal}*\n`;
-    message += "*STATUS: PAYMENT PENDING — ADMIN VERIFICATION REQUIRED*";
+    message += paymentMethod === "UPI"
+      ? "*STATUS: PAYMENT PENDING — ADMIN VERIFICATION REQUIRED*"
+      : "*STATUS: NEW — CASH ON DELIVERY*";
 
     const whatsappURL =
       `https://wa.me/${DEFAULT_WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
@@ -1432,7 +1452,9 @@ async function placeOrder() {
     $("checkoutForm")?.remove();
 
     showOrderSuccess(orderRef.id, trackingCode, whatsappURL);
-    showToast("Order submitted. Payment verification pending.");
+    showToast(paymentMethod === "UPI"
+      ? "Order submitted. Payment verification pending."
+      : "COD order successfully placed.");
 
   } catch (error) {
     console.error("Order placement error:", error);
