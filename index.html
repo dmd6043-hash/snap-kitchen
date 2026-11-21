@@ -125,6 +125,31 @@
       border-color:#ff8a35;
     }
 
+    .restaurant-filter-row {
+      display:flex;
+      gap:9px;
+      overflow-x:auto;
+      padding:10px 0 14px;
+    }
+
+    .restaurant-filter-btn {
+      flex:0 0 auto;
+      border:1px solid rgba(255,138,53,.28);
+      border-radius:999px;
+      padding:9px 18px;
+      background:#211811;
+      color:#e9d8ca;
+      font:600 13px 'DM Sans',sans-serif;
+      cursor:pointer;
+    }
+
+    .restaurant-filter-btn.active {
+      background:linear-gradient(135deg,#ff9b4a,#ed681f);
+      border-color:#ff8a35;
+      color:#fff;
+      box-shadow:0 5px 15px rgba(255,138,53,.18);
+    }
+
     #cats button.active,
     #cats button.selected {
       background:#e8752b;
@@ -693,6 +718,12 @@
       <div class="search-wrap">
         <span>⌕</span>
         <input id="restaurantSearch" type="search" placeholder="Find restaurants..." autocomplete="off">
+      </div>
+
+      <div class="restaurant-filter-row" role="group" aria-label="Filter restaurants by food category">
+        <button type="button" class="restaurant-filter-btn active" data-restaurant-filter="All" aria-pressed="true">All</button>
+        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Veg" aria-pressed="false">Veg</button>
+        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Non-Veg" aria-pressed="false">Non-Veg</button>
       </div>
 
       <div id="restaurantStatus">Loading restaurants...</div>
