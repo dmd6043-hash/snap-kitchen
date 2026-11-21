@@ -167,13 +167,19 @@ let paymentReminderTimer=null;
 function isPaymentPending(order){
   return order.paymentStatus==="Pending" || order.status==="Payment Pending";
 }
-function sendPaymentNotification(order, reminder=false){
+async function sendPaymentNotification(order, reminder=false){
   if(!("Notification" in window) || Notification.permission!=="granted") return;
   const title=reminder?"Payment still pending":"New payment verification";
   const body="Order #"+String(order.id).slice(0,8)+" · ₹"+Number(order.total||0)+" · "+(order.customerName||"Customer");
+  const options={body,tag:"zaikabox-payment-"+order.id,renotify:true,data:{orderId:order.id}};
   try{
-    const notification=new Notification(title,{body,tag:"zaikabox-payment-"+order.id,renotify:true});
-    notification.onclick=()=>{window.focus();notification.close();};
+    const registration=await navigator.serviceWorker?.getRegistration?.();
+    if(registration?.showNotification){
+      await registration.showNotification(title,options);
+    }else{
+      const notification=new Notification(title,options);
+      notification.onclick=()=>{window.focus();notification.close();};
+    }
   }catch(error){console.warn("Browser notification unavailable:",error);}
 }
 function updatePaymentReminderUI(list, initial=false){
@@ -198,7 +204,10 @@ async function requestPaymentNotifications(){
     $("notificationPermission").textContent=permission==="granted"
       ?"Phone notifications enabled. Admin panel khula hone par alerts aayenge."
       :"Notification permission allow nahi hui. Browser settings mein enable karein.";
-    if(permission==="granted") currentOrders.filter(isPaymentPending).forEach(order=>sendPaymentNotification(order,false));
+    if(permission==="granted"){
+      if(navigator.serviceWorker) await navigator.serviceWorker.register("./sw.js");
+      currentOrders.filter(isPaymentPending).forEach(order=>sendPaymentNotification(order,false));
+    }
   }catch(error){
     $("notificationPermission").textContent="Permission request nahi ho payi.";
   }
