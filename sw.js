@@ -1,5 +1,5 @@
 
-const CACHE = "zaikabox-v6";
+const CACHE = "zaikabox-v7";
 
 const FILES = [
   "./",
@@ -7,7 +7,7 @@ const FILES = [
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./zaikabox-app-icon.svg"
+  "./zaikabox-flavor-box-logo-v4.svg"
 ];
 
 self.addEventListener("install", event => {
