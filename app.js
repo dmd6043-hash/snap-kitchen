@@ -1046,8 +1046,7 @@ async function getCurrentLocation() {
       const addressField = $("customerAddress");
 
       if (addressField) {
-        addressField.value =
-          `https://www.google.com/maps?q=${latitude},${longitude}`;
+        addressField.value = "Current location";
       }
 
       try {
@@ -1058,9 +1057,7 @@ async function getCurrentLocation() {
         const data = await response.json();
 
         if (data.display_name && addressField) {
-          addressField.value =
-            data.display_name +
-            `\nhttps://www.google.com/maps?q=${latitude},${longitude}`;
+          addressField.value = data.display_name;
         }
       } catch (error) {
         console.log("Address lookup unavailable:", error);
