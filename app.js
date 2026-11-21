@@ -983,6 +983,13 @@ function renderTrackingStatus(data) {
       <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
       <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
+      ${!isPickup ? `
+        <div class="zb-scooter-track ${status === "Out for Delivery" ? "is-moving" : status === "Delivered" ? "is-done" : ""}">
+          <div class="zb-track-caption">${status === "Out for Delivery" ? "🛵 Your order is on the way!" : status === "Delivered" ? "🏁 Order reached you!" : "🍳 Your order is getting ready"}</div>
+          <div class="zb-road"><span class="zb-scooter" aria-label="Delivery scooter">🛵</span></div>
+          <div class="zb-track-label"><span>Restaurant</span><span>Your location</span></div>
+        </div>
+      ` : ""}
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Order status automatically updates from the server.</p>
       ${
