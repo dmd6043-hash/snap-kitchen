@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 260" role="img" aria-label="ZaikaBox Flavor Explosion Box logo">
+<defs>
+ <linearGradient id="o" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffc16b"/><stop offset=".48" stop-color="#ff941e"/><stop offset="1" stop-color="#d95a00"/></linearGradient>
+ <linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#30343a"/><stop offset="1" stop-color="#08090b"/></linearGradient>
+ <filter id="g"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+</defs>
+<g transform="translate(12 8)">
+ <path d="M82 48 C52 22 100 7 91 0 M127 51 C102 23 151 13 139 -3 M168 55 C147 27 193 16 182 0" fill="none" stroke="#d7dce2" stroke-width="9" stroke-linecap="round" opacity=".85"/>
+ <path d="M35 97 L116 59 L202 98 L118 139 Z" fill="url(#o)" stroke="#ffc16b" stroke-width="4"/>
+ <path d="M35 97 L118 139 L118 224 L35 180 Z" fill="#171a1e" stroke="#ff981e" stroke-width="4"/>
+ <path d="M118 139 L202 98 L202 180 L118 224 Z" fill="url(#b)" stroke="#ff981e" stroke-width="4"/>
+ <path d="M35 97 L8 71 L89 35 L116 59 Z" fill="#ff9a22" stroke="#ffc16b" stroke-width="3"/>
+ <path d="M202 98 L229 71 L148 35 L116 59 Z" fill="#c95a05" stroke="#ffad45" stroke-width="3"/>
+ <path d="M63 77 C56 52 83 43 95 56 C106 39 135 47 134 69 C154 69 160 91 142 101 L76 101 C59 99 53 88 63 77Z" fill="#f8f5ef" stroke="#ffb34d" stroke-width="3"/>
+ <path d="M74 48 C54 20 89 13 103 26 C111 5 146 16 140 39" fill="none" stroke="url(#o)" stroke-width="8" stroke-linecap="round" filter="url(#g)"/>
+ <circle cx="29" cy="47" r="8" fill="#ff9a22"/><circle cx="212" cy="43" r="6" fill="#ffb34d"/>
+</g>
+<text x="270" y="132" font-family="Arial,sans-serif" font-size="104" font-weight="800" fill="#f7f7f7" letter-spacing="-4">Zaika</text>
+<text x="590" y="132" font-family="Arial,sans-serif" font-size="104" font-weight="800" fill="url(#o)" letter-spacing="-4">Box</text>
+<path d="M275 166 H810" stroke="#ff9218" stroke-width="4" stroke-linecap="round"/>
+<text x="278" y="211" font-family="Arial,sans-serif" font-size="25" letter-spacing="5" fill="#d9dde2">FLAVOR EXPLOSION • EAT GOOD, FEEL GOOD</text>
+</svg>
