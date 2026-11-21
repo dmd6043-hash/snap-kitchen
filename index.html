@@ -820,30 +820,8 @@
       </button>
     </div>
 
-    <div class="home-categories">
-      <button class="home-category" onclick="window.zaikaBrowseCategory('Burger')">
-        <span class="home-category-icon">🍔</span>
-        <strong>Burger</strong>
-        <small>Explore food</small>
-      </button>
-
-      <button class="home-category" onclick="window.zaikaBrowseCategory('Pizza')">
-        <span class="home-category-icon">🍕</span>
-        <strong>Pizza</strong>
-        <small>Explore food</small>
-      </button>
-
-      <button class="home-category" onclick="window.zaikaBrowseCategory('Momos')">
-        <span class="home-category-icon">🥟</span>
-        <strong>Momos</strong>
-        <small>Explore food</small>
-      </button>
-
-      <button class="home-category" onclick="window.zaikaBrowseCategory('Chinese')">
-        <span class="home-category-icon">🍜</span>
-        <strong>Chinese</strong>
-        <small>Explore food</small>
-      </button>
+    <div class="home-categories" id="homeCategories">
+      <p class="home-category-loading">Loading food categories...</p>
     </div>
     <section class="home-restaurant-section">
       <div class="section-head">
@@ -1127,7 +1105,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-buy-now1"></script>
+<script type="module" src="./app.js?v=20261121-dynamic-food-categories1"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
