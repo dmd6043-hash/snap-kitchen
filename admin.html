@@ -69,6 +69,12 @@ hr{border:0;border-top:1px solid #49365f}
 <p class="small">ADMIN DASHBOARD</p>
 
 <div id="globalStatus">Admin panel starting...</div>
+<div id="paymentAlert" class="card" style="border-color:#e85d75;background:#351b2a" aria-live="polite">
+  <b>🔔 Payment Verification Alerts</b>
+  <p id="paymentAlertText" class="small">Pending payments yahan dikhenge.</p>
+  <button class="primary" id="enableNotifications" type="button">ENABLE PHONE NOTIFICATIONS</button>
+  <span id="notificationPermission" class="small">Phone alerts ke liye permission allow karein.</span>
+</div>
 
 <div id="loginBox" class="card">
   <h2>Admin Login</h2>
@@ -155,6 +161,55 @@ let currentOrders=[];
 let authVersion=0;
 let loginInProgress=false;
 let dashboardLoading=false;
+let pendingPaymentIds=new Set();
+let paymentReminderTimer=null;
+
+function isPaymentPending(order){
+  return order.paymentStatus==="Pending" || order.status==="Payment Pending";
+}
+function sendPaymentNotification(order, reminder=false){
+  if(!("Notification" in window) || Notification.permission!=="granted") return;
+  const title=reminder?"Payment still pending":"New payment verification";
+  const body="Order #"+String(order.id).slice(0,8)+" · ₹"+Number(order.total||0)+" · "+(order.customerName||"Customer");
+  try{
+    const notification=new Notification(title,{body,tag:"zaikabox-payment-"+order.id,renotify:true});
+    notification.onclick=()=>{window.focus();notification.close();};
+  }catch(error){console.warn("Browser notification unavailable:",error);}
+}
+function updatePaymentReminderUI(list, initial=false){
+  const pending=list.filter(isPaymentPending);
+  const ids=new Set(pending.map(order=>order.id));
+  $("paymentAlertText").textContent=pending.length
+    ?pending.length+" payment(s) pending verification. Har 1 minute reminder aayega jab tak Verify/Reject nahi hota."
+    :"Koi pending payment nahi hai. Sab clear hai.";
+  $("paymentAlert").style.borderColor=pending.length?"#e85d75":"#4cba86";
+  pending.forEach(order=>{
+    if(initial || !pendingPaymentIds.has(order.id)) sendPaymentNotification(order,false);
+  });
+  pendingPaymentIds=ids;
+}
+async function requestPaymentNotifications(){
+  if(!("Notification" in window)){
+    $("notificationPermission").textContent="Is browser mein notifications supported nahi hain.";
+    return;
+  }
+  try{
+    const permission=await Notification.requestPermission();
+    $("notificationPermission").textContent=permission==="granted"
+      ?"Phone notifications enabled. Admin panel khula hone par alerts aayenge."
+      :"Notification permission allow nahi hui. Browser settings mein enable karein.";
+    if(permission==="granted") currentOrders.filter(isPaymentPending).forEach(order=>sendPaymentNotification(order,false));
+  }catch(error){
+    $("notificationPermission").textContent="Permission request nahi ho payi.";
+  }
+}
+$("enableNotifications").addEventListener("click",requestPaymentNotifications);
+function startPaymentReminderTimer(){
+  if(paymentReminderTimer)clearInterval(paymentReminderTimer);
+  paymentReminderTimer=setInterval(()=>{
+    currentOrders.filter(isPaymentPending).forEach(order=>sendPaymentNotification(order,true));
+  },60000);
+}
 
 
 // HELPERS
@@ -324,6 +379,7 @@ onAuthStateChanged(auth,async user=>{
   if(!user){
 
     cleanupDashboard();
+    if(paymentReminderTimer){clearInterval(paymentReminderTimer);paymentReminderTimer=null;}
 
     $("loginBox").classList.remove("hidden");
     $("dashboard").classList.add("hidden");
@@ -385,6 +441,7 @@ onAuthStateChanged(auth,async user=>{
     if(version!==authVersion)return;
 
     startOrdersListener();
+    startPaymentReminderTimer();
 
     setStatus("SUCCESS: Admin dashboard ready hai.");
 
@@ -525,6 +582,7 @@ function startOrdersListener(){
       $("count").textContent=currentOrders.length;
 
       renderOrders(currentOrders);
+      updatePaymentReminderUI(currentOrders, false);
 
     },
 
@@ -574,6 +632,7 @@ function renderOrders(list){
       order.total??order.grandTotal??0;
 
     const status=order.status||"New";
+    const paymentPending=isPaymentPending(order);
 
     const homeDelivery=isHomeDelivery(order);
     const pickup=isPickup(order);
@@ -672,7 +731,17 @@ function renderOrders(list){
     `:"";
 
 
-    const statusButtons=homeDelivery?`
+    const paymentActions=paymentPending?`
+      <div class="assignment-box" style="border-color:#e85d75">
+        <p><b>⚠️ PAYMENT VERIFICATION REQUIRED</b></p>
+        <p>Payment Status: ${safe(order.paymentStatus||"Pending")}</p>
+        <p>UTR / Transaction ID: <b>${safe(order.utr||"Not submitted")}</b></p>
+        <button class="success" data-payment-action="verify" data-payment-order="${safe(order.id)}">VERIFY PAYMENT</button>
+        <button class="reject" data-payment-action="reject" data-payment-order="${safe(order.id)}">REJECT PAYMENT</button>
+      </div>
+    `:"";
+
+    const statusButtons=paymentPending?"":homeDelivery?`
 
       <button class="primary"
         data-id="${safe(order.id)}"
@@ -766,6 +835,8 @@ function renderOrders(list){
         <p><b>Items:</b><br>${items}</p>
 
         <p><b>Total:</b> ₹${safe(total)}</p>
+        <p><b>Payment:</b> ${safe(order.paymentMethod||"UPI")} · ${safe(order.paymentStatus||"Pending")}</p>
+        ${paymentActions}
 
         <p><b>Address:</b> ${safe(address)}</p>
 
@@ -804,6 +875,38 @@ function renderOrders(list){
 // ORDER ACTIONS
 
 $("orders").addEventListener("click",async event=>{
+
+  const paymentButton=event.target.closest("button[data-payment-action]");
+  if(paymentButton){
+    const orderId=paymentButton.dataset.paymentOrder;
+    const action=paymentButton.dataset.paymentAction;
+    const order=currentOrders.find(item=>item.id===orderId);
+    if(!order || !isPaymentPending(order))return;
+    if(action==="verify" && !confirm("Bank/UPI statement mein payment receive hone ki pushti kar li hai? Ab payment VERIFIED mark hoga."))return;
+    if(action==="reject" && !confirm("Kya aap is payment ko REJECT karna chahte hain?"))return;
+    paymentButton.disabled=true;
+    try{
+      const nextStatus=action==="verify"?"New":"Payment Failed";
+      const batch=writeBatch(db);
+      batch.update(doc(db,"orders",orderId),{
+        paymentStatus:action==="verify"?"Verified":"Rejected",
+        paymentVerifiedAt:serverTimestamp(),
+        status:nextStatus
+      });
+      if(order.trackingCode){
+        const trackingCode=String(order.trackingCode).replace(/[\s-]/g,"").toUpperCase();
+        if(!/^[A-Z2-9]{20}$/.test(trackingCode))throw new Error("Invalid tracking code.");
+        batch.update(doc(db,"orderTracking",trackingCode),{status:nextStatus});
+      }
+      await batch.commit();
+      alert(action==="verify"?"Payment verified. Order ab restaurant process ke liye ready hai.":"Payment rejected. Customer ko payment status update dikhega.");
+    }catch(error){
+      console.error("PAYMENT VERIFICATION ERROR:",error);
+      alert("Payment status update nahi hua: "+(error.code||"unknown")+" - "+error.message);
+      paymentButton.disabled=false;
+    }
+    return;
+  }
 
   const assignButton=
     event.target.closest("button[data-assign]");
