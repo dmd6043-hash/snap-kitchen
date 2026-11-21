@@ -1031,7 +1031,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-zaika-ai3"></script>
+<script type="module" src="./app.js?v=20261121-zaika-ai4"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
@@ -1117,8 +1117,8 @@ if ("serviceWorker" in navigator) {
     if(/delivery|deliver|address|डिलीवरी/.test(s))return "Delivery address checkout ke dauran enter karein. Delivery issue ke liye Support 8319014718 par sampark karein.";
     return "Main abhi basic help de sakti hoon. Order tracking, payment, cancellation, restaurant, menu ya customer support ke baare mein poochhiye.";
   }
-  function speak(text){if(!("speechSynthesis"in window))return;window.speechSynthesis.cancel();const utterance=new SpeechSynthesisUtterance(text);utterance.lang="hi-IN";utterance.rate=.96;utterance.pitch=1.08;const voices=window.speechSynthesis.getVoices(),hindi=voices.filter(v=>/^hi(-|_)/i.test(v.lang));const preferred=hindi.find(v=>/female|woman|heera|kalpana/i.test(v.name))||hindi[0];if(preferred)utterance.voice=preferred;window.speechSynthesis.speak(utterance);}
-  function respond(q){const clean=String(q||"").trim();if(!clean)return;addMessage(clean,"user");const reply=answerFor(clean);addMessage(reply,"bot");speak(reply);}
+  function speak(text){/* Text-only assistant: replies are never spoken aloud. */}
+  function respond(q){const clean=String(q||"").trim();if(!clean)return;addMessage(clean,"user");const reply=answerFor(clean);addMessage(reply,"bot");}
   openBtn.addEventListener("click",()=>{panel.classList.add("open");input.focus();});
   closeBtn.addEventListener("click",()=>{panel.classList.remove("open");if("speechSynthesis"in window)window.speechSynthesis.cancel();});
   form.addEventListener("submit",e=>{e.preventDefault();respond(input.value);input.value="";});
