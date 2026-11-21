@@ -1006,9 +1006,16 @@
       <p style="font-size:11px;color:#b4a69a;margin-top:12px">Guest checkout pehle ki tarah available rahega.</p>
     </div>
     <div id="accountSignedIn" class="track-card" hidden>
-      <h3>Account connected ✅</h3>
+      <h3>My Profile 👤</h3>
       <p>Account: <strong id="accountPhone"></strong></p>
-      <button class="primary-btn" id="accountLogout" type="button">Logout</button>
+      <label for="profileName">Your Name</label>
+      <input class="field" id="profileName" type="text" placeholder="Apna naam" autocomplete="name">
+      <label for="profileMobile">Mobile Number</label>
+      <input class="field" id="profileMobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
+      <label for="profileAddress">Saved Delivery Address</label>
+      <textarea class="field" id="profileAddress" rows="3" placeholder="Apna delivery address"></textarea>
+      <button class="primary-btn" id="saveCustomerProfile" type="button" style="width:100%;margin-top:12px">Save Profile</button>
+      <button class="primary-btn" id="accountLogout" type="button" style="width:100%;margin-top:10px;background:#30251c;border:1px solid #ff8a35">Logout</button>
     </div>
     <p id="accountStatus" class="screen-subtitle">Login karein ya naya account banayein.</p>
   </main>
