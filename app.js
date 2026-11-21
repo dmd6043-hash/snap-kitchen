@@ -328,7 +328,6 @@ function renderRestaurants() {
         <h3>${escapeHTML(restaurant.name || restaurant.Name || "Restaurant")}</h3>
         <p>${escapeHTML(restaurant.description || restaurant.Description || "Fresh food and local favourites")}</p>
         <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
-        ${restaurant.phone || restaurant.mobile || restaurant.phoneNumber ? '<small>📞 ' + escapeHTML(restaurant.phone || restaurant.mobile || restaurant.phoneNumber) + '</small>' : ""}
         ${
           (restaurant.foodCategory || (restaurant.isPureVeg === true || restaurant.isPureVeg === "true" ? "Veg Only" : ""))
             ? '<span class="veg-label">' + escapeHTML(restaurant.foodCategory || "PURE VEG").toUpperCase() + '</span>'
