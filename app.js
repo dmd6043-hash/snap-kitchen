@@ -927,7 +927,7 @@ async function createCheckoutForm() {
         <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
         <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
         <button type="button" id="copyCheckoutUpi" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">COPY UPI ID</button>
-        <button type="button" id="openUpiApp" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#29211b!important;color:#ffffff!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">PAY VIA UPI APP</button>
+        <button type="button" id="openUpiApp" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#29211b!important;color:#ffffff!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">PAY</button>
         <label for="paymentUtr" style="display:block;margin-top:12px;">UPI Transaction ID</label>
         <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad Transaction ID enter karein" autocomplete="off">
         <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
