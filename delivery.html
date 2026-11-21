@@ -210,6 +210,13 @@ Location sharing abhi band hai.
 
 </div>
 
+<div class="gps" style="margin-top:12px;">
+<strong>DELIVERY AVAILABILITY</strong>
+<p id="availabilityMessage" class="muted">Aap abhi offline hain. Online hone par hi aapko nearby orders ke liye eligible maana jayega.</p>
+<button id="goOnlineBtn" class="green" type="button">GO ONLINE</button>
+<button id="goOfflineBtn" class="blue" type="button" disabled>GO OFFLINE</button>
+</div>
+
 <button id="logoutBtn" class="blue">
 LOGOUT
 </button>
@@ -335,6 +342,9 @@ let activeTrackingKey = null;
 let activeTrackingOrderId = null;
 
 let authCheckVersion = 0;
+let availabilityWatchId = null;
+let availabilityUserId = null;
+let availabilityBusy = false;
 
 
 // ===================================
@@ -695,6 +705,98 @@ timeout:20000
 
 
 // ===================================
+// DELIVERY PARTNER ONLINE / OFFLINE PRESENCE
+// GPS is shared only while the partner explicitly chooses GO ONLINE.
+// ===================================
+const availabilityMessage = document.getElementById("availabilityMessage");
+const goOnlineBtn = document.getElementById("goOnlineBtn");
+const goOfflineBtn = document.getElementById("goOfflineBtn");
+
+function setAvailabilityUI(isOnline, messageText){
+  goOnlineBtn.disabled = isOnline;
+  goOfflineBtn.disabled = !isOnline;
+  availabilityMessage.textContent = messageText;
+}
+
+function stopAvailabilityGPS(){
+  if(availabilityWatchId !== null){
+    navigator.geolocation.clearWatch(availabilityWatchId);
+    availabilityWatchId = null;
+  }
+}
+
+async function goOffline(){
+  stopAvailabilityGPS();
+  const uid = availabilityUserId;
+  availabilityUserId = null;
+  setAvailabilityUI(false, "Aap offline hain. Aapki live location share nahi ho rahi.");
+  if(uid){
+    try{
+      await setDoc(doc(db,"deliveryAvailability",uid),{
+        deliveryPartnerId:uid,
+        isOnline:false,
+        updatedAt:serverTimestamp()
+      },{merge:true});
+    }catch(error){
+      console.error("Availability offline update error:",error);
+      availabilityMessage.textContent = "Offline status save nahi hua: "+(error.code || error.message);
+    }
+  }
+}
+
+function goOnline(){
+  if(!auth.currentUser || availabilityBusy || availabilityWatchId !== null) return;
+  if(!navigator.geolocation){
+    availabilityMessage.textContent = "Is phone/browser mein GPS support nahi hai.";
+    return;
+  }
+  availabilityBusy = true;
+  availabilityMessage.textContent = "GPS permission ka wait ho raha hai...";
+  navigator.geolocation.getCurrentPosition(async(position)=>{
+    const uid = auth.currentUser?.uid;
+    if(!uid){ availabilityBusy=false; return; }
+    availabilityUserId = uid;
+    const savePosition = async(pos)=>{
+      if(availabilityUserId !== uid) return;
+      try{
+        await setDoc(doc(db,"deliveryAvailability",uid),{
+          deliveryPartnerId:uid,
+          isOnline:true,
+          latitude:pos.coords.latitude,
+          longitude:pos.coords.longitude,
+          accuracy:pos.coords.accuracy,
+          updatedAt:serverTimestamp()
+        },{merge:true});
+        setAvailabilityUI(true,"🟢 Aap ONLINE hain. GPS live update ho raha hai. Accuracy: "+Math.round(pos.coords.accuracy)+" m");
+      }catch(error){
+        console.error("Availability GPS save error:",error);
+        availabilityMessage.textContent = "GPS save nahi hua: "+(error.code || error.message)+" — Firestore rules update zaroori hai.";
+        stopAvailabilityGPS();
+        availabilityUserId=null;
+        setAvailabilityUI(false,availabilityMessage.textContent);
+      }
+    };
+    await savePosition(position);
+    if(availabilityUserId === uid){
+      availabilityWatchId = navigator.geolocation.watchPosition(savePosition,(error)=>{
+        console.error("Availability watch error:",error);
+        availabilityMessage.textContent = "GPS error: "+error.message;
+        goOffline();
+      },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+    }
+    availabilityBusy=false;
+  },(error)=>{
+    availabilityBusy=false;
+    availabilityMessage.textContent = error.code===1
+      ? "Location permission allow kijiye, tabhi online ho sakte hain."
+      : "GPS location nahi mil paayi: "+error.message;
+  },{enableHighAccuracy:true,maximumAge:5000,timeout:20000});
+}
+
+goOnlineBtn.addEventListener("click",goOnline);
+goOfflineBtn.addEventListener("click",goOffline);
+
+// ===================================
 // LOGIN
 // ===================================
 
@@ -790,6 +892,8 @@ document.getElementById("logoutBtn")
 
 
 stopLocationSharing();
+
+await goOffline();
 
 stopOrdersListener();
 
@@ -1444,6 +1548,7 @@ stopOrdersListener();
 
 stopLocationSharing();
 
+await goOffline();
 
 ordersDiv.innerHTML = "";
 
