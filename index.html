@@ -647,6 +647,35 @@
     .support-whatsapp{border:1px solid #3acb82;background:#153b2a;color:#a8f4cb}
     @media(prefers-reduced-motion:reduce){.support-profile-trigger:before,.support-profile-avatar{animation:none!important}.support-profile-card,.support-profile-backdrop{transition:none!important}}
 
+
+    /* PREMIUM SCREEN AND RESTAURANT EXPERIENCE */
+    .screen.active{animation:zbScreenEnter .34s cubic-bezier(.2,.8,.2,1) both}
+    @keyframes zbScreenEnter{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .home-restaurant-section{margin:24px 0 18px;padding:17px 14px;border:1px solid rgba(255,157,83,.20);border-radius:24px;background:linear-gradient(155deg,rgba(61,37,23,.72),rgba(24,18,14,.88));box-shadow:0 12px 34px #0004}
+    .home-restaurant-section .section-head{margin:0 0 10px}
+    .home-section-tag{align-self:center;padding:6px 9px;border:1px solid #ff9b4a44;border-radius:99px;color:#ffc18e;font-size:9px;font-weight:900;letter-spacing:1px}
+    #restaurants .search-wrap{margin:10px 0}
+    #restaurantGrid{gap:13px}
+    .restaurant-card{position:relative!important;min-height:112px!important;padding:15px!important;gap:13px!important;align-items:center!important;border:1px solid rgba(255,157,83,.18)!important;border-radius:19px!important;background:linear-gradient(140deg,#2a2018,#191410)!important;color:#fffaf5!important;box-shadow:0 8px 22px #0003!important;transition:transform .22s,border-color .22s,box-shadow .22s!important;animation:zbCardIn .36s ease both}
+    .restaurant-card:active{transform:scale(.985)!important}
+    @keyframes zbCardIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
+    .restaurant-emoji{width:66px!important;height:66px!important;flex:0 0 66px!important;display:grid!important;place-items:center!important;border-radius:17px!important;background:radial-gradient(circle at 35% 25%,#ffbd8055,#6a381e)!important;font-size:32px!important}
+    .restaurant-info{min-width:0!important;flex:1}
+    .restaurant-info h3{margin:0 0 5px!important;font:800 16px 'Outfit',sans-serif!important;color:#fffaf5!important}
+    .restaurant-info p{margin:0 0 5px!important;color:#cbb8a6!important;font-size:11px!important;line-height:1.4!important}
+    .restaurant-info small{color:#a99584!important;font-size:10px!important}
+    .restaurant-info .veg-label{display:inline-block!important;margin:7px 5px 0 0!important;padding:4px 7px!important;border:1px solid #4cdb9b55!important;border-radius:7px!important;background:#17442f!important;color:#9cf0c2!important;font-size:9px!important;font-weight:900!important}
+    .home-restaurant-section #restaurantStatus{color:#cbb8a6;font-size:12px}
+    .home-restaurant-section .restaurant-filter-row{padding:7px 0 12px}
+    .home-restaurant-section .restaurant-filter-btn{background:#211811}
+    .cart-sheet{box-shadow:0 -18px 60px #0009!important}
+    #cart .cart-item{padding:15px 12px!important;margin:7px 0!important;border:1px solid #ff9b4a20!important;border-radius:15px!important;background:#241b14!important}
+    #checkoutForm,.checkout-form{animation:zbCardIn .3s ease both}
+    .track-card,.reward-hero,.feature,.promo{transition:transform .22s ease,box-shadow .22s ease}
+    .track-card:active,.feature:active,.home-category:active{transform:scale(.99)}
+    button,a{ -webkit-tap-highlight-color:transparent }
+    @media(prefers-reduced-motion:reduce){.screen.active,.restaurant-card,#checkoutForm,.checkout-form{animation:none!important}}
+
 </style>
 </head>
 
@@ -668,9 +697,6 @@
     <div style="display:flex;align-items:center;gap:8px">
       <button type="button" class="support-profile-trigger" id="supportProfileOpen" aria-label="Open customer support profile" title="Customer Support"><span class="support-headset">🎧</span><i></i></button>
       <button class="top-cart" id="accountButton" aria-label="Login or account" style="font-size:18px">👤</button>
-      <button class="top-cart" id="openCart" aria-label="Open cart">
-        🛒
-      </button>
     </div>
   </header>
 
@@ -749,6 +775,28 @@
         <small>Explore food</small>
       </button>
     </div>
+    <section class="home-restaurant-section">
+      <div class="section-head">
+        <div><h2>Popular Restaurants</h2><p>Discover local favourites near you</p></div>
+        <span class="home-section-tag">NEAR YOU</span>
+      </div>
+      <div id="restaurants">
+      <div class="search-wrap">
+        <span>⌕</span>
+        <input id="restaurantSearch" type="search" placeholder="Find restaurants..." autocomplete="off">
+      </div>
+
+      <div class="restaurant-filter-row" role="group" aria-label="Filter restaurants by food category">
+        <button type="button" class="restaurant-filter-btn active" data-restaurant-filter="All" aria-pressed="true">All</button>
+        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Veg" aria-pressed="false">Veg</button>
+        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Non-Veg" aria-pressed="false">Non-Veg</button>
+      </div>
+
+      <div id="restaurantStatus">Loading restaurants...</div>
+      <div id="restaurantGrid"></div>
+    </div>
+    </section>
+
 
     <div class="promo">
       <div>
@@ -772,22 +820,6 @@
     <div class="eyebrow">Discover local flavours</div>
     <h1 class="screen-title">Explore Food 🍴</h1>
     <p class="screen-subtitle">Choose your favourite restaurant and discover its menu.</p>
-
-    <div id="restaurants">
-      <div class="search-wrap">
-        <span>⌕</span>
-        <input id="restaurantSearch" type="search" placeholder="Find restaurants..." autocomplete="off">
-      </div>
-
-      <div class="restaurant-filter-row" role="group" aria-label="Filter restaurants by food category">
-        <button type="button" class="restaurant-filter-btn active" data-restaurant-filter="All" aria-pressed="true">All</button>
-        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Veg" aria-pressed="false">Veg</button>
-        <button type="button" class="restaurant-filter-btn" data-restaurant-filter="Non-Veg" aria-pressed="false">Non-Veg</button>
-      </div>
-
-      <div id="restaurantStatus">Loading restaurants...</div>
-      <div id="restaurantGrid"></div>
-    </div>
 
     <div id="menu">
       <button class="back-btn" id="backRestaurants">← All Restaurants</button>
@@ -1027,7 +1059,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-zaika-ai6"></script>
+<script type="module" src="./app.js?v=20261121-customer-refresh1"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
