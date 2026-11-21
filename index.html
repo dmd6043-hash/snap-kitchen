@@ -744,19 +744,27 @@
     @media(prefers-reduced-motion:reduce){.home-category,.promo-icon,.hero:after{animation:none!important}}
 
   
-    /* SIMPLE HERO: one white parcel box; foods orbit out one at a time */
+    /* HERO: dramatic single-box pop-open and simultaneous food burst */
     .hero:after{content:none!important}
     .hero-box-scene{position:absolute;z-index:1;right:1%;bottom:0;width:54%;height:230px;pointer-events:none;isolation:isolate}
-    .hero-box{position:absolute;left:17%;bottom:18px;width:66%;height:120px;filter:drop-shadow(0 13px 10px rgba(0,0,0,.28));}
-    .box-body{position:absolute;left:0;right:0;bottom:0;height:105px;background:linear-gradient(145deg,#fff 0%,#f1f2f4 48%,#cfd3d9 100%);clip-path:polygon(0 18%,70% 0,100% 20%,100% 80%,30% 100%,0 80%);border:0;z-index:2}
+    .hero-box{position:absolute;left:17%;bottom:18px;width:66%;height:120px;filter:drop-shadow(0 13px 10px rgba(0,0,0,.28));animation:zb-box-shake 4.8s ease-in-out infinite}
+    .box-body{position:absolute;left:0;right:0;bottom:0;height:105px;background:linear-gradient(145deg,#fff 0%,#f1f2f4 48%,#cfd3d9 100%);clip-path:polygon(0 18%,70% 0,100% 20%,100% 80%,30% 100%,0 80%);z-index:2}
     .box-mouth{position:absolute;left:5%;top:10px;width:90%;height:55px;background:linear-gradient(145deg,#333840,#171a20);clip-path:polygon(0 25%,70% 0,100% 25%,30% 100%);z-index:1}
-    .box-lid{position:absolute;left:4%;top:0;width:92%;height:59px;background:linear-gradient(145deg,#fff,#e5e7eb);border:2px solid #c9cdd3;clip-path:polygon(0 25%,70% 0,100% 25%,30% 100%);transform-origin:15% 85%;transform:rotateX(0);z-index:4;animation:zb-simple-lid 4.8s cubic-bezier(.2,.75,.25,1) infinite;box-shadow:inset 0 0 0 1px #fff}
-    .hero-food{position:absolute;z-index:5;font-size:clamp(27px,7vw,39px);opacity:0;filter:drop-shadow(0 5px 5px rgba(0,0,0,.28));animation:zb-food-orbit 4.8s ease-in-out infinite}
-    .food-burger{left:43%;top:36px;animation-delay:.55s}.food-pizza{left:43%;top:36px;animation-delay:1.35s}.food-fries{left:43%;top:36px;animation-delay:2.15s}.food-momos{left:43%;top:36px;animation-delay:2.95s}
-    @keyframes zb-simple-lid{0%,13%,88%,100%{transform:rotateX(0) translateY(0)}28%,76%{transform:rotateX(-125deg) translateY(-9px)}}
-    @keyframes zb-food-orbit{0%,10%,100%{opacity:0;transform:translate(0,28px) scale(.35) rotate(0)}14%{opacity:1;transform:translate(0,-5px) scale(.8) rotate(45deg)}22%,34%{opacity:1;transform:translate(54px,-30px) scale(1) rotate(180deg)}42%{opacity:0;transform:translate(90px,4px) scale(.65) rotate(300deg)}}
-    @media(max-width:420px){.hero-box-scene{right:-2%;width:57%;height:205px}.hero-box{left:14%;width:72%;height:108px}.box-body{height:94px}.box-lid{height:52px}.hero-food{font-size:31px}.hero h1,.hero p{max-width:48%}}
-    @media(prefers-reduced-motion:reduce){.box-lid,.hero-food{animation:none!important}.box-lid{transform:rotateX(-110deg)}.hero-food{opacity:1}}
+    .box-lid{position:absolute;left:4%;top:0;width:92%;height:59px;background:linear-gradient(145deg,#fff,#e5e7eb);border:2px solid #c9cdd3;clip-path:polygon(0 25%,70% 0,100% 25%,30% 100%);transform-origin:15% 85%;z-index:6;animation:zb-dramatic-lid 4.8s cubic-bezier(.16,.85,.25,1) infinite;box-shadow:inset 0 0 0 1px #fff,0 5px 12px #0003}
+    .hero-box-scene:before{content:"";position:absolute;z-index:3;left:38%;top:26px;width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#fff 0 8%,#ffbd55 18%,#ff8a1d55 48%,transparent 72%);opacity:0;animation:zb-burst-flash 4.8s ease-out infinite}
+    .hero-box-scene:after{content:"";position:absolute;z-index:3;left:28%;top:20px;width:52%;height:110px;border:3px solid #ffb44a;border-radius:50%;opacity:0;transform:scale(.15) rotate(-15deg);filter:drop-shadow(0 0 9px #ff8b17);animation:zb-burst-ring 4.8s ease-out infinite}
+    .hero-food{position:absolute;z-index:8;font-size:clamp(31px,8vw,44px);opacity:0;filter:drop-shadow(0 7px 6px rgba(0,0,0,.38));transform-origin:center;animation:zb-food-burst 4.8s cubic-bezier(.12,.78,.22,1) infinite}
+    .food-burger{left:38%;top:45px;--dx:-72px;--dy:-90px;animation-delay:0s}
+    .food-pizza{left:40%;top:45px;--dx:65px;--dy:-96px;animation-delay:0s}
+    .food-fries{left:43%;top:45px;--dx:92px;--dy:-22px;animation-delay:0s}
+    .food-momos{left:38%;top:45px;--dx:-88px;--dy:-24px;animation-delay:0s}
+    @keyframes zb-dramatic-lid{0%,12%,88%,100%{transform:rotateX(0) translateY(0) scale(1)}20%{transform:rotateX(-18deg) translateY(-4px) scale(1.02)}34%,72%{transform:rotateX(-155deg) translateY(-26px) scale(1.04)}82%{transform:rotateX(-125deg) translateY(-12px)}}
+    @keyframes zb-box-shake{0%,12%,88%,100%{transform:translate(0,0) rotate(0)}15%{transform:translate(-2px,1px) rotate(-2deg)}18%{transform:translate(3px,-2px) rotate(2deg)}21%{transform:translate(-2px,1px) rotate(-1deg)}25%,76%{transform:translate(0,0) rotate(0)}}
+    @keyframes zb-burst-flash{0%,18%,100%{opacity:0;transform:scale(.2)}24%{opacity:1;transform:scale(3.8)}38%{opacity:0;transform:scale(5.5)}}
+    @keyframes zb-burst-ring{0%,18%,100%{opacity:0;transform:scale(.15) rotate(-15deg)}25%{opacity:.95;transform:scale(.65) rotate(0)}46%{opacity:0;transform:scale(1.65) rotate(25deg)}}
+    @keyframes zb-food-burst{0%,18%,88%,100%{opacity:0;transform:translate(0,24px) scale(.18) rotate(-25deg)}23%{opacity:1;transform:translate(0,-8px) scale(.72) rotate(0)}42%,70%{opacity:1;transform:translate(var(--dx),var(--dy)) scale(1.08) rotate(360deg)}82%{opacity:0;transform:translate(calc(var(--dx)*1.12),calc(var(--dy)*1.12)) scale(.72) rotate(520deg)}}
+    @media(max-width:420px){.hero-box-scene{right:-2%;width:57%;height:205px}.hero-box{left:14%;width:72%;height:108px}.box-body{height:94px}.box-lid{height:52px}.hero-food{font-size:32px}.food-burger{--dx:-54px;--dy:-75px}.food-pizza{--dx:48px;--dy:-78px}.food-fries{--dx:62px;--dy:-12px}.food-momos{--dx:-62px;--dy:-12px}.hero h1,.hero p{max-width:48%}}
+    @media(prefers-reduced-motion:reduce){.box-lid,.hero-food,.hero-box,.hero-box-scene:before,.hero-box-scene:after{animation:none!important}.box-lid{transform:rotateX(-150deg)}.hero-food{opacity:1;transform:translateY(-50px)}}
 
 
   </style>
