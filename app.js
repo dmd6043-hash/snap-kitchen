@@ -153,7 +153,7 @@ $("profileGetLocation")?.addEventListener("click", () => {
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
-          if (data.display_name) addressText = data.display_name + "\\n" + mapLink;
+          if (data.display_name) addressText = data.display_name + "\n" + mapLink;
         }
       } catch (error) {
         console.log("Profile address lookup unavailable:", error);
