@@ -1072,7 +1072,7 @@
     <span id="total">₹0</span>
   </div>
 
-  <button type="button" id="checkout">
+  <button type="button" id="checkout" onclick="if(window.zaikaCheckoutClick){window.zaikaCheckoutClick()}else{alert('Checkout script load nahi hua. Page refresh kijiye.')}">
     Proceed to Checkout →
   </button>
 
@@ -1127,7 +1127,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261121-checkout-fix3"></script>
+<script type="module" src="./app.js?v=20261121-checkout-fix4"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
