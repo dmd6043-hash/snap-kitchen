@@ -126,6 +126,60 @@ $("saveCustomerProfile")?.addEventListener("click", async () => {
     showToast(error.message || "Profile save nahi ho payi.");
   }
 });
+$("profileGetLocation")?.addEventListener("click", () => {
+  const button = $("profileGetLocation");
+  const addressField = $("profileAddress");
+
+  if (!navigator.geolocation) {
+    showToast("Is device par location support nahi hai.");
+    return;
+  }
+
+  if (button) {
+    button.disabled = true;
+    button.textContent = "📍 Location mil rahi hai...";
+  }
+  showToast("Current location mil rahi hai...");
+
+  navigator.geolocation.getCurrentPosition(
+    async (position) => {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+      let addressText = mapLink;
+
+      try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
+        const response = await fetch(url);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.display_name) addressText = data.display_name + "\\n" + mapLink;
+        }
+      } catch (error) {
+        console.log("Profile address lookup unavailable:", error);
+      }
+
+      if (addressField) addressField.value = addressText;
+      if (button) {
+        button.disabled = false;
+        button.textContent = "📍 Use Current Location";
+      }
+      showToast("Location address mein add ho gayi. Save Profile dabayein.");
+    },
+    (error) => {
+      console.error("Profile GPS error:", error);
+      if (button) {
+        button.disabled = false;
+        button.textContent = "📍 Use Current Location";
+      }
+      showToast(error.code === 1
+        ? "Location permission allow kijiye."
+        : "Location nahi mil paayi. Dobara try kijiye.");
+    },
+    { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+  );
+});
+
 $("accountButton")?.addEventListener("click", () => window.zaikaGo?.("account"));
 
 $("accountRegister")?.addEventListener("click", async () => {
