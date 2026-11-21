@@ -216,7 +216,15 @@ $("enableNotifications").addEventListener("click",requestPaymentNotifications);
 function startPaymentReminderTimer(){
   if(paymentReminderTimer)clearInterval(paymentReminderTimer);
   paymentReminderTimer=setInterval(()=>{
-    currentOrders.filter(isPaymentPending).forEach(order=>sendPaymentNotification(order,true));
+    const pending=currentOrders.filter(isPaymentPending);
+    if(pending.length){
+      $("paymentAlertText").textContent="⏰ REMINDER: "+pending.length+" payment(s) abhi verify nahi hue. Order card par Verify/Reject karein.";
+      $("paymentAlert").style.boxShadow="0 0 0 2px rgba(232,93,117,.35)";
+      pending.forEach(order=>sendPaymentNotification(order,true));
+    }else{
+      $("paymentAlertText").textContent="Koi pending payment nahi hai. Sab clear hai.";
+      $("paymentAlert").style.boxShadow="none";
+    }
   },60000);
 }
 
