@@ -923,17 +923,17 @@ async function createCheckoutForm() {
         <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
         <button type="button" id="copyCheckoutUpi" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">COPY UPI ID</button>
         <button type="button" id="openUpiApp" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#29211b!important;color:#ffffff!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">PAY VIA UPI APP</button>
-        <label for="paymentUtr" style="display:block;margin-top:12px;">UPI UTR / Transaction ID</label>
-        <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad UTR enter karein" autocomplete="off">
+        <label for="paymentUtr" style="display:block;margin-top:12px;">UPI Transaction ID</label>
+        <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad Transaction ID enter karein" autocomplete="off">
         <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
           <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
           Maine UPI app mein payment complete kar diya hai.
         </label>
-        <p style="font-size:12px;color:#ffbd87;">Payment UTR admin verify karne ke baad confirm hoga.</p>
+        <p style="font-size:12px;color:#ffbd87;">Payment Transaction ID admin verify karne ke baad confirm hoga.</p>
       </div>
       <div id="codPaymentDetails" style="display:none;padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
         <strong>Cash on Delivery selected</strong>
-        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Abhi online payment ya UTR ki zaroorat nahi hai.</p>
+        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Abhi online payment ya Transaction ID ki zaroorat nahi hai.</p>
       </div>
       <button type="button" id="placeOrder" style="display:block;width:100%;min-height:50px;margin-top:14px;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:900;font-size:15px;">I HAVE PAID</button>
     </div>
@@ -1115,7 +1115,7 @@ function renderTrackingStatus(data) {
     result.innerHTML = `
       <div class="tracking-status">
         <h3>${status === "Payment Pending" ? "⏳ Payment Verification Pending" : "❌ Payment Verification Failed"}</h3>
-        <p>${status === "Payment Pending" ? "Aapka UPI payment reference admin verify kar raha hai. Payment confirm hone ke baad restaurant ko order milega." : "Payment verify nahi ho paaya. UTR aur payment details check karke support se sampark karein."}</p>
+        <p>${status === "Payment Pending" ? "Aapka UPI payment reference admin verify kar raha hai. Payment confirm hone ke baad restaurant ko order milega." : "Payment verify nahi ho paaya. Transaction ID aur payment details check karke support se sampark karein."}</p>
         <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
         <p><strong>Status:</strong> ${escapeHTML(status)}</p>
       </div>
@@ -1482,7 +1482,7 @@ async function placeOrder() {
   const paymentMethod = $("paymentMethod")?.value || "UPI";
   const utr = $("paymentUtr")?.value.trim() || "";
   if (paymentMethod === "UPI" && !/^[A-Za-z0-9]{6,30}$/.test(utr)) {
-    showToast("Valid UTR / Transaction ID enter kijiye (6–30 characters).");
+    showToast("Valid Transaction ID enter kijiye (6–30 characters).");
     $("paymentUtr")?.focus();
     return;
   }
@@ -1579,7 +1579,7 @@ async function placeOrder() {
     message += paymentMethod === "UPI"
       ? "Payment: UPI — Pending Verification\n"
       : "Payment: Cash on Delivery (COD)\n";
-    if (paymentMethod === "UPI") message += `UTR: ${utr}\n`;
+    if (paymentMethod === "UPI") message += `Transaction ID: ${utr}\n`;
 
     if (orderType === "Home Delivery") {
       message += `Address: ${address}\n`;
