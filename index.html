@@ -589,7 +589,29 @@
         transition-duration:.01ms !important;
       }
     }
-  </style>
+  
+    /* ZAIKA AI ASSISTANT */
+    .zaika-ai-launcher{position:fixed;right:16px;bottom:88px;z-index:1200;border:0;border-radius:999px;padding:12px 17px;background:linear-gradient(135deg,#ffad62,#ed681f);color:#20140d;font-weight:900;box-shadow:0 8px 28px #0008;cursor:pointer}
+    .zaika-ai-panel{position:fixed;right:12px;bottom:145px;width:min(360px,calc(100vw - 24px));height:min(520px,calc(100dvh - 175px));z-index:1201;display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(255,166,94,.35);border-radius:22px;background:#171411;color:#fffaf5;box-shadow:0 18px 55px #000b}
+    .zaika-ai-panel.open{display:flex}
+    .zaika-ai-head{display:flex;align-items:center;gap:10px;padding:14px;background:linear-gradient(135deg,#392317,#211710);border-bottom:1px solid #ffffff18}
+    .zaika-ai-avatar{width:40px;height:40px;display:grid;place-items:center;border-radius:50%;background:#ff9b4a;color:#24160d;font-size:22px}
+    .zaika-ai-head strong{display:block}.zaika-ai-head small{color:#d6bba5}
+    .zaika-ai-close{margin-left:auto;border:0;background:#ffffff16;color:white;border-radius:50%;width:34px;height:34px;font-size:21px}
+    .zaika-ai-messages{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:10px}
+    .zaika-ai-msg{max-width:88%;padding:10px 12px;border-radius:15px;font-size:13px;line-height:1.45;white-space:pre-wrap}
+    .zaika-ai-msg.bot{align-self:flex-start;background:#30251d;color:#fff4e9;border-bottom-left-radius:4px}
+    .zaika-ai-msg.user{align-self:flex-end;background:#ed873b;color:#1e120b;border-bottom-right-radius:4px}
+    .zaika-ai-quick{display:flex;gap:7px;overflow:auto;padding:0 12px 10px}
+    .zaika-ai-quick button{white-space:nowrap;border:1px solid #a66b3e;background:#241b15;color:#ffd2ad;border-radius:18px;padding:7px 10px;font-size:11px}
+    .zaika-ai-compose{display:flex;gap:7px;padding:10px;border-top:1px solid #ffffff18;background:#211a15}
+    .zaika-ai-compose input{min-width:0;flex:1;border:1px solid #59402d;border-radius:22px;background:#100e0c;color:white;padding:11px 13px;outline:none}
+    .zaika-ai-compose button{width:40px;height:40px;border:0;border-radius:50%;background:#ff9b4a;color:#21140c;font-size:17px;font-weight:900}
+    .zaika-ai-compose button.voice{background:#315b43;color:#fff}
+    .zaika-ai-note{padding:0 13px 9px;color:#a99584;font-size:10px;background:#211a15}
+    @media(max-width:420px){.zaika-ai-panel{right:8px;bottom:138px;width:calc(100vw - 16px);height:min(520px,calc(100dvh - 165px))}.zaika-ai-launcher{right:12px;bottom:82px}}
+
+</style>
 </head>
 
 <body>
@@ -971,10 +993,36 @@
 
 </div>
 
+
+<!-- ZAIKA AI CUSTOMER ASSISTANT -->
+<button type="button" class="zaika-ai-launcher" id="zaikaAiOpen" aria-label="Open Zaika AI">✨ Ask Zaika AI</button>
+<section class="zaika-ai-panel" id="zaikaAiPanel" role="dialog" aria-label="Zaika AI Assistant" aria-modal="false">
+  <div class="zaika-ai-head">
+    <div class="zaika-ai-avatar">🤖</div>
+    <div><strong>Zaika AI</strong><small>Food & Customer Assistant</small></div>
+    <button type="button" class="zaika-ai-close" id="zaikaAiClose" aria-label="Close assistant">×</button>
+  </div>
+  <div class="zaika-ai-messages" id="zaikaAiMessages" aria-live="polite">
+    <div class="zaika-ai-msg bot">Namaste! 👋 Main Zaika AI hoon. Aapko order, restaurant, menu ya support mein kis cheez ki madad chahiye?</div>
+  </div>
+  <div class="zaika-ai-quick">
+    <button type="button" data-ai-prompt="Mera order kaise track karun?">Track order</button>
+    <button type="button" data-ai-prompt="Payment problem hai">Payment help</button>
+    <button type="button" data-ai-prompt="Customer support chahiye">Customer support</button>
+    <button type="button" data-ai-prompt="Restaurant kaise dhoondhun?">Find restaurant</button>
+  </div>
+  <form class="zaika-ai-compose" id="zaikaAiForm">
+    <button type="button" class="voice" id="zaikaAiMic" aria-label="Speak to Zaika AI">🎙</button>
+    <input id="zaikaAiInput" type="text" placeholder="Yahan likhein ya mic dabayein..." autocomplete="off" aria-label="Message Zaika AI">
+    <button type="submit" aria-label="Send message">➤</button>
+  </form>
+  <div class="zaika-ai-note">Basic assistant · Microphone permission is optional · AI abhi live order data access nahi karti</div>
+</section>
+
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261120-wallet-account2"></script>
+<script type="module" src="./app.js?v=20261121-zaika-ai1"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
@@ -1040,6 +1088,87 @@ if ("serviceWorker" in navigator) {
       });
   });
 }
+</script>
+
+
+<!-- ZAIKA AI BASIC CHAT + SPEECH -->
+<script>
+(function(){
+  const panel=document.getElementById("zaikaAiPanel");
+  const openBtn=document.getElementById("zaikaAiOpen");
+  const closeBtn=document.getElementById("zaikaAiClose");
+  const messages=document.getElementById("zaikaAiMessages");
+  const form=document.getElementById("zaikaAiForm");
+  const input=document.getElementById("zaikaAiInput");
+  const mic=document.getElementById("zaikaAiMic");
+  if(!panel||!openBtn||!messages||!form||!input||!mic)return;
+  function addMessage(text,who){
+    const el=document.createElement("div");
+    el.className="zaika-ai-msg "+who;
+    el.textContent=text;
+    messages.appendChild(el);
+    messages.scrollTop=messages.scrollHeight;
+  }
+  function answerFor(q){
+    const s=q.toLowerCase();
+    if(/track|tracking|order status|mera order|ऑर्डर/.test(s))
+      return "Aap apna order Track screen par Order ID aur Tracking Code daalkar check kar sakte hain. Tracking details order place karne ke baad milti hain. Main abhi aapka live order record nahi dekh sakti.";
+    if(/payment|upi|utr|पैमेंट|पेमेंट/.test(s))
+      return "Payment ke liye checkout par diye gaye instructions follow karein. UTR sirf payment reference hai, payment confirmation nahi. Agar dikkat ho to ZaikaBox Support se baat karein.";
+    if(/cancel|refund|रिफंड/.test(s))
+      return "Order cancel ya refund ke liye ZaikaBox Support se sampark karein. Main bina order verify kiye cancellation ya refund confirm nahi kar sakti.";
+    if(/restaurant|hotel|खाना|food|menu|मेन्यू/.test(s))
+      return "Explore Food section kholiye. Wahan restaurants ko search kar sakte hain aur Veg / Non-Veg filter bhi use kar sakte hain.";
+    if(/support|help|complaint|शिकायत/.test(s))
+      return "ZaikaBox Support: 8319014718. Aap Call ya WhatsApp kar sakte hain.\nCall: tel:+918319014718\nWhatsApp: https://wa.me/918319014718";
+    if(/hello|hi|namaste|नमस्ते/.test(s))
+      return "Namaste! 😊 Main Zaika AI hoon. Order tracking, payment help, restaurants aur menu ke baare mein poochhiye.";
+    if(/delivery|deliver|address|डिलीवरी/.test(s))
+      return "Delivery details checkout ke dauran enter karein. Delivery area ya order-specific issue ke liye Support 8319014718 par sampark karein.";
+    return "Main abhi basic customer help de sakti hoon. Aap order tracking, payment, cancellation, restaurant, menu ya customer support ke baare mein poochh sakte hain. Zaroorat par 8319014718 par Support se baat karein.";
+  }
+  function speak(text){
+    if(!("speechSynthesis" in window))return;
+    window.speechSynthesis.cancel();
+    const clean=text.replace(/https?:\/\/\S+/g,"").replace(/tel:\S+/g,"");
+    const utterance=new SpeechSynthesisUtterance(clean);
+    utterance.lang="hi-IN";
+    const voices=window.speechSynthesis.getVoices();
+    const hindi=voices.filter(v=>/^hi(-|_)/i.test(v.lang));
+    const preferred=hindi.find(v=>/female|woman|zira|heera|kalpana/i.test(v.name))||hindi[0];
+    if(preferred)utterance.voice=preferred;
+    utterance.rate=0.96;
+    utterance.pitch=1.08;
+    window.speechSynthesis.speak(utterance);
+  }
+  function send(text){
+    const q=String(text||"").trim();
+    if(!q)return;
+    addMessage(q,"user");
+    const reply=answerFor(q);
+    addMessage(reply,"bot");
+    speak(reply);
+  }
+  openBtn.addEventListener("click",()=>{panel.classList.add("open");input.focus();});
+  closeBtn.addEventListener("click",()=>panel.classList.remove("open"));
+  form.addEventListener("submit",e=>{e.preventDefault();send(input.value);input.value="";});
+  panel.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>send(btn.dataset.aiPrompt)));
+  const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!SpeechRecognition){
+    mic.addEventListener("click",()=>addMessage("Is browser mein voice input support nahi hai. Aap message type kar sakte hain.","bot"));
+  }else{
+    const recognition=new SpeechRecognition();
+    recognition.lang="hi-IN";
+    recognition.interimResults=false;
+    recognition.maxAlternatives=1;
+    mic.addEventListener("click",()=>{
+      try{recognition.start();mic.textContent="…";}catch(e){addMessage("Microphone abhi busy hai. Dobara try karein.","bot");}
+    });
+    recognition.onresult=e=>{input.value=e.results[0][0].transcript;send(input.value);input.value="";};
+    recognition.onerror=()=>addMessage("Voice input nahi chal paya. Microphone permission check karein ya type karein.","bot");
+    recognition.onend=()=>{mic.textContent="🎙";};
+  }
+})();
 </script>
 
 </body>
