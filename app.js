@@ -57,7 +57,7 @@ function normalizeAccountPhone(rawPhone) {
   return phone;
 }
 
-let customerProfile = { name: "", phone: "", address: "" };
+let customerProfile = { name: "", phone: "", address: "", mapLink: "" };
 const CUSTOMER_PROFILE_STORAGE_KEY = "zaikabox_customer_profile_v1";
 
 function readSavedCustomerProfile() {
@@ -66,10 +66,11 @@ function readSavedCustomerProfile() {
     customerProfile = {
       name: String(saved.name || ""),
       phone: String(saved.phone || ""),
-      address: String(saved.address || "")
+      address: String(saved.address || ""),
+      mapLink: String(saved.mapLink || "")
     };
   } catch (error) {
-    customerProfile = { name: "", phone: "", address: "" };
+    customerProfile = { name: "", phone: "", address: "", mapLink: "" };
   }
 }
 readSavedCustomerProfile();
@@ -97,7 +98,8 @@ async function updateAccountUI(user) {
         customerProfile = {
           name: String(data.name || ""),
           phone: String(data.phone || ""),
-          address: String(data.address || "")
+          address: String(data.address || ""),
+          mapLink: customerProfile.mapLink || ""
         };
         localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
       }
@@ -118,7 +120,7 @@ $("saveCustomerProfile")?.addEventListener("click", async () => {
     if (!name) throw new Error("Apna naam enter kijiye.");
     const profile = { name, phone, address, updatedAt: serverTimestamp() };
     await setDoc(doc(db, "customerProfiles", auth.currentUser.uid), profile, { merge: true });
-    customerProfile = { name, phone, address };
+    customerProfile = { name, phone, address, mapLink: customerProfile.mapLink || "" };
     localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
     fillProfileFields();
     showToast("Profile save ho gayi.");
@@ -146,19 +148,20 @@ $("profileGetLocation")?.addEventListener("click", () => {
       const latitude = position.coords.latitude;
       const longitude = position.coords.longitude;
       const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-      let addressText = mapLink;
+      let addressText = "Current location";
 
       try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${latitude}&lon=${longitude}`;
         const response = await fetch(url);
         if (response.ok) {
           const data = await response.json();
-          if (data.display_name) addressText = data.display_name + "\n" + mapLink;
+          if (data.display_name) addressText = data.display_name;
         }
       } catch (error) {
         console.log("Profile address lookup unavailable:", error);
       }
 
+      customerProfile.mapLink = mapLink;
       if (addressField) addressField.value = addressText;
       if (button) {
         button.disabled = false;
@@ -1496,6 +1499,9 @@ async function placeOrder() {
       customerUid: auth.currentUser?.uid || null,
       orderType,
       address: orderType === "Home Delivery" ? address : "",
+      mapLink: orderType === "Home Delivery"
+        ? (userLocation ? `https://www.google.com/maps?q=${userLocation.latitude},${userLocation.longitude}` : (customerProfile.mapLink || ""))
+        : "",
       restaurantId: selectedRestaurant.id,
       restaurantName: selectedRestaurant.name || selectedRestaurant.Name || "Restaurant",
       items: orderItems,
@@ -1524,7 +1530,7 @@ async function placeOrder() {
     await batch.commit();
 
     // SAVE CUSTOMER DETAILS FOR THE NEXT CHECKOUT
-    customerProfile = { name, phone, address };
+    customerProfile = { name, phone, address, mapLink: userLocation ? `https://www.google.com/maps?q=${userLocation.latitude},${userLocation.longitude}` : (customerProfile.mapLink || "") };
     localStorage.setItem(CUSTOMER_PROFILE_STORAGE_KEY, JSON.stringify(customerProfile));
     try {
       await setDoc(doc(db, "customerProfiles", auth.currentUser.uid), {
