@@ -873,15 +873,7 @@ $("shade")?.addEventListener("click", (event) => {
 
 // CHECKOUT FORM
 async function createCheckoutForm() {
-  try {
-    const paymentSettings = await getDoc(doc(db, "platformSettings", "payments"));
-    if (paymentSettings.exists() && paymentSettings.data().upiId) {
-      activeUpiId = String(paymentSettings.data().upiId).trim();
-    }
-  } catch (error) {
-    console.warn("Using temporary default UPI ID:", error);
-    activeUpiId = DEFAULT_UPI_ID;
-  }
+  // Render checkout immediately; payment settings must not block the checkout screen.
   if ($("checkoutForm")) {
     $("checkoutForm").scrollIntoView({
       behavior: "smooth",
@@ -954,6 +946,20 @@ async function createCheckoutForm() {
   `;
 
   lines.appendChild(form);
+
+  // Load the restaurant/platform UPI ID in the background after checkout is visible.
+  getDoc(doc(db, "platformSettings", "payments")).then((paymentSettings) => {
+    if (paymentSettings.exists() && paymentSettings.data().upiId) {
+      activeUpiId = String(paymentSettings.data().upiId).trim();
+      const upiLabel = $("checkoutUpiId");
+      if (upiLabel) upiLabel.textContent = activeUpiId;
+      const qr = $("checkoutUpiQr");
+      if (qr) {
+        const qrPayload = `upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`;
+        qr.src = `https://api.qrserver.com/v1/create-qr-code/?size=260x260&margin=10&data=${encodeURIComponent(qrPayload)}`;
+      }
+    }
+  }).catch((error) => console.warn("Using default UPI ID:", error));
 
   $("orderType").addEventListener("change", () => {
     $("addressBox").style.display =
