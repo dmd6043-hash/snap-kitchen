@@ -884,6 +884,13 @@ $("checkout")?.addEventListener("click", () => {
     return;
   }
 
+  if (!auth.currentUser) {
+    closeCart();
+    window.zaikaGo?.("account");
+    showToast("Order place karne ke liye pehle login ya sign up karein.");
+    return;
+  }
+
   createCheckoutForm();
 });
 
