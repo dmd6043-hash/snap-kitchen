@@ -1424,9 +1424,9 @@ async function placeOrder() {
     message += `Mobile: ${phone}\n`;
     message += `Order Type: ${orderType}\n`;
     message += paymentMethod === "UPI"
-      ? "Payment: UPI — Pending Verification\\n"
-      : "Payment: Cash on Delivery (COD)\\n";
-    if (paymentMethod === "UPI") message += `UTR: ${utr}\\n`;
+      ? "Payment: UPI — Pending Verification\n"
+      : "Payment: Cash on Delivery (COD)\n";
+    if (paymentMethod === "UPI") message += `UTR: ${utr}\n`;
 
     if (orderType === "Home Delivery") {
       message += `Address: ${address}\n`;
