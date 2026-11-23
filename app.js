@@ -886,6 +886,8 @@ function openProductDetails(item) {
         .zb-slide-price{font-size:21px;font-weight:950;color:#ffad70;margin:7px 0 10px}
         .zb-slide-actions{display:flex;gap:10px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
         .zb-slide-actions button{flex:1;min-height:52px;border-radius:15px;font-weight:950;font-size:13px}
+        .zb-slide-actions .zb-qty-minus,.zb-slide-actions .zb-qty-plus{flex:0 0 44px;font-size:24px;background:#2b1d14;color:#fff;border:1px solid #ff963f}
+        .zb-slide-actions .zb-qty-value{display:grid;place-items:center;min-width:22px;color:#ffbd87;font-size:18px;font-weight:950}
         .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
         .zb-buy{background:linear-gradient(135deg,#ffc078,#ff7626);color:#1b1008;border:0;box-shadow:0 7px 25px #ff812955}
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
@@ -953,7 +955,6 @@ function openProductDetails(item) {
       const v=variants[Number(select.value)]||variants[0];
       return {...entry,price:Number(v.price),variantName:v.name,name:entry.name+" ("+v.name+")"};
     };
-    if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);});
     const actionHolder=slide.querySelector(".zb-slide-actions");
     const renderSlideActions=()=>{
       const chosen=getChosen();
