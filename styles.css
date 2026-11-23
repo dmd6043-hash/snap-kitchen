@@ -1244,7 +1244,7 @@ html, body {
 .product-card{padding:0!important;border-radius:19px!important;overflow:hidden!important;background:linear-gradient(155deg,#26201b,#14110f)!important;border:1px solid rgba(255,166,91,.20)!important;box-shadow:0 9px 24px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)!important;transition:transform .18s ease,border-color .18s ease}
 .product-card:active{transform:scale(.985)}
 .menu-photo-wrap{position:relative;width:100%;aspect-ratio:4/3;min-height:112px;max-height:190px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#49301f,#211811 72%);border-bottom:1px solid rgba(255,172,103,.14)}
-.menu-food-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .35s ease,filter .35s ease}
+.menu-food-photo{display:block;width:100%;height:100%;object-fit:contain;object-position:center;background:#100d0a;transition:transform .35s ease,filter .35s ease}
 .product-card:active .menu-food-photo{transform:scale(1.035);filter:saturate(1.08)}
 .menu-photo-wrap:after{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.24));pointer-events:none}
 .menu-photo-type{position:absolute;z-index:1;top:8px;left:8px;padding:5px 8px;border-radius:999px;font-size:8px;letter-spacing:.55px;font-weight:900;backdrop-filter:blur(9px);box-shadow:0 3px 10px #0005}
