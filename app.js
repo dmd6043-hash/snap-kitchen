@@ -837,124 +837,111 @@ function renderMenu() {
   });
 }
 
-// PRODUCT DETAILS POPUP WITH CATEGORY SWIPE GALLERY
+// FULL-SCREEN FOOD EXPERIENCE WITH SWIPE SHAKE + FLASH
 function openProductDetails(item) {
   if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
-  // Show every available item belonging to the currently opened restaurant.
   const galleryItems = menu.filter((entry) =>
     (!entry.restaurantId || !selectedRestaurant || entry.restaurantId === selectedRestaurant.id) &&
     isMenuItemVisible(entry)
   );
   if (!galleryItems.some(entry => entry.id === item.id)) galleryItems.unshift(item);
+
   let overlay = $("productDetailsOverlay");
   if (!overlay) {
     overlay = document.createElement("div");
     overlay.id = "productDetailsOverlay";
     Object.assign(overlay.style, {
-      position: "fixed", inset: "0", zIndex: "100000",
-      display: "none", alignItems: "center", justifyContent: "center",
-      padding: "12px", background: "rgba(0,0,0,.82)",
-      backdropFilter: "blur(8px)"
+      position:"fixed", inset:"0", zIndex:"100000", display:"none",
+      alignItems:"stretch", justifyContent:"center", padding:"0",
+      background:"radial-gradient(circle at 50% 18%,rgba(255,139,54,.25),transparent 42%),rgba(5,5,7,.97)",
+      backdropFilter:"blur(16px)", overflow:"hidden"
     });
     overlay.innerHTML = `
-      <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="productDetailsName" style="position:relative;width:100%;max-width:430px;max-height:91vh;overflow:auto;background:linear-gradient(150deg,#2b211a,#111 72%);border:1px solid rgba(255,138,53,.72);border-radius:24px;padding:18px 15px 16px;box-shadow:0 18px 55px rgba(0,0,0,.7),0 0 25px rgba(255,138,53,.18);color:#fff;text-align:center;">
-        <button type="button" id="closeProductDetails" aria-label="Close item details" style="position:sticky;float:right;top:0;z-index:4;width:36px;height:36px;border-radius:50%;border:1px solid #ff8a35;background:#171311;color:#ff8a35;font-size:22px;font-weight:800;">×</button>
-        <div style="clear:both"></div>
-        <div id="productCategoryTitle" style="text-align:left;font-size:11px;letter-spacing:1.5px;color:#ffbd87;font-weight:900;margin:0 0 9px;">EXPLORE RESTAURANT MENU</div>
-        <div id="productCategoryGallery" aria-label="Swipe all restaurant menu items" style="display:flex;gap:11px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 13px;margin:0 -2px 12px;-webkit-overflow-scrolling:touch;touch-action:pan-x;">
-        </div>
-        <div id="productDetailsEmoji" style="font-size:76px;line-height:1.3;margin:4px 0 8px;"></div>
-        <div style="font-size:10px;letter-spacing:2px;color:#ffbd87;font-weight:900;">ZAIKABOX MENU ITEM</div>
-        <h2 id="productDetailsName" style="font-size:23px;margin:8px 0;color:#fff;"></h2>
-        <p id="productDetailsDescription" style="font-size:14px;line-height:1.6;color:#d8c9be;margin:0 0 12px;"></p>
-        <div id="productDetailsVariants"></div>
-        <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 16px;"></div>
-        <div style="display:flex;gap:9px;margin-top:8px;"><button type="button" id="productDetailsAdd" style="flex:1;min-height:50px;border:1px solid #ff8a35;border-radius:13px;background:#302016;color:#fff;font-size:13px;font-weight:900;">ADD TO CART +</button><button type="button" id="productDetailsBuyNow" style="flex:1;min-height:50px;border:1px solid #ffad70;border-radius:13px;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;font-size:13px;font-weight:900;">BUY NOW</button></div>
-        <div style="font-size:10px;color:#a99a8e;margin-top:10px;">← Swipe to explore all restaurant items →</div>
+      <style>
+        #productDetailsPanel{position:relative;width:100%;height:100dvh;max-height:100dvh;overflow:hidden;background:linear-gradient(160deg,#21170f 0%,#09090b 72%);color:#fff;text-align:center;display:flex;flex-direction:column;isolation:isolate}
+        #productCategoryGallery{display:flex;flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none}
+        #productCategoryGallery::-webkit-scrollbar{display:none}
+        .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding: max(58px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
+        .zb-slide-photo{width:100%;height:clamp(220px,39vh,360px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
+        .zb-slide-name{font-size:clamp(23px,6vw,31px);font-weight:950;line-height:1.15;margin:17px 0 7px;text-shadow:0 3px 18px #ff8a3544}
+        .zb-slide-desc{font-size:13px;line-height:1.5;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
+        .zb-slide-price{font-size:27px;font-weight:950;color:#ffad70;margin:9px 0 14px}
+        .zb-slide-actions{display:flex;gap:10px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
+        .zb-slide-actions button{flex:1;min-height:52px;border-radius:15px;font-weight:950;font-size:13px}
+        .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
+        .zb-buy{background:linear-gradient(135deg,#ffc078,#ff7626);color:#1b1008;border:0;box-shadow:0 7px 25px #ff812955}
+        .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
+        #productGalleryCounter{position:absolute;top:max(15px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
+        #closeProductDetails{position:absolute;right:16px;top:max(13px,env(safe-area-inset-top));z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
+        #productSwipeFlash{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:linear-gradient(115deg,transparent 10%,#fff9 48%,#ff8b3555 56%,transparent 90%);mix-blend-mode:screen}
+        #productDetailsPanel.zb-swipe-hit{animation:zbShake .42s cubic-bezier(.36,.07,.19,.97)}
+        #productSwipeFlash.zb-flash-hit{animation:zbFlash .42s ease-out}
+        @keyframes zbShake{0%,100%{transform:translateX(0) scale(1)}18%{transform:translateX(-9px) rotate(-.7deg) scale(1.012)}38%{transform:translateX(8px) rotate(.7deg)}58%{transform:translateX(-5px)}78%{transform:translateX(3px)}}
+        @keyframes zbFlash{0%{opacity:0;transform:translateX(-35%)}22%{opacity:.95}100%{opacity:0;transform:translateX(35%)}}
+        @media(min-width:700px){#productDetailsPanel{max-width:560px;margin:auto;height:94dvh;max-height:94dvh;border:1px solid #ff9b4a88;border-radius:28px;box-shadow:0 25px 90px #000}#productDetailsOverlay{align-items:center;padding:3vh 12px}}
+        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit,#productSwipeFlash.zb-flash-hit{animation:none}}
+      </style>
+      <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
+        <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
+        <div id="productGalleryCounter">SWIPE TO EXPLORE</div>
+        <div id="productSwipeFlash"></div>
+        <div id="productCategoryGallery" aria-label="Swipe through restaurant menu items"></div>
       </div>`;
     document.body.appendChild(overlay);
-    $("closeProductDetails").addEventListener("click", () => { overlay.style.display = "none"; });
-    overlay.addEventListener("click", (event) => {
-      if (event.target === overlay) overlay.style.display = "none";
-    });
+    $("closeProductDetails").addEventListener("click",()=>{overlay.style.display="none";});
+    overlay.addEventListener("click",event=>{if(event.target===overlay)overlay.style.display="none";});
+    document.addEventListener("keydown",event=>{if(event.key==="Escape"&&overlay.style.display!=="none")overlay.style.display="none";});
   }
 
-  const gallery = $("productCategoryGallery");
-  $("productCategoryTitle").textContent = (selectedRestaurant?.name || selectedRestaurant?.Name || "RESTAURANT MENU").toUpperCase() + " · " + galleryItems.length + " ITEMS";
-  gallery.innerHTML = "";
-  gallery.style.cssText = "display:flex;gap:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 0 12px;margin:0 0 10px;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none;";
-  galleryItems.forEach((entry, index) => {
-    const slide = document.createElement("button");
-    slide.type = "button";
-    slide.setAttribute("aria-label", "View item " + (index + 1) + ": " + entry.name);
-    slide.style.cssText = "flex:0 0 100%;width:100%;min-width:100%;scroll-snap-align:center;scroll-snap-stop:always;text-align:center;padding:10px;border:1px solid " + (entry.id === item.id ? "#ff9a4d" : "#514033") + ";border-radius:19px;background:linear-gradient(145deg,#302116,#17120f);color:#fff;overflow:hidden;box-sizing:border-box;";
-    const photo = entry.imageUrl
-      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:clamp(180px,30vh,245px);object-fit:contain;object-position:center;background:#100d0a;border-radius:13px;display:block;" loading="lazy">'
-      : '<div style="height:clamp(180px,30vh,245px);display:grid;place-items:center;background:#241b15;border-radius:13px;font-size:76px;">' + escapeHTML(entry.emoji || "🍽️") + '</div>';
-    slide.innerHTML = photo +
-      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 3px 2px;text-align:left;">' +
-      '<strong style="font-size:16px;line-height:1.25;">' + escapeHTML(entry.name) + '</strong>' +
-      '<span style="flex:0 0 auto;font-size:17px;color:#ffad70;font-weight:900;">' + money(entry.price) + '</span></div>' +
-      '<span style="display:block;text-align:left;color:#b9a99c;font-size:10px;margin:7px 3px 0;">TAP TO VIEW THIS ITEM</span>';
-    slide.addEventListener("click", () => {
-      if (entry.id !== item.id) openProductDetails(entry);
-    });
+  const gallery=$("productCategoryGallery");
+  const panel=$("productDetailsPanel");
+  gallery.innerHTML="";
+  galleryItems.forEach((entry,index)=>{
+    const slide=document.createElement("section");
+    slide.className="zb-food-slide";
+    const photo=entry.imageUrl
+      ? '<img class="zb-slide-photo" src="'+escapeHTML(entry.imageUrl)+'" alt="'+escapeHTML(entry.name||"Food item")+'" loading="lazy">'
+      : '<div class="zb-slide-photo" style="display:grid;place-items:center;font-size:100px;">'+escapeHTML(entry.emoji||"🍽️")+'</div>';
+    const nonVeg=String(entry.foodType||"Veg").toLowerCase()==="non-veg";
+    const variants=Array.isArray(entry.variants)?entry.variants.filter(v=>v&&v.name&&Number(v.price)>0):[];
+    slide.innerHTML=photo+
+      '<div style="margin-top:12px;padding:6px 12px;border-radius:30px;background:'+(nonVeg?"#4b1b20":"#153b28")+';color:'+(nonVeg?"#ffb5b5":"#a5f0bd")+';font-size:10px;font-weight:950;letter-spacing:1px;">'+(nonVeg?"🔴 NON-VEG":"🟢 VEG")+'</div>'+
+      '<div class="zb-slide-name">'+escapeHTML(entry.name||"Menu Item")+'</div>'+
+      '<p class="zb-slide-desc">'+escapeHTML(entry.description||"Freshly prepared with care.")+'</p>'+
+      (variants.length?'<select class="zb-variant" aria-label="Choose variant">'+variants.map((v,i)=>'<option value="'+i+'">'+escapeHTML(v.name)+' · '+money(v.price)+'</option>').join("")+'</select>':'')+
+      '<div class="zb-slide-price">'+money(variants.length?variants[0].price:entry.price)+'</div>'+
+      '<div class="zb-slide-actions"><button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button></div>'+
+      '<div style="font-size:10px;color:#b8a99b;letter-spacing:1.3px;margin-top:13px;">'+(index+1)+' / '+galleryItems.length+' · SWIPE LEFT OR RIGHT</div>';
+    const select=slide.querySelector(".zb-variant");
+    const getChosen=()=>{
+      if(!select)return entry;
+      const v=variants[Number(select.value)]||variants[0];
+      return {...entry,price:Number(v.price),variantName:v.name,name:entry.name+" ("+v.name+")"};
+    };
+    if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);});
+    slide.querySelector(".zb-add").addEventListener("click",()=>{addToCart(getChosen());overlay.style.display="none";});
+    slide.querySelector(".zb-buy").addEventListener("click",()=>{overlay.style.display="none";buyNow(getChosen());});
     gallery.appendChild(slide);
   });
-  const selectedIndex = Math.max(0, galleryItems.findIndex(entry => entry.id === item.id));
-  gallery.scrollLeft = selectedIndex * gallery.clientWidth;
-  let counter = $("productGalleryCounter");
-  if (!counter) {
-    counter = document.createElement("div");
-    counter.id = "productGalleryCounter";
-    counter.style.cssText = "text-align:center;color:#ffbd87;font-size:11px;font-weight:900;letter-spacing:1px;margin:-3px 0 12px;";
-    gallery.insertAdjacentElement("afterend", counter);
-  }
-  const updateGalleryCounter = () => {
-    const active = Math.min(galleryItems.length, Math.max(1, Math.round(gallery.scrollLeft / Math.max(1, gallery.clientWidth)) + 1));
-    counter.textContent = "ITEM " + active + " OF " + galleryItems.length + "  ·  SWIPE TO EXPLORE";
+
+  const selectedIndex=Math.max(0,galleryItems.findIndex(entry=>entry.id===item.id));
+  const counter=$("productGalleryCounter");
+  let lastIndex=selectedIndex;
+  const updateCounter=()=>{
+    const index=Math.min(galleryItems.length-1,Math.max(0,Math.round(gallery.scrollLeft/Math.max(1,gallery.clientWidth))));
+    counter.textContent="ITEM "+(index+1)+" OF "+galleryItems.length+"  ·  SWIPE TO EXPLORE";
+    if(index!==lastIndex){
+      lastIndex=index;
+      panel.classList.remove("zb-swipe-hit");
+      $("productSwipeFlash").classList.remove("zb-flash-hit");
+      void panel.offsetWidth;
+      panel.classList.add("zb-swipe-hit");
+      $("productSwipeFlash").classList.add("zb-flash-hit");
+    }
   };
-  gallery.onscroll = updateGalleryCounter;
-  updateGalleryCounter();
-
-  const detailVisual = $("productDetailsEmoji");
-  detailVisual.innerHTML = "";
-  if (item.imageUrl) {
-    const detailImg = document.createElement("img");
-    detailImg.src = item.imageUrl;
-    detailImg.alt = item.name || "Food item";
-    detailImg.style.cssText = "display:block;width:100%;height:clamp(190px,38vh,300px);max-height:300px;aspect-ratio:16/10;object-fit:contain;object-position:center;background:#100d0a;border-radius:16px;box-shadow:0 8px 24px #0008;";
-    detailImg.onerror = () => { detailVisual.textContent = item.emoji || "🍽️"; };
-    detailVisual.appendChild(detailImg);
-  } else {
-    detailVisual.textContent = item.emoji || "🍽️";
-  }
-  const foodBadge = document.createElement("div");
-  const isNonVeg = String(item.foodType || "Veg").toLowerCase() === "non-veg";
-  foodBadge.textContent = isNonVeg ? "🔴 NON-VEG" : "🟢 VEG";
-  foodBadge.style.cssText = "display:inline-block;margin:8px auto 0;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.6px;background:" + (isNonVeg ? "#4b1b20" : "#153b28") + ";color:" + (isNonVeg ? "#ffb5b5" : "#a5f0bd") + ";";
-  detailVisual.appendChild(foodBadge);
-  $("productDetailsName").textContent = item.name || "Menu Item";
-  $("productDetailsDescription").textContent = item.description || "Freshly prepared with care.";
-
-  let chosenVariant = null;
-  const detailVariants = Array.isArray(item.variants) ? item.variants.filter(v => v && v.name && Number(v.price) > 0) : [];
-  const variantBox = $("productDetailsVariants");
-  variantBox.innerHTML = "";
-  if (detailVariants.length) {
-    variantBox.style.margin = "10px 0";
-    variantBox.innerHTML = '<label style="display:block;text-align:left;font-weight:800;margin-bottom:6px">Choose variant</label><select id="productVariantSelect" style="width:100%;padding:12px;border-radius:10px;background:#211b17;color:#fff;border:1px solid #80512e">' + detailVariants.map((v,i) => '<option value="' + i + '">' + escapeHTML(v.name) + ' · ' + money(v.price) + '</option>').join("") + '</select>';
-    chosenVariant = detailVariants[0];
-    variantBox.querySelector("select").addEventListener("change", e => {
-      chosenVariant = detailVariants[Number(e.target.value)] || detailVariants[0];
-      $("productDetailsPrice").textContent = money(chosenVariant.price);
-    });
-  }
-  const getChosenItem = () => chosenVariant ? {...item, price:Number(chosenVariant.price), variantName:chosenVariant.name, name:item.name + " (" + chosenVariant.name + ")"} : item;
-  $("productDetailsPrice").textContent = money(chosenVariant ? chosenVariant.price : item.price);
-  $("productDetailsAdd").onclick = () => { addToCart(getChosenItem()); overlay.style.display = "none"; };
-  $("productDetailsBuyNow").onclick = () => { overlay.style.display = "none"; buyNow(getChosenItem()); };
-  overlay.style.display = "flex";
+  gallery.onscroll=updateCounter;
+  overlay.style.display="flex";
+  requestAnimationFrame(()=>{gallery.scrollLeft=selectedIndex*gallery.clientWidth;lastIndex=selectedIndex;updateCounter();});
 }
  
 // CART DATA
