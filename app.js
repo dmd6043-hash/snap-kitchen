@@ -837,9 +837,14 @@ function renderMenu() {
   });
 }
 
-// PRODUCT DETAILS POPUP
+// PRODUCT DETAILS POPUP WITH CATEGORY SWIPE GALLERY
 function openProductDetails(item) {
   if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
+  const categoryItems = menu.filter((entry) =>
+    (entry.category || "Other") === (item.category || "Other") &&
+    isRestaurantOnlineNow(entry.restaurantId ? (restaurants.find(r => r.id === entry.restaurantId) || selectedRestaurant) : selectedRestaurant)
+  );
+  const galleryItems = categoryItems.length ? categoryItems : [item];
   let overlay = $("productDetailsOverlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -847,18 +852,24 @@ function openProductDetails(item) {
     Object.assign(overlay.style, {
       position: "fixed", inset: "0", zIndex: "100000",
       display: "none", alignItems: "center", justifyContent: "center",
-      padding: "18px", background: "rgba(0,0,0,.78)",
-      backdropFilter: "blur(7px)"
+      padding: "12px", background: "rgba(0,0,0,.82)",
+      backdropFilter: "blur(8px)"
     });
     overlay.innerHTML = `
-      <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="productDetailsName" style="position:relative;width:100%;max-width:390px;max-height:85vh;overflow:auto;background:linear-gradient(150deg,#282019,#121212 70%);border:1px solid rgba(255,138,53,.7);border-radius:22px;padding:22px 18px 18px;box-shadow:0 18px 55px rgba(0,0,0,.6),0 0 24px rgba(255,138,53,.16);color:#fff;text-align:center;animation:loginWelcomeIn .35s ease both;">
-        <button type="button" id="closeProductDetails" aria-label="Close item details" style="position:absolute;right:12px;top:12px;width:36px;height:36px;border-radius:50%;border:1px solid #ff8a35;background:#171311;color:#ff8a35;font-size:22px;font-weight:800;">×</button>
-        <div id="productDetailsEmoji" style="font-size:76px;line-height:1.3;margin:12px 0 8px;filter:drop-shadow(0 8px 12px rgba(255,138,53,.2));"></div>
+      <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="productDetailsName" style="position:relative;width:100%;max-width:430px;max-height:91vh;overflow:auto;background:linear-gradient(150deg,#2b211a,#111 72%);border:1px solid rgba(255,138,53,.72);border-radius:24px;padding:18px 15px 16px;box-shadow:0 18px 55px rgba(0,0,0,.7),0 0 25px rgba(255,138,53,.18);color:#fff;text-align:center;">
+        <button type="button" id="closeProductDetails" aria-label="Close item details" style="position:sticky;float:right;top:0;z-index:4;width:36px;height:36px;border-radius:50%;border:1px solid #ff8a35;background:#171311;color:#ff8a35;font-size:22px;font-weight:800;">×</button>
+        <div style="clear:both"></div>
+        <div id="productCategoryTitle" style="text-align:left;font-size:11px;letter-spacing:1.5px;color:#ffbd87;font-weight:900;margin:0 0 9px;">EXPLORE CATEGORY</div>
+        <div id="productCategoryGallery" aria-label="Swipe category items" style="display:flex;gap:11px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 13px;margin:0 -2px 12px;-webkit-overflow-scrolling:touch;touch-action:pan-x;">
+        </div>
+        <div id="productDetailsEmoji" style="font-size:76px;line-height:1.3;margin:4px 0 8px;"></div>
         <div style="font-size:10px;letter-spacing:2px;color:#ffbd87;font-weight:900;">ZAIKABOX MENU ITEM</div>
         <h2 id="productDetailsName" style="font-size:23px;margin:8px 0;color:#fff;"></h2>
-        <p id="productDetailsDescription" style="font-size:14px;line-height:1.6;color:#d8c9be;margin:0 0 14px;"></p>
-        <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 18px;"></div>
+        <p id="productDetailsDescription" style="font-size:14px;line-height:1.6;color:#d8c9be;margin:0 0 12px;"></p>
+        <div id="productDetailsVariants"></div>
+        <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 16px;"></div>
         <div style="display:flex;gap:9px;margin-top:8px;"><button type="button" id="productDetailsAdd" style="flex:1;min-height:50px;border:1px solid #ff8a35;border-radius:13px;background:#302016;color:#fff;font-size:13px;font-weight:900;">ADD TO CART +</button><button type="button" id="productDetailsBuyNow" style="flex:1;min-height:50px;border:1px solid #ffad70;border-radius:13px;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;font-size:13px;font-weight:900;">BUY NOW</button></div>
+        <div style="font-size:10px;color:#a99a8e;margin-top:10px;">← Swipe to explore more items →</div>
       </div>`;
     document.body.appendChild(overlay);
     $("closeProductDetails").addEventListener("click", () => { overlay.style.display = "none"; });
@@ -866,44 +877,69 @@ function openProductDetails(item) {
       if (event.target === overlay) overlay.style.display = "none";
     });
   }
-  const detailVisual=$("productDetailsEmoji");
-  detailVisual.innerHTML="";
-  if(item.imageUrl){
-    const detailImg=document.createElement("img");
-    detailImg.src=item.imageUrl;detailImg.alt=item.name||"Food item";
-    detailImg.style.cssText="display:block;width:100%;max-height:230px;aspect-ratio:16/10;object-fit:cover;border-radius:16px;box-shadow:0 8px 24px #0008;";
-    detailImg.onerror=()=>{detailVisual.textContent=item.emoji||"🍽️";};
+
+  const gallery = $("productCategoryGallery");
+  $("productCategoryTitle").textContent = (item.category || "Other").toUpperCase() + " · " + galleryItems.length + " ITEMS";
+  gallery.innerHTML = "";
+  galleryItems.forEach((entry, index) => {
+    const tile = document.createElement("button");
+    tile.type = "button";
+    tile.setAttribute("aria-label", "View " + entry.name);
+    tile.style.cssText = "flex:0 0 118px;width:118px;scroll-snap-align:start;text-align:left;padding:7px;border:1px solid " + (entry.id === item.id ? "#ff9a4d" : "#514033") + ";border-radius:15px;background:" + (entry.id === item.id ? "#3a281d" : "#1b1714") + ";color:#fff;overflow:hidden;";
+    const thumb = entry.imageUrl
+      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:82px;object-fit:cover;border-radius:10px;display:block;" loading="lazy">'
+      : '<div style="height:82px;display:grid;place-items:center;background:#30251e;border-radius:10px;font-size:36px;">' + escapeHTML(entry.emoji || "🍽️") + '</div>';
+    tile.innerHTML = thumb + '<strong style="display:block;font-size:12px;line-height:1.25;margin:7px 1px 4px;min-height:30px;">' + escapeHTML(entry.name) + '</strong><span style="font-size:12px;color:#ffad70;font-weight:900;">' + money(entry.price) + '</span>';
+    tile.addEventListener("click", () => {
+      openProductDetails(entry);
+      const activeTile = Array.from($("productCategoryGallery").children).find(el => el.textContent.includes(entry.name));
+      activeTile?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});
+    });
+    gallery.appendChild(tile);
+  });
+  const selectedTile = Array.from(gallery.children).find(el => el.textContent.includes(item.name));
+  selectedTile?.scrollIntoView({block:"nearest",inline:"center"});
+
+  const detailVisual = $("productDetailsEmoji");
+  detailVisual.innerHTML = "";
+  if (item.imageUrl) {
+    const detailImg = document.createElement("img");
+    detailImg.src = item.imageUrl;
+    detailImg.alt = item.name || "Food item";
+    detailImg.style.cssText = "display:block;width:100%;max-height:220px;aspect-ratio:16/10;object-fit:cover;border-radius:16px;box-shadow:0 8px 24px #0008;";
+    detailImg.onerror = () => { detailVisual.textContent = item.emoji || "🍽️"; };
     detailVisual.appendChild(detailImg);
-  }else{
-    detailVisual.textContent=item.emoji||"🍽️";
+  } else {
+    detailVisual.textContent = item.emoji || "🍽️";
   }
-  const foodBadge=document.createElement("div");
-  const isNonVeg=String(item.foodType||"Veg").toLowerCase()==="non-veg";
-  foodBadge.textContent=isNonVeg?"🔴 NON-VEG":"🟢 VEG";
-  foodBadge.style.cssText="display:inline-block;margin:8px auto 0;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.6px;background:"+(isNonVeg?"#4b1b20":"#153b28")+";color:"+(isNonVeg?"#ffb5b5":"#a5f0bd")+";";
+  const foodBadge = document.createElement("div");
+  const isNonVeg = String(item.foodType || "Veg").toLowerCase() === "non-veg";
+  foodBadge.textContent = isNonVeg ? "🔴 NON-VEG" : "🟢 VEG";
+  foodBadge.style.cssText = "display:inline-block;margin:8px auto 0;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.6px;background:" + (isNonVeg ? "#4b1b20" : "#153b28") + ";color:" + (isNonVeg ? "#ffb5b5" : "#a5f0bd") + ";";
   detailVisual.appendChild(foodBadge);
   $("productDetailsName").textContent = item.name || "Menu Item";
   $("productDetailsDescription").textContent = item.description || "Freshly prepared with care.";
-  let chosenVariant=null;
-  const detailVariants=Array.isArray(item.variants)?item.variants.filter(v=>v&&v.name&&Number(v.price)>0):[];
-  const previousVariantBox=$("productDetailsVariants");if(previousVariantBox)previousVariantBox.remove();
-  if(detailVariants.length){
-    const variantBox=document.createElement("div");variantBox.id="productDetailsVariants";variantBox.style.margin="10px 0";
-    variantBox.innerHTML='<label style="display:block;text-align:left;font-weight:800;margin-bottom:6px">Choose variant</label><select id="productVariantSelect" style="width:100%;padding:12px;border-radius:10px;background:#211b17;color:#fff;border:1px solid #80512e">'+detailVariants.map((v,i)=>'<option value="'+i+'">'+escapeHTML(v.name)+' · '+money(v.price)+'</option>').join("")+'</select>';
-    $("productDetailsPrice").before(variantBox);chosenVariant=detailVariants[0];
-    variantBox.querySelector("select").addEventListener("change",e=>{chosenVariant=detailVariants[Number(e.target.value)]||detailVariants[0];$("productDetailsPrice").textContent=money(chosenVariant.price);});
+
+  let chosenVariant = null;
+  const detailVariants = Array.isArray(item.variants) ? item.variants.filter(v => v && v.name && Number(v.price) > 0) : [];
+  const variantBox = $("productDetailsVariants");
+  variantBox.innerHTML = "";
+  if (detailVariants.length) {
+    variantBox.style.margin = "10px 0";
+    variantBox.innerHTML = '<label style="display:block;text-align:left;font-weight:800;margin-bottom:6px">Choose variant</label><select id="productVariantSelect" style="width:100%;padding:12px;border-radius:10px;background:#211b17;color:#fff;border:1px solid #80512e">' + detailVariants.map((v,i) => '<option value="' + i + '">' + escapeHTML(v.name) + ' · ' + money(v.price) + '</option>').join("") + '</select>';
+    chosenVariant = detailVariants[0];
+    variantBox.querySelector("select").addEventListener("change", e => {
+      chosenVariant = detailVariants[Number(e.target.value)] || detailVariants[0];
+      $("productDetailsPrice").textContent = money(chosenVariant.price);
+    });
   }
-  const getChosenItem=()=>chosenVariant?{...item,price:Number(chosenVariant.price),variantName:chosenVariant.name,name:item.name+" ("+chosenVariant.name+")"}:item;
-  $("productDetailsPrice").textContent = money(chosenVariant?chosenVariant.price:item.price);
-  const addButton = $("productDetailsAdd");
-  addButton.onclick = () => {
-    addToCart(getChosenItem());
-    overlay.style.display = "none";
-  };
+  const getChosenItem = () => chosenVariant ? {...item, price:Number(chosenVariant.price), variantName:chosenVariant.name, name:item.name + " (" + chosenVariant.name + ")"} : item;
+  $("productDetailsPrice").textContent = money(chosenVariant ? chosenVariant.price : item.price);
+  $("productDetailsAdd").onclick = () => { addToCart(getChosenItem()); overlay.style.display = "none"; };
   $("productDetailsBuyNow").onclick = () => { overlay.style.display = "none"; buyNow(getChosenItem()); };
   overlay.style.display = "flex";
 }
-
+ 
 // CART DATA
 function getQuantity(id) {
   const item = cart.find((product) => product.id === id);
