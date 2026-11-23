@@ -607,7 +607,7 @@ function loadSelectedRestaurantMenu() {
 
       if (!isRestaurantOnlineNow(selectedRestaurant)) cart = [];
       cart = cart
-        .filter((cartItem) => menu.some((menuItem) => menuItem.id === cartItem.id))
+        .filter((cartItem) => menu.some((menuItem) => menuItem.id === (cartItem.menuItemId || cartItem.id)))
         .map((cartItem) => {
           const updatedItem = menu.find(
             (menuItem) => menuItem.id === cartItem.id
@@ -615,8 +615,8 @@ function loadSelectedRestaurantMenu() {
 
           return {
             ...cartItem,
-            name: updatedItem.name,
-            price: updatedItem.price
+            name: cartItem.variantName ? updatedItem.name+" ("+cartItem.variantName+")" : updatedItem.name,
+            price: cartItem.variantName ? cartItem.price : updatedItem.price
           };
         });
 
@@ -867,13 +867,23 @@ function openProductDetails(item) {
   $("productDetailsEmoji").textContent = item.emoji || "🍽️";
   $("productDetailsName").textContent = item.name || "Menu Item";
   $("productDetailsDescription").textContent = item.description || "Freshly prepared with care.";
-  $("productDetailsPrice").textContent = money(item.price);
+  let chosenVariant=null;
+  const detailVariants=Array.isArray(item.variants)?item.variants.filter(v=>v&&v.name&&Number(v.price)>0):[];
+  const previousVariantBox=$("productDetailsVariants");if(previousVariantBox)previousVariantBox.remove();
+  if(detailVariants.length){
+    const variantBox=document.createElement("div");variantBox.id="productDetailsVariants";variantBox.style.margin="10px 0";
+    variantBox.innerHTML='<label style="display:block;text-align:left;font-weight:800;margin-bottom:6px">Choose variant</label><select id="productVariantSelect" style="width:100%;padding:12px;border-radius:10px;background:#211b17;color:#fff;border:1px solid #80512e">'+detailVariants.map((v,i)=>'<option value="'+i+'">'+escapeHTML(v.name)+' · '+money(v.price)+'</option>').join("")+'</select>';
+    $("productDetailsPrice").before(variantBox);chosenVariant=detailVariants[0];
+    variantBox.querySelector("select").addEventListener("change",e=>{chosenVariant=detailVariants[Number(e.target.value)]||detailVariants[0];$("productDetailsPrice").textContent=money(chosenVariant.price);});
+  }
+  const getChosenItem=()=>chosenVariant?{...item,price:Number(chosenVariant.price),variantName:chosenVariant.name,name:item.name+" ("+chosenVariant.name+")"}:item;
+  $("productDetailsPrice").textContent = money(chosenVariant?chosenVariant.price:item.price);
   const addButton = $("productDetailsAdd");
   addButton.onclick = () => {
-    addToCart(item);
+    addToCart(getChosenItem());
     overlay.style.display = "none";
   };
-  $("productDetailsBuyNow").onclick = () => { overlay.style.display = "none"; buyNow(item); };
+  $("productDetailsBuyNow").onclick = () => { overlay.style.display = "none"; buyNow(getChosenItem()); };
   overlay.style.display = "flex";
 }
 
@@ -913,7 +923,8 @@ function buyNow(item) {
   if (!itemRestaurant) { showToast("Please select a restaurant first"); return; }
   if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("Restaurant OFFLINE hai. Abhi order nahi ho sakta."); return; }
   // Buy Now starts checkout with this item only.
-  cart = [{ id: item.restaurantId ? item.restaurantId + "__" + item.id : item.id, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, price: Number(item.price) || 0, quantity: 1 }];
+  const variantSuffix=item.variantName?"__v_"+encodeURIComponent(item.variantName):"";
+  cart = [{ id: (item.restaurantId ? item.restaurantId + "__" + item.id : item.id)+variantSuffix, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, variantName:item.variantName||"", price: Number(item.price) || 0, quantity: 1 }];
   selectedRestaurant = itemRestaurant;
   const existingCheckout = $("checkoutForm"); if (existingCheckout) existingCheckout.remove();
   renderCart(); openCart(); createCheckoutForm();
@@ -925,7 +936,8 @@ function addToCart(item) {
   if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Abhi cart mein add nahi kar sakte.");return;}
   if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("Ek order mein ek hi restaurant se items add kar sakte hain. Pehle current cart complete karein.");return;}
   selectedRestaurant=itemRestaurant;
-  const cartItemId=item.restaurantId?item.restaurantId+"__"+item.id:item.id;
+  const variantSuffix=item.variantName?"__v_"+encodeURIComponent(item.variantName):"";
+  const cartItemId=(item.restaurantId?item.restaurantId+"__"+item.id:item.id)+variantSuffix;
   const existing=cart.find((product)=>product.id===cartItemId);
 
   if (existing) {
@@ -936,6 +948,7 @@ function addToCart(item) {
       menuItemId: item.id,
       restaurantId: itemRestaurant.id,
       name: item.name,
+      variantName:item.variantName||"",
       price: Number(item.price) || 0,
       quantity: 1
     });
