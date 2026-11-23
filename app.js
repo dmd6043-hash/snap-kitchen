@@ -873,13 +873,12 @@ function openProductDetails(item) {
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
         #productGalleryCounter{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
         #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
-        #productSwipeFlash{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:linear-gradient(115deg,transparent 10%,#fff9 48%,#ff8b3555 56%,transparent 90%);mix-blend-mode:screen}
-        #productDetailsPanel.zb-swipe-hit{animation:zbShake .42s cubic-bezier(.36,.07,.19,.97)}
-        #productSwipeFlash.zb-flash-hit{animation:zbFlash .42s ease-out}
+        #productDetailsPanel.zb-swipe-hit{animation:zbShake .38s cubic-bezier(.36,.07,.19,.97)}
+        .zb-food-slide.zb-cutout-hit{animation:zbCutoutReveal .48s cubic-bezier(.16,1,.3,1) both}
+        @keyframes zbCutoutReveal{0%{clip-path:polygon(50% 0,50% 0,50% 100%,50% 100%);transform:scale(.94) rotate(-1deg);filter:drop-shadow(0 0 18px #ff9b4a88)}55%{clip-path:polygon(0 0,100% 8%,94% 100%,5% 92%);transform:scale(1.015) rotate(.35deg)}100%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);transform:scale(1) rotate(0);filter:none}}
         @keyframes zbShake{0%,100%{transform:translateX(0) scale(1)}18%{transform:translateX(-9px) rotate(-.7deg) scale(1.012)}38%{transform:translateX(8px) rotate(.7deg)}58%{transform:translateX(-5px)}78%{transform:translateX(3px)}}
-        @keyframes zbFlash{0%{opacity:0;transform:translateX(-35%)}22%{opacity:.95}100%{opacity:0;transform:translateX(35%)}}
-        @media(min-width:700px){#productDetailsPanel{max-width:560px;margin:auto;height:94dvh;max-height:94dvh;border:1px solid #ff9b4a88;border-radius:28px;box-shadow:0 25px 90px #000}#productDetailsOverlay{align-items:center;padding:3vh 12px}}
-        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit,#productSwipeFlash.zb-flash-hit{animation:none}}
+        @media(min-width:700px){#productDetailsPanel{width:min(90vw,430px);height:min(84dvh,740px);max-height:84dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
+        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit,.zb-food-slide.zb-cutout-hit{animation:none}}
       </style>
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
         <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
@@ -933,10 +932,10 @@ function openProductDetails(item) {
     if(index!==lastIndex){
       lastIndex=index;
       panel.classList.remove("zb-swipe-hit");
-      $("productSwipeFlash").classList.remove("zb-flash-hit");
       void panel.offsetWidth;
       panel.classList.add("zb-swipe-hit");
-      $("productSwipeFlash").classList.add("zb-flash-hit");
+      const activeSlide=gallery.children[index];
+      if(activeSlide){void activeSlide.offsetWidth;activeSlide.classList.add("zb-cutout-hit");}
     }
   };
   gallery.onscroll=updateCounter;
