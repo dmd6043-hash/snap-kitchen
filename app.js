@@ -817,7 +817,7 @@ function renderMenu() {
         ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:13px;flex:1;min-width:0;"></div>
+        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;flex-direction:row;flex-wrap:nowrap;"></div>
         <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
@@ -847,7 +847,7 @@ function renderMenuCardActions(card,item) {
   if(!holder)return;
   const quantity=getQuantity(getCartItemId(item));
   holder.innerHTML=quantity>0
-    ? '<button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:22px;font-weight:900;">−</button><strong style="min-width:18px;text-align:center;color:#ffbd87;">'+quantity+'</strong><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:22px;font-weight:900;">+</button>'
+    ? '<button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:28px;height:28px;min-width:28px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:17px;font-weight:900;">−</button><strong style="min-width:16px;text-align:center;color:#ffbd87;font-size:14px;">'+quantity+'</strong><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:17px;font-weight:900;">+</button>'
     : '<button type="button" class="add-button" style="width:100%;min-height:40px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-weight:900;">ADD +</button>';
   holder.querySelector(".add-button")?.addEventListener("click",event=>{event.stopPropagation();animateFoodToCart(card);addToCart(item);});
   holder.querySelector(".menu-qty-minus")?.addEventListener("click",event=>{event.stopPropagation();changeQuantity(getCartItemId(item),-1);});
@@ -884,10 +884,10 @@ function openProductDetails(item) {
         .zb-slide-name{font-size:clamp(18px,4.8vw,22px);font-weight:950;line-height:1.15;margin:12px 0 6px;text-shadow:0 3px 18px #ff8a3544}
         .zb-slide-desc{font-size:12px;line-height:1.4;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
         .zb-slide-price{font-size:21px;font-weight:950;color:#ffad70;margin:7px 0 10px}
-        .zb-slide-actions{display:flex;gap:10px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
-        .zb-slide-actions button{flex:1;min-height:52px;border-radius:15px;font-weight:950;font-size:13px}
-        .zb-slide-actions .zb-qty-minus,.zb-slide-actions .zb-qty-plus{flex:0 0 44px;font-size:24px;background:#2b1d14;color:#fff;border:1px solid #ff963f}
-        .zb-slide-actions .zb-qty-value{display:grid;place-items:center;min-width:22px;color:#ffbd87;font-size:18px;font-weight:950}
+        .zb-slide-actions{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;gap:6px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
+        .zb-slide-actions button{flex:1;min-width:0;min-height:42px;border-radius:12px;font-weight:950;font-size:12px}
+        .zb-slide-actions .zb-qty-minus,.zb-slide-actions .zb-qty-plus{flex:0 0 32px;width:32px;min-width:32px;min-height:32px;padding:0;font-size:18px;border-radius:8px;background:#2b1d14;color:#fff;border:1px solid #ff963f}
+        .zb-slide-actions .zb-qty-value{display:grid;place-items:center;min-width:16px;color:#ffbd87;font-size:14px;font-weight:950}
         .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
         .zb-buy{background:linear-gradient(135deg,#ffc078,#ff7626);color:#1b1008;border:0;box-shadow:0 7px 25px #ff812955}
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
