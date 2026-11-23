@@ -909,7 +909,7 @@ function openProductDetails(item) {
         #productCategoryGallery{display:flex;flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none}
         #productCategoryGallery::-webkit-scrollbar{display:none}
         .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 14px 14px;overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
-        .zb-slide-photo{width:100%;height:clamp(125px,21vh,180px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
+        .zb-slide-photo{display:block;width:100%;height:clamp(220px,37vh,300px);flex:0 0 auto;object-fit:contain;object-position:center;background:radial-gradient(ellipse at 50% 48%,#292018 0%,#100d0b 62%,#030303 100%);border-radius:24px;box-shadow:0 24px 42px rgba(0,0,0,.92),0 12px 22px rgba(0,0,0,.82),0 0 34px rgba(255,138,53,.16),inset 0 0 22px rgba(0,0,0,.55);border:1px solid #ff9b4a66;filter:drop-shadow(0 18px 14px rgba(0,0,0,.9));transform:scale(1.015)}
         .zb-slide-name{font-size:clamp(18px,4.8vw,22px);font-weight:950;line-height:1.15;margin:12px 0 6px;text-shadow:0 3px 18px #ff8a3544}
         .zb-slide-desc{font-size:12px;line-height:1.4;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
         .zb-slide-price{font-size:21px;font-weight:950;color:#ffad70;margin:7px 0 10px}
@@ -977,7 +977,7 @@ function openProductDetails(item) {
       (variants.length?'<select class="zb-variant" aria-label="Choose variant">'+variants.map((v,i)=>'<option value="'+i+'">'+escapeHTML(v.name)+' · '+money(v.price)+'</option>').join("")+'</select>':'')+
       '<div class="zb-slide-price">'+money(variants.length?variants[0].price:entry.price)+'</div>'+
       '<div class="zb-slide-actions"><button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button></div>'+
-      '<div style="font-size:10px;color:#b8a99b;letter-spacing:1.3px;margin-top:13px;">'+(index+1)+' / '+galleryItems.length+' · SWIPE LEFT OR RIGHT</div>';
+      '';
     const select=slide.querySelector(".zb-variant");
     const getChosen=()=>{
       if(!select)return entry;
