@@ -840,11 +840,12 @@ function renderMenu() {
 // PRODUCT DETAILS POPUP WITH CATEGORY SWIPE GALLERY
 function openProductDetails(item) {
   if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
-  const categoryItems = menu.filter((entry) =>
-    (entry.category || "Other") === (item.category || "Other") &&
-    isRestaurantOnlineNow(entry.restaurantId ? (restaurants.find(r => r.id === entry.restaurantId) || selectedRestaurant) : selectedRestaurant)
+  // Show every available item belonging to the currently opened restaurant.
+  const galleryItems = menu.filter((entry) =>
+    (!entry.restaurantId || !selectedRestaurant || entry.restaurantId === selectedRestaurant.id) &&
+    isMenuItemVisible(entry)
   );
-  const galleryItems = categoryItems.length ? categoryItems : [item];
+  if (!galleryItems.some(entry => entry.id === item.id)) galleryItems.unshift(item);
   let overlay = $("productDetailsOverlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -859,8 +860,8 @@ function openProductDetails(item) {
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-labelledby="productDetailsName" style="position:relative;width:100%;max-width:430px;max-height:91vh;overflow:auto;background:linear-gradient(150deg,#2b211a,#111 72%);border:1px solid rgba(255,138,53,.72);border-radius:24px;padding:18px 15px 16px;box-shadow:0 18px 55px rgba(0,0,0,.7),0 0 25px rgba(255,138,53,.18);color:#fff;text-align:center;">
         <button type="button" id="closeProductDetails" aria-label="Close item details" style="position:sticky;float:right;top:0;z-index:4;width:36px;height:36px;border-radius:50%;border:1px solid #ff8a35;background:#171311;color:#ff8a35;font-size:22px;font-weight:800;">×</button>
         <div style="clear:both"></div>
-        <div id="productCategoryTitle" style="text-align:left;font-size:11px;letter-spacing:1.5px;color:#ffbd87;font-weight:900;margin:0 0 9px;">EXPLORE CATEGORY</div>
-        <div id="productCategoryGallery" aria-label="Swipe category items" style="display:flex;gap:11px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 13px;margin:0 -2px 12px;-webkit-overflow-scrolling:touch;touch-action:pan-x;">
+        <div id="productCategoryTitle" style="text-align:left;font-size:11px;letter-spacing:1.5px;color:#ffbd87;font-weight:900;margin:0 0 9px;">EXPLORE RESTAURANT MENU</div>
+        <div id="productCategoryGallery" aria-label="Swipe all restaurant menu items" style="display:flex;gap:11px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;padding:3px 2px 13px;margin:0 -2px 12px;-webkit-overflow-scrolling:touch;touch-action:pan-x;">
         </div>
         <div id="productDetailsEmoji" style="font-size:76px;line-height:1.3;margin:4px 0 8px;"></div>
         <div style="font-size:10px;letter-spacing:2px;color:#ffbd87;font-weight:900;">ZAIKABOX MENU ITEM</div>
@@ -869,7 +870,7 @@ function openProductDetails(item) {
         <div id="productDetailsVariants"></div>
         <div id="productDetailsPrice" style="font-size:23px;font-weight:900;color:#ff9a4d;margin:10px 0 16px;"></div>
         <div style="display:flex;gap:9px;margin-top:8px;"><button type="button" id="productDetailsAdd" style="flex:1;min-height:50px;border:1px solid #ff8a35;border-radius:13px;background:#302016;color:#fff;font-size:13px;font-weight:900;">ADD TO CART +</button><button type="button" id="productDetailsBuyNow" style="flex:1;min-height:50px;border:1px solid #ffad70;border-radius:13px;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;font-size:13px;font-weight:900;">BUY NOW</button></div>
-        <div style="font-size:10px;color:#a99a8e;margin-top:10px;">← Swipe to explore more items →</div>
+        <div style="font-size:10px;color:#a99a8e;margin-top:10px;">← Swipe to explore all restaurant items →</div>
       </div>`;
     document.body.appendChild(overlay);
     $("closeProductDetails").addEventListener("click", () => { overlay.style.display = "none"; });
@@ -879,7 +880,7 @@ function openProductDetails(item) {
   }
 
   const gallery = $("productCategoryGallery");
-  $("productCategoryTitle").textContent = (item.category || "Other").toUpperCase() + " · " + galleryItems.length + " ITEMS";
+  $("productCategoryTitle").textContent = (selectedRestaurant?.name || selectedRestaurant?.Name || "RESTAURANT MENU").toUpperCase() + " · ALL " + galleryItems.length + " ITEMS";
   gallery.innerHTML = "";
   galleryItems.forEach((entry, index) => {
     const tile = document.createElement("button");
@@ -887,7 +888,7 @@ function openProductDetails(item) {
     tile.setAttribute("aria-label", "View " + entry.name);
     tile.style.cssText = "flex:0 0 118px;width:118px;scroll-snap-align:start;text-align:left;padding:7px;border:1px solid " + (entry.id === item.id ? "#ff9a4d" : "#514033") + ";border-radius:15px;background:" + (entry.id === item.id ? "#3a281d" : "#1b1714") + ";color:#fff;overflow:hidden;";
     const thumb = entry.imageUrl
-      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:82px;object-fit:cover;border-radius:10px;display:block;" loading="lazy">'
+      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:82px;object-fit:contain;object-position:center;background:#100d0a;border-radius:10px;display:block;" loading="lazy">'
       : '<div style="height:82px;display:grid;place-items:center;background:#30251e;border-radius:10px;font-size:36px;">' + escapeHTML(entry.emoji || "🍽️") + '</div>';
     tile.innerHTML = thumb + '<strong style="display:block;font-size:12px;line-height:1.25;margin:7px 1px 4px;min-height:30px;">' + escapeHTML(entry.name) + '</strong><span style="font-size:12px;color:#ffad70;font-weight:900;">' + money(entry.price) + '</span>';
     tile.addEventListener("click", () => {
@@ -906,7 +907,7 @@ function openProductDetails(item) {
     const detailImg = document.createElement("img");
     detailImg.src = item.imageUrl;
     detailImg.alt = item.name || "Food item";
-    detailImg.style.cssText = "display:block;width:100%;max-height:220px;aspect-ratio:16/10;object-fit:cover;border-radius:16px;box-shadow:0 8px 24px #0008;";
+    detailImg.style.cssText = "display:block;width:100%;height:clamp(190px,38vh,300px);max-height:300px;aspect-ratio:16/10;object-fit:contain;object-position:center;background:#100d0a;border-radius:16px;box-shadow:0 8px 24px #0008;";
     detailImg.onerror = () => { detailVisual.textContent = item.emoji || "🍽️"; };
     detailVisual.appendChild(detailImg);
   } else {
