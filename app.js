@@ -759,6 +759,35 @@ function renderCategories() {
   });
 }
 
+// SOFT UI CLICK SOUND + TAP FEEDBACK
+let zbAudioContext=null;
+function playUiClickSound(){
+  try{
+    const AudioCtx=window.AudioContext||window.webkitAudioContext;
+    if(!AudioCtx)return;
+    zbAudioContext=zbAudioContext||new AudioCtx();
+    if(zbAudioContext.state==="suspended")zbAudioContext.resume();
+    const oscillator=zbAudioContext.createOscillator();
+    const gain=zbAudioContext.createGain();
+    oscillator.type="sine";
+    oscillator.frequency.setValueAtTime(720,zbAudioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(460,zbAudioContext.currentTime+0.055);
+    gain.gain.setValueAtTime(0.0001,zbAudioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12,zbAudioContext.currentTime+0.008);
+    gain.gain.exponentialRampToValueAtTime(0.0001,zbAudioContext.currentTime+0.085);
+    oscillator.connect(gain);gain.connect(zbAudioContext.destination);
+    oscillator.start();oscillator.stop(zbAudioContext.currentTime+0.09);
+  }catch(error){console.debug("UI click sound unavailable",error);}
+}
+function animateQuantityTap(button){
+  if(!button)return;
+  button.classList.remove("zb-tap-pop");
+  void button.offsetWidth;
+  button.classList.add("zb-tap-pop");
+  setTimeout(()=>button.classList.remove("zb-tap-pop"),260);
+  playUiClickSound();
+}
+
 // MENU DISPLAY
 function renderMenu() {
   const products = $("products");
@@ -817,7 +846,7 @@ function renderMenu() {
         ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;flex-direction:row;flex-wrap:nowrap;"></div>
+        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;flex-direction:column;flex-wrap:nowrap;"></div>
         <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
@@ -847,11 +876,11 @@ function renderMenuCardActions(card,item) {
   if(!holder)return;
   const quantity=getQuantity(getCartItemId(item));
   holder.innerHTML=quantity>0
-    ? '<button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:28px;height:28px;min-width:28px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:17px;font-weight:900;">−</button><strong style="min-width:16px;text-align:center;color:#ffbd87;font-size:14px;">'+quantity+'</strong><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:17px;font-weight:900;">+</button>'
+    ? '<div class="menu-qty-stack" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:27px;height:27px;min-width:27px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:17px;font-weight:900;">+</button><strong style="min-width:18px;text-align:center;color:#ffbd87;font-size:13px;">'+quantity+'</strong><button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:27px;height:27px;min-width:27px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:17px;font-weight:900;">−</button></div>'
     : '<button type="button" class="add-button" style="width:100%;min-height:40px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-weight:900;">ADD +</button>';
-  holder.querySelector(".add-button")?.addEventListener("click",event=>{event.stopPropagation();animateFoodToCart(card);addToCart(item);});
-  holder.querySelector(".menu-qty-minus")?.addEventListener("click",event=>{event.stopPropagation();changeQuantity(getCartItemId(item),-1);});
-  holder.querySelector(".menu-qty-plus")?.addEventListener("click",event=>{event.stopPropagation();changeQuantity(getCartItemId(item),1);});
+  holder.querySelector(".add-button")?.addEventListener("click",event=>{event.stopPropagation();animateQuantityTap(event.currentTarget);animateFoodToCart(card);addToCart(item);});
+  holder.querySelector(".menu-qty-minus")?.addEventListener("click",event=>{event.stopPropagation();animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(item),-1);});
+  holder.querySelector(".menu-qty-plus")?.addEventListener("click",event=>{event.stopPropagation();animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(item),1);});
 }
 
 // COMPACT FOOD DETAILS POPUP WITH SOFT SLOW SHAKE
@@ -886,7 +915,7 @@ function openProductDetails(item) {
         .zb-slide-price{font-size:21px;font-weight:950;color:#ffad70;margin:7px 0 10px}
         .zb-slide-actions{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;gap:6px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
         .zb-slide-actions button{flex:1;min-width:0;min-height:42px;border-radius:12px;font-weight:950;font-size:12px}
-        .zb-slide-actions .zb-qty-minus,.zb-slide-actions .zb-qty-plus{flex:0 0 32px;width:32px;min-width:32px;min-height:32px;padding:0;font-size:18px;border-radius:8px;background:#2b1d14;color:#fff;border:1px solid #ff963f}
+        .zb-slide-actions .zb-qty-minus,.zb-slide-actions .zb-qty-plus{flex:0 0 28px;width:28px;min-width:28px;min-height:28px;padding:0;font-size:17px;border-radius:8px;background:#2b1d14;color:#fff;border:1px solid #ff963f}\n        .zb-slide-actions .zb-qty-stack{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;flex:0 0 34px}\n        .zb-tap-pop{animation:zbTapPop .24s ease-out}\n        @keyframes zbTapPop{0%{transform:scale(1)}45%{transform:scale(1.18)}75%{transform:scale(.94)}100%{transform:scale(1)}}
         .zb-slide-actions .zb-qty-value{display:grid;place-items:center;min-width:16px;color:#ffbd87;font-size:14px;font-weight:950}
         .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
         .zb-buy{background:linear-gradient(135deg,#ffc078,#ff7626);color:#1b1008;border:0;box-shadow:0 7px 25px #ff812955}
@@ -960,11 +989,11 @@ function openProductDetails(item) {
       const chosen=getChosen();
       const quantity=getQuantity(getCartItemId(chosen));
       actionHolder.innerHTML=quantity>0
-        ? '<button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><button type="button" class="zb-buy">BUY NOW →</button>'
+        ? '<div class="zb-qty-stack"><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button></div><button type="button" class="zb-buy">BUY NOW →</button>'
         : '<button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button>';
-      actionHolder.querySelector(".zb-add")?.addEventListener("click",()=>{addToCart(getChosen());renderSlideActions();});
-      actionHolder.querySelector(".zb-qty-minus")?.addEventListener("click",()=>{changeQuantity(getCartItemId(getChosen()),-1);renderSlideActions();});
-      actionHolder.querySelector(".zb-qty-plus")?.addEventListener("click",()=>{changeQuantity(getCartItemId(getChosen()),1);renderSlideActions();});
+      actionHolder.querySelector(".zb-add")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);addToCart(getChosen());renderSlideActions();});
+      actionHolder.querySelector(".zb-qty-minus")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(getChosen()),-1);renderSlideActions();});
+      actionHolder.querySelector(".zb-qty-plus")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(getChosen()),1);renderSlideActions();});
       actionHolder.querySelector(".zb-buy")?.addEventListener("click",()=>{overlay.style.display="none";buyNow(getChosen());});
     };
     if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);renderSlideActions();});
@@ -1138,11 +1167,13 @@ function renderCart() {
       </div>
     `;
 
-    row.querySelector(".minus").addEventListener("click", () => {
+    row.querySelector(".minus").addEventListener("click", (event) => {
+      animateQuantityTap(event.currentTarget);
       changeQuantity(item.id, -1);
     });
 
-    row.querySelector(".plus").addEventListener("click", () => {
+    row.querySelector(".plus").addEventListener("click", (event) => {
+      animateQuantityTap(event.currentTarget);
       changeQuantity(item.id, 1);
     });
 
