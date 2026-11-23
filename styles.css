@@ -1259,3 +1259,43 @@ html, body {
 .product-actions{padding:0 11px 12px;margin-top:0!important}
 .product-actions button{margin-top:0!important;min-height:36px;border-radius:11px!important;font-size:10px!important;letter-spacing:.2px}
 @media(max-width:360px){#products{gap:9px}.product-info{padding:9px 9px 11px!important}.product-card h3{font-size:12px!important}.menu-photo-type{top:6px;left:6px}}
+
+
+/* ZaikaBox floating 3D food photo with a deep black shadow */
+.menu-photo-wrap{
+  background:radial-gradient(ellipse at 50% 58%,#242424 0%,#111 48%,#050505 100%)!important;
+  perspective:900px;
+  isolation:isolate;
+}
+.menu-food-photo{
+  position:relative;
+  z-index:0;
+  object-fit:contain!important;
+  padding:7px 9px 13px;
+  filter:drop-shadow(0 17px 12px rgba(0,0,0,.92)) drop-shadow(0 5px 5px rgba(0,0,0,.8)) saturate(1.13) contrast(1.045);
+  transform:translateY(-2px) scale(1.025);
+  animation:zbFoodFloat 4.2s ease-in-out infinite;
+  will-change:transform,filter;
+}
+.menu-photo-wrap:before{
+  content:"";
+  position:absolute;
+  z-index:0;
+  left:18%;right:18%;bottom:10%;
+  height:17%;
+  border-radius:50%;
+  background:rgba(0,0,0,.9);
+  filter:blur(15px);
+  transform:scaleX(1.12);
+}
+.menu-photo-wrap:after{
+  z-index:1;
+  background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.2))!important;
+}
+@keyframes zbFoodFloat{
+  0%,100%{transform:translateY(-2px) scale(1.025)}
+  50%{transform:translateY(-6px) scale(1.045)}
+}
+@media(prefers-reduced-motion:reduce){
+  .menu-food-photo{animation:none}
+}
