@@ -866,7 +866,22 @@ function openProductDetails(item) {
       if (event.target === overlay) overlay.style.display = "none";
     });
   }
-  $("productDetailsEmoji").textContent = item.emoji || "🍽️";
+  const detailVisual=$("productDetailsEmoji");
+  detailVisual.innerHTML="";
+  if(item.imageUrl){
+    const detailImg=document.createElement("img");
+    detailImg.src=item.imageUrl;detailImg.alt=item.name||"Food item";
+    detailImg.style.cssText="display:block;width:100%;max-height:230px;aspect-ratio:16/10;object-fit:cover;border-radius:16px;box-shadow:0 8px 24px #0008;";
+    detailImg.onerror=()=>{detailVisual.textContent=item.emoji||"🍽️";};
+    detailVisual.appendChild(detailImg);
+  }else{
+    detailVisual.textContent=item.emoji||"🍽️";
+  }
+  const foodBadge=document.createElement("div");
+  const isNonVeg=String(item.foodType||"Veg").toLowerCase()==="non-veg";
+  foodBadge.textContent=isNonVeg?"🔴 NON-VEG":"🟢 VEG";
+  foodBadge.style.cssText="display:inline-block;margin:8px auto 0;padding:5px 10px;border-radius:20px;font-size:10px;font-weight:900;letter-spacing:.6px;background:"+(isNonVeg?"#4b1b20":"#153b28")+";color:"+(isNonVeg?"#ffb5b5":"#a5f0bd")+";";
+  detailVisual.appendChild(foodBadge);
   $("productDetailsName").textContent = item.name || "Menu Item";
   $("productDetailsDescription").textContent = item.description || "Freshly prepared with care.";
   let chosenVariant=null;
