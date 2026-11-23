@@ -513,13 +513,14 @@ async function openRestaurant(restaurant) {
   renderSelectedRestaurantStatus();
   unsubscribeRestaurantStatus = onSnapshot(doc(db, "restaurants", selectedRestaurant.id), (snap) => {
     if (!snap.exists() || !selectedRestaurant) return;
+    const wasOnline = isRestaurantOnlineNow(selectedRestaurant);
     selectedRestaurant = { id: snap.id, ...snap.data() };
     if (!isRestaurantOnlineNow(selectedRestaurant)) {
       cart = [];
       renderCart();
       closeCart();
       $("checkoutForm")?.remove();
-      showToast("Restaurant OFFLINE hai. Menu dekh sakte hain, order nahi kar sakte.");
+      if (wasOnline) showToast("Restaurant OFFLINE ho gaya. Menu aur price dekh sakte hain, order nahi kar sakte.");
     }
     renderSelectedRestaurantStatus();
     renderMenu();
