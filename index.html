@@ -910,7 +910,7 @@
 
     <div class="track-card">
       <h3>Need help? 🎧</h3>
-      <p>Tracking ya order support ke liye ZaikaBox helpline par sampark karein.</p>
+      <p>Contact the ZaikaBox helpline for order tracking or support.</p>
       <a href="tel:+918319014718" class="primary-btn" style="display:block;text-align:center;text-decoration:none;margin-top:12px">📞 Call 8319014718</a>
       <a href="https://wa.me/918319014718" target="_blank" rel="noopener" class="primary-btn" style="display:block;text-align:center;text-decoration:none;margin-top:10px;background:#174d36">WhatsApp Support</a>
     </div>
@@ -966,8 +966,8 @@
   <main id="accountScreen" class="screen">
     <div class="eyebrow">Your ZaikaBox account</div>
     <h1 class="screen-title">Login / Sign Up 👤</h1>
-    <p class="screen-subtitle">Naya account banane ke liye mobile, email aur password daalein. Login mobile aur password se hoga.</p>
-    <div class="wallet-note" style="margin:16px 0">Mobile number OTP se verify nahi hoga. Apna hi mobile number use karein. Password recovery registered email se hogi.</div>
+    <p class="screen-subtitle">To create a new account, enter your mobile number, email, and password. You will log in using your mobile number and password.</p>
+    <div class="wallet-note" style="margin:16px 0">Your mobile number will not be verified by OTP. Please use your own mobile number. Password recovery will use your registered email.</div>
     <div id="accountForm" class="track-card">
       <label for="accountMobile">Mobile Number</label>
       <input class="field" id="accountMobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
@@ -994,7 +994,7 @@
       <button class="primary-btn" id="saveCustomerProfile" type="button" style="width:100%;margin-top:12px">Save Profile</button>
       <button class="primary-btn" id="accountLogout" type="button" style="width:100%;margin-top:10px;background:#30251c;border:1px solid #ff8a35;display:flex;align-items:center;justify-content:center;gap:9px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="stroke:#ff8a35;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg><span>Logout</span></button>
     </div>
-    <p id="accountStatus" class="screen-subtitle">Login karein ya naya account banayein.</p>
+    <p id="accountStatus" class="screen-subtitle">Log in or create a new account.</p>
   </main>
 
 
@@ -1050,7 +1050,7 @@
     <span id="total">₹0</span>
   </div>
 
-  <button type="button" id="checkout" onclick="if(window.zaikaCheckoutClick){window.zaikaCheckoutClick()}else{alert('Checkout script load nahi hua. Page refresh kijiye.')}">
+  <button type="button" id="checkout" onclick="if(window.zaikaCheckoutClick){window.zaikaCheckoutClick()}else{alert('Checkout script did not load. Please refresh the page.')}">
     Proceed to Checkout →
   </button>
 
@@ -1068,7 +1068,7 @@
     <h3>ZaikaBox Care</h3>
     <p class="support-profile-sub">Customer Support Team</p>
     <span class="support-online">Support available</span>
-    <p class="support-profile-desc">Order, payment, delivery ya kisi bhi problem mein hamari support team se sampark karein.</p>
+    <p class="support-profile-desc">Contact our support team for help with orders, payments, delivery, or any other issue.</p>
     <div class="support-profile-number">8319014718</div>
     <div class="support-profile-actions">
       <a class="support-call" href="tel:8319014718">📞 Call Support</a>
@@ -1087,19 +1087,19 @@
     <button type="button" class="zaika-ai-close" id="zaikaAiClose" aria-label="Close assistant">×</button>
   </div>
   <div class="zaika-ai-messages" id="zaikaAiMessages" aria-live="polite">
-    <div class="zaika-ai-msg bot">Namaste! 👋 Main Zaika AI hoon. Aapko order, restaurant, menu ya support mein kis cheez ki madad chahiye?</div>
+    <div class="zaika-ai-msg bot">Hello! 👋 I am Zaika AI. How can I help you with orders, restaurants, the menu, or support?</div>
   </div>
   <div class="zaika-ai-quick">
     <button type="button" data-ai-prompt="Mera order kaise track karun?">Track order</button>
-    <button type="button" data-ai-prompt="Payment problem hai">Payment help</button>
-    <button type="button" data-ai-prompt="Customer support chahiye">Customer support</button>
+    <button type="button" data-ai-prompt="I have a payment problem">Payment help</button>
+    <button type="button" data-ai-prompt="I need customer support">Customer support</button>
     <button type="button" data-ai-prompt="Restaurant kaise dhoondhun?">Find restaurant</button>
   </div>
   <form class="zaika-ai-compose" id="zaikaAiForm">
-    <input id="zaikaAiInput" type="text" placeholder="Yahan apna message likhein..." autocomplete="off" aria-label="Message Zaika AI">
+    <input id="zaikaAiInput" type="text" placeholder="Type your message here..." autocomplete="off" aria-label="Message Zaika AI">
     <button type="submit" aria-label="Send message">➤</button>
   </form>
-  <div class="zaika-ai-note">Text assistant · AI abhi live order data access nahi karti</div>
+  <div class="zaika-ai-note">Text assistant · AI does not currently access live order data</div>
 </section>
 
 <div id="toast"></div>
@@ -1199,14 +1199,14 @@ if ("serviceWorker" in navigator) {
   function addMessage(text,who){const el=document.createElement("div");el.className="zaika-ai-msg "+who;el.textContent=text;messages.appendChild(el);messages.scrollTop=messages.scrollHeight;}
   function answerFor(q){
     const s=q.toLowerCase();
-    if(/track|tracking|order status|mera order|ऑर्डर/.test(s))return "Aap Track screen par Order ID aur Tracking Code daalkar apna order check kar sakte hain. Main abhi live order record nahi dekh sakti.";
-    if(/payment|upi|utr|पेमेंट/.test(s))return "Payment ke liye checkout instructions follow karein. UTR payment ka proof nahi hota; payment verify karwana zaroori hai. Dikkat ho to Support se baat karein.";
-    if(/cancel|refund|रिफंड/.test(s))return "Order cancellation ya refund ke liye Support se sampark karein. Main bina order verify kiye refund confirm nahi kar sakti.";
-    if(/restaurant|hotel|खाना|food|menu|मेन्यू/.test(s))return "Home par Popular Restaurants section mein restaurants search kar sakte hain aur Veg ya Non-Veg filter bhi laga sakte hain.";
-    if(/support|help|complaint|शिकायत/.test(s))return "ZaikaBox Support number 8319014718 hai. Aap Call ya WhatsApp kar sakte hain.";
-    if(/hello|hi|namaste|नमस्ते/.test(s))return "Namaste! 😊 Main Zaika AI hoon. Bataiye, main aapki kya madad kar sakti hoon?";
-    if(/delivery|deliver|address|डिलीवरी/.test(s))return "Delivery address checkout ke dauran enter karein. Delivery issue ke liye Support 8319014718 par sampark karein.";
-    return "Main abhi basic help de sakti hoon. Order tracking, payment, cancellation, restaurant, menu ya customer support ke baare mein poochhiye.";
+    if(/track|tracking|order status|mera order|ऑर्डर/.test(s))return "You can check your order on the Track screen using your Order ID and Tracking Code. I cannot currently view live order records.";
+    if(/payment|upi|utr|पेमेंट/.test(s))return "Follow the checkout instructions to make a payment. A UTR alone is not proof of payment; the payment must be verified. Contact Support if you need help.";
+    if(/cancel|refund|रिफंड/.test(s))return "Contact Support for order cancellation or a refund. I cannot confirm a refund without verifying the order.";
+    if(/restaurant|hotel|खाना|food|menu|मेन्यू/.test(s))return "You can search restaurants in the Popular Restaurants section on Home and filter by Veg or Non-Veg.";
+    if(/support|help|complaint|शिकायत/.test(s))return "ZaikaBox Support number: 8319014718. You can call or WhatsApp us.";
+    if(/hello|hi|namaste|नमस्ते/.test(s))return "Hello! 😊 I am Zaika AI. How can I help you?";
+    if(/delivery|deliver|address|डिलीवरी/.test(s))return "Enter your delivery address during checkout. For delivery issues, contact Support at 8319014718.";
+    return "I can currently provide basic help. Ask me about order tracking, payments, cancellations, restaurants, the menu, or customer support.";
   }
   function speak(text){/* Text-only assistant: replies are never spoken aloud. */}
   function respond(q){const clean=String(q||"").trim();if(!clean)return;addMessage(clean,"user");const reply=answerFor(clean);addMessage(reply,"bot");}
