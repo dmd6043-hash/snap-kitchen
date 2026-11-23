@@ -796,7 +796,10 @@ function renderMenu() {
     card.dataset.productId = String(item.id);
 
     const quantity = getQuantity(item.restaurantId ? item.restaurantId + "__" + item.id : item.id);
-    const restaurantOnline = isRestaurantOnlineNow(selectedRestaurant);
+    const itemRestaurant = item.restaurantId
+      ? (restaurants.find((restaurant) => restaurant.id === item.restaurantId) || { id: item.restaurantId })
+      : selectedRestaurant;
+    const restaurantOnline = isRestaurantOnlineNow(itemRestaurant);
 
     card.innerHTML = `
       <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
