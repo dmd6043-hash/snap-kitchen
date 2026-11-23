@@ -595,6 +595,11 @@ function loadSelectedRestaurantMenu() {
             category: String(data.category || data.Category || "Other").trim(),
             description: data.description || data.Description || "",
             emoji: String(data.emoji || data.Emoji || "🍽️").trim(),
+            imageUrl: String(data.imageUrl || ""),
+            foodType: String(data.foodType || "Veg"),
+            variants: Array.isArray(data.variants) ? data.variants : [],
+            gstApplicable: !!data.gstApplicable,
+            gstRate: Number(data.gstRate || 0),
             available: isMenuItemVisible(data)
           };
         })
@@ -713,7 +718,7 @@ async function browseFoodCategory(selectedCategory) {
   if(!restaurants.length) await loadRestaurants();
   const groups=await Promise.all(restaurants.map(async(r)=>{
    const snap=await getDocs(collection(db,"restaurants",r.id,"menuItems"));
-   return snap.docs.map((d)=>{const x=d.data();return {id:d.id,...x,name:String(x.name||x.Name||x.title||x.Title||d.id).trim(),price:Number(x.price??x.Price??0),category:String(x.category||x.Category||"Other").trim(),description:x.description||x.Description||"",emoji:String(x.emoji||x.Emoji||"🍽️"),available:isMenuItemVisible(x),restaurantId:r.id,restaurantName:r.name||r.Name||"Restaurant"};}).filter((x)=>x.available&&categoryMatchesItem(x,selectedCategory));
+   return snap.docs.map((d)=>{const x=d.data();return {id:d.id,...x,name:String(x.name||x.Name||x.title||x.Title||d.id).trim(),price:Number(x.price??x.Price??0),category:String(x.category||x.Category||"Other").trim(),description:x.description||x.Description||"",emoji:String(x.emoji||x.Emoji||"🍽️"),imageUrl:String(x.imageUrl||""),foodType:String(x.foodType||"Veg"),variants:Array.isArray(x.variants)?x.variants:[],gstApplicable:!!x.gstApplicable,gstRate:Number(x.gstRate||0),available:isMenuItemVisible(x),restaurantId:r.id,restaurantName:r.name||r.Name||"Restaurant"};}).filter((x)=>x.available&&categoryMatchesItem(x,selectedCategory));
   }));
   if(!globalCategoryMode||globalBrowseCategory!==selectedCategory)return;
   menu=groups.flat();renderMenu();
@@ -803,11 +808,13 @@ function renderMenu() {
     const restaurantOnline = isRestaurantOnlineNow(itemRestaurant);
 
     card.innerHTML = `
-      <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
+      <div class="product-emoji" style="overflow:hidden;">${item.imageUrl ? `<img src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : escapeHTML(item.emoji || "🍽️")}</div>
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
+        <small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>
         ${restaurantOnline ? `<p>${escapeHTML(item.description)}</p>` : ""}
-        <strong>${money(item.price)}</strong>
+        <strong>${item.variants?.length ? "From " : ""}${money(item.price)}</strong>
+        ${item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
         <button type="button" class="add-button" style="flex:1;min-width:0;">${quantity > 0 ? "Added " + quantity : "ADD +"}</button>
