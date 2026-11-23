@@ -1454,3 +1454,46 @@ html, body {
 .product-card:has(.menu-photo-wrap) .product-actions{
   padding:0 13px 13px!important;
 }
+
+
+/* Fill the visual gap below food photos with a compact premium details panel */
+.product-card:has(.menu-photo-wrap){
+  align-self:start!important;
+  height:fit-content!important;
+  min-height:0!important;
+  grid-row:auto!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-photo-wrap{
+  margin-bottom:0!important;
+  box-shadow:0 10px 22px rgba(0,0,0,.58),inset 0 -1px 0 rgba(255,159,79,.18)!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info{
+  flex:0 0 auto!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0!important;
+  padding:12px 14px 8px!important;
+  background:
+    radial-gradient(ellipse at 15% 0%,rgba(255,137,48,.12),transparent 58%),
+    linear-gradient(155deg,#241a13 0%,#17110d 58%,#100d0b 100%)!important;
+  border-top:1px solid rgba(255,170,105,.13)!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info h3{
+  margin:0 0 6px!important;
+  line-height:1.25!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info p{
+  margin:5px 0!important;
+  line-height:1.35!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info>strong{
+  display:block!important;
+  margin:6px 0 0!important;
+  line-height:1.2!important;
+}
+.product-card:has(.menu-photo-wrap) .product-actions{
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:5px 14px 14px!important;
+  background:linear-gradient(155deg,#17110d,#100d0b)!important;
+}
