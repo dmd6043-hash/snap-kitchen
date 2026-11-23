@@ -383,7 +383,11 @@ async function loadRestaurants() {
         id: document.id,
         ...document.data()
       }))
-      .filter((item) => item.active === true || item.Active === true);
+      .filter((item) =>
+        (item.active === true || item.Active === true) &&
+        item.isOnline !== false &&
+        item.isAcceptingOrders !== false
+      );
 
     if (!restaurants.length) {
       if (grid) grid.innerHTML = "<p>Abhi koi active restaurant nahi mila.</p>";
@@ -1672,6 +1676,20 @@ async function placeOrder() {
   const orderTotal = getTotal();
 
   try {
+    // Re-check live restaurant availability immediately before creating the order.
+    const liveRestaurantSnapshot = await getDoc(doc(db, "restaurants", selectedRestaurant.id));
+    if (!liveRestaurantSnapshot.exists()) {
+      throw new Error("Ye restaurant abhi available nahi hai.");
+    }
+    const liveRestaurant = liveRestaurantSnapshot.data();
+    if (
+      liveRestaurant.active !== true ||
+      liveRestaurant.isOnline === false ||
+      liveRestaurant.isAcceptingOrders === false
+    ) {
+      throw new Error("Restaurant abhi OFFLINE hai. ONLINE hone par dobara order karein.");
+    }
+
     const trackingCode = generateTrackingCode();
 
     const orderRef = doc(collection(db, "orders"));
