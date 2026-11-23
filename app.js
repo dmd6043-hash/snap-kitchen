@@ -816,8 +816,8 @@ function renderMenu() {
         <strong>${item.variants?.length && restaurantOnline ? "From " : ""}${money(item.price)}</strong>
         ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
-      ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
-        <button type="button" class="add-button" style="flex:1;min-width:0;">${quantity > 0 ? "Added " + quantity : "ADD +"}</button>
+      ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
+        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:13px;flex:1;min-width:0;"></div>
         <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
@@ -827,7 +827,7 @@ function renderMenu() {
       if(foodPhoto)foodPhoto.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="menu-photo-fallback";fallback.textContent=item.emoji||"🍽️";foodPhoto.replaceWith(fallback);},{once:true});
       card.addEventListener("click", () => openProductDetails(item));
       card.style.cursor = "pointer";
-      card.querySelector(".add-button").addEventListener("click", (event) => { event.stopPropagation(); animateFoodToCart(card); addToCart(item); });
+      renderMenuCardActions(card,item);
       card.querySelector(".buy-now-button").addEventListener("click", (event) => { event.stopPropagation(); buyNow(item); });
     } else {
       card.style.cursor = "default";
@@ -835,6 +835,23 @@ function renderMenu() {
 
     products.appendChild(card);
   });
+}
+
+function getCartItemId(item) {
+  const baseId=item.restaurantId?item.restaurantId+"__"+item.id:item.id;
+  return baseId+(item.variantName?"__v_"+encodeURIComponent(item.variantName):"");
+}
+
+function renderMenuCardActions(card,item) {
+  const holder=card.querySelector(".menu-quantity-control");
+  if(!holder)return;
+  const quantity=getQuantity(getCartItemId(item));
+  holder.innerHTML=quantity>0
+    ? '<button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:22px;font-weight:900;">−</button><strong style="min-width:18px;text-align:center;color:#ffbd87;">'+quantity+'</strong><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:36px;height:36px;border-radius:10px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:22px;font-weight:900;">+</button>'
+    : '<button type="button" class="add-button" style="width:100%;min-height:40px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-weight:900;">ADD +</button>';
+  holder.querySelector(".add-button")?.addEventListener("click",event=>{event.stopPropagation();animateFoodToCart(card);addToCart(item);});
+  holder.querySelector(".menu-qty-minus")?.addEventListener("click",event=>{event.stopPropagation();changeQuantity(getCartItemId(item),-1);});
+  holder.querySelector(".menu-qty-plus")?.addEventListener("click",event=>{event.stopPropagation();changeQuantity(getCartItemId(item),1);});
 }
 
 // COMPACT FOOD DETAILS POPUP WITH SOFT SLOW SHAKE
@@ -937,8 +954,20 @@ function openProductDetails(item) {
       return {...entry,price:Number(v.price),variantName:v.name,name:entry.name+" ("+v.name+")"};
     };
     if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);});
-    slide.querySelector(".zb-add").addEventListener("click",()=>{addToCart(getChosen());overlay.style.display="none";});
-    slide.querySelector(".zb-buy").addEventListener("click",()=>{overlay.style.display="none";buyNow(getChosen());});
+    const actionHolder=slide.querySelector(".zb-slide-actions");
+    const renderSlideActions=()=>{
+      const chosen=getChosen();
+      const quantity=getQuantity(getCartItemId(chosen));
+      actionHolder.innerHTML=quantity>0
+        ? '<button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><button type="button" class="zb-buy">BUY NOW →</button>'
+        : '<button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button>';
+      actionHolder.querySelector(".zb-add")?.addEventListener("click",()=>{addToCart(getChosen());renderSlideActions();});
+      actionHolder.querySelector(".zb-qty-minus")?.addEventListener("click",()=>{changeQuantity(getCartItemId(getChosen()),-1);renderSlideActions();});
+      actionHolder.querySelector(".zb-qty-plus")?.addEventListener("click",()=>{changeQuantity(getCartItemId(getChosen()),1);renderSlideActions();});
+      actionHolder.querySelector(".zb-buy")?.addEventListener("click",()=>{overlay.style.display="none";buyNow(getChosen());});
+    };
+    if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);renderSlideActions();});
+    renderSlideActions();
     gallery.appendChild(slide);
   });
 
@@ -1011,8 +1040,7 @@ function addToCart(item) {
   if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Abhi cart mein add nahi kar sakte.");return;}
   if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("Ek order mein ek hi restaurant se items add kar sakte hain. Pehle current cart complete karein.");return;}
   selectedRestaurant=itemRestaurant;
-  const variantSuffix=item.variantName?"__v_"+encodeURIComponent(item.variantName):"";
-  const cartItemId=(item.restaurantId?item.restaurantId+"__"+item.id:item.id)+variantSuffix;
+  const cartItemId=getCartItemId(item);
   const existing=cart.find((product)=>product.id===cartItemId);
 
   if (existing) {
