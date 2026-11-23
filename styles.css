@@ -1306,3 +1306,101 @@ html, body {
   padding:11px 12px 13px!important;
 }
 .product-card:has(.menu-photo-wrap) .product-info h3{margin-top:0!important}
+
+
+/* Reference-matched customer menu cards: large full-bleed food image, compact details */
+.product-card:has(.menu-photo-wrap){
+  display:flex!important;
+  flex-direction:column!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border-radius:23px!important;
+  background:linear-gradient(150deg,#211912 0%,#120f0d 100%)!important;
+  border:1px solid rgba(255,151,65,.28)!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-photo-wrap{
+  display:block!important;
+  position:relative!important;
+  width:100%!important;
+  height:auto!important;
+  aspect-ratio:8/5!important;
+  min-height:0!important;
+  max-height:none!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:0!important;
+  border-radius:22px 22px 0 0!important;
+  background:#090705!important;
+  box-shadow:0 12px 22px rgba(0,0,0,.52)!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-food-photo,
+.product-card:has(.menu-photo-wrap) .menu-photo-fallback{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:8/5!important;
+  object-fit:cover!important;
+  object-position:center!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  animation:none!important;
+  transform:none!important;
+  filter:saturate(1.1) contrast(1.045)!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-photo-wrap:before{
+  content:""!important;
+  position:absolute!important;
+  z-index:0!important;
+  inset:4% 3% 2%!important;
+  pointer-events:none!important;
+  border-radius:16px!important;
+  box-shadow:0 15px 30px rgba(0,0,0,.72)!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info{
+  display:block!important;
+  flex:1 0 auto!important;
+  margin:0!important;
+  padding:12px 17px 14px!important;
+  background:linear-gradient(180deg,rgba(31,23,18,.98),rgba(19,15,12,1))!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info h3{
+  margin:0 0 7px!important;
+  font-size:clamp(14px,1.7vw,19px)!important;
+  line-height:1.25!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info>small{margin-top:1px!important}
+.product-card:has(.menu-photo-wrap) .product-info p{
+  margin:5px 0!important;
+  line-height:1.35!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info>strong{
+  margin-top:6px!important;
+  font-size:clamp(17px,2vw,22px)!important;
+}
+.product-card:has(.menu-photo-wrap) .product-actions{
+  display:flex!important;
+  gap:12px!important;
+  padding:0 17px 16px!important;
+  margin:0!important;
+  background:#130f0c!important;
+}
+.product-card:has(.menu-photo-wrap) .product-actions button{
+  flex:1 1 0!important;
+  min-width:0!important;
+  min-height:44px!important;
+  margin:0!important;
+  border-radius:13px!important;
+  font-size:clamp(11px,1.3vw,15px)!important;
+}
+@media(max-width:390px){
+  .product-card:has(.menu-photo-wrap) .product-info{padding:10px 11px 12px!important}
+  .product-card:has(.menu-photo-wrap) .product-actions{gap:7px!important;padding:0 11px 12px!important}
+  .product-card:has(.menu-photo-wrap) .product-actions button{min-height:38px!important}
+}
