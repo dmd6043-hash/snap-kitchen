@@ -837,7 +837,7 @@ function renderMenu() {
     const restaurantOnline = isRestaurantOnlineNow(itemRestaurant);
 
     card.innerHTML = `
-      ${restaurantOnline ? `<div class="menu-photo-wrap">${item.imageUrl ? `<img class="menu-food-photo" src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy">` : `<div class="menu-photo-fallback">${escapeHTML(item.emoji || "🍽️")}</div>`}<span class="menu-photo-type ${String(item.foodType).toLowerCase()==="non-veg"?"nonveg":"veg"}">${String(item.foodType).toLowerCase()==="non-veg"?"NON-VEG":"VEG"}</span></div>` : ""}
+      ${restaurantOnline ? `<div class="menu-photo-wrap">${item.imageUrl ? `<img class="menu-food-photo" src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover!important;object-position:center;padding:0!important;transform:none!important;animation:none!important;filter:saturate(1.12) contrast(1.06);">` : `<div class="menu-photo-fallback">${escapeHTML(item.emoji || "🍽️")}</div>`}<span class="menu-photo-type ${String(item.foodType).toLowerCase()==="non-veg"?"nonveg":"veg"}">${String(item.foodType).toLowerCase()==="non-veg"?"NON-VEG":"VEG"}</span></div>` : ""}
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
         ${restaurantOnline ? `<small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
