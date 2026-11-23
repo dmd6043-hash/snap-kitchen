@@ -1261,41 +1261,50 @@ html, body {
 @media(max-width:360px){#products{gap:9px}.product-info{padding:9px 9px 11px!important}.product-card h3{font-size:12px!important}.menu-photo-type{top:6px;left:6px}}
 
 
-/* ZaikaBox floating 3D food photo with a deep black shadow */
+/* ZaikaBox final menu photo: full-frame crop, rich backdrop shadow, no floating motion */
 .menu-photo-wrap{
-  background:radial-gradient(ellipse at 50% 58%,#242424 0%,#111 48%,#050505 100%)!important;
-  perspective:900px;
+  position:relative;
+  width:100%;
+  aspect-ratio:4/3;
+  min-height:170px;
+  max-height:none;
+  overflow:hidden;
   isolation:isolate;
+  background:radial-gradient(ellipse at 50% 48%,#342317 0%,#17100b 58%,#050505 100%)!important;
+  border-bottom:1px solid rgba(255,172,103,.18);
+  box-shadow:inset 0 -18px 28px rgba(0,0,0,.5),0 10px 22px rgba(0,0,0,.35);
 }
 .menu-food-photo{
   position:relative;
   z-index:0;
-  object-fit:contain!important;
-  padding:7px 9px 13px;
-  filter:drop-shadow(0 17px 12px rgba(0,0,0,.92)) drop-shadow(0 5px 5px rgba(0,0,0,.8)) saturate(1.13) contrast(1.045);
-  transform:translateY(-2px) scale(1.025);
-  animation:zbFoodFloat 4.2s ease-in-out infinite;
-  will-change:transform,filter;
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover!important;
+  object-position:center;
+  padding:0!important;
+  filter:saturate(1.12) contrast(1.06);
+  transform:none!important;
+  animation:none!important;
+  will-change:auto;
 }
 .menu-photo-wrap:before{
   content:"";
   position:absolute;
   z-index:0;
-  left:18%;right:18%;bottom:10%;
-  height:17%;
-  border-radius:50%;
-  background:rgba(0,0,0,.9);
-  filter:blur(15px);
-  transform:scaleX(1.12);
+  inset:8% 5% 5%;
+  border-radius:18px;
+  pointer-events:none;
+  box-shadow:0 16px 34px rgba(0,0,0,.82),0 0 28px rgba(255,137,48,.12);
 }
 .menu-photo-wrap:after{
+  content:"";
+  position:absolute;
   z-index:1;
-  background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.2))!important;
-}
-@keyframes zbFoodFloat{
-  0%,100%{transform:translateY(-2px) scale(1.025)}
-  50%{transform:translateY(-6px) scale(1.045)}
+  inset:55% 0 0;
+  background:linear-gradient(180deg,transparent,rgba(0,0,0,.22))!important;
+  pointer-events:none;
 }
 @media(prefers-reduced-motion:reduce){
-  .menu-food-photo{animation:none}
+  .menu-food-photo{animation:none!important;transform:none!important}
 }
