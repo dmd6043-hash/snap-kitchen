@@ -837,7 +837,7 @@ function renderMenu() {
   });
 }
 
-// FULL-SCREEN FOOD EXPERIENCE WITH SWIPE SHAKE + FLASH
+// COMPACT FOOD DETAILS POPUP WITH SOFT SLOW SHAKE
 function openProductDetails(item) {
   if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
   const galleryItems = menu.filter((entry) =>
@@ -853,19 +853,20 @@ function openProductDetails(item) {
     Object.assign(overlay.style, {
       position:"fixed", inset:"0", zIndex:"100000", display:"none",
       alignItems:"center", justifyContent:"center", padding:"16px",
-      background:"radial-gradient(circle at 50% 18%,rgba(255,139,54,.20),transparent 42%),rgba(5,5,7,.88)",
-      backdropFilter:"blur(16px)", overflow:"hidden"
+      background:"rgba(5,5,7,.58)",
+      backdropFilter:"blur(22px)",
+      WebkitBackdropFilter:"blur(22px)", overflow:"hidden"
     });
     overlay.innerHTML = `
       <style>
-        #productDetailsPanel{position:relative;width:min(92vw,390px);height:min(82dvh,700px);max-height:82dvh;overflow:hidden;background:linear-gradient(160deg,#21170f 0%,#09090b 72%);border:1px solid #ff9b4a88;border-radius:26px;box-shadow:0 25px 85px #000d,0 0 28px #ff8a3525;color:#fff;text-align:center;display:flex;flex-direction:column;isolation:isolate}
+        #productDetailsPanel{position:relative;width:min(84vw,340px);height:min(70dvh,570px);max-height:70dvh;overflow:hidden;background:linear-gradient(160deg,#21170f 0%,#09090b 72%);border:1px solid #ff9b4a88;border-radius:22px;box-shadow:0 18px 55px #000d;color:#fff;text-align:center;display:flex;flex-direction:column;isolation:isolate}
         #productCategoryGallery{display:flex;flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none}
         #productCategoryGallery::-webkit-scrollbar{display:none}
-        .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:58px 17px 17px;overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
-        .zb-slide-photo{width:100%;height:clamp(155px,27vh,245px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
-        .zb-slide-name{font-size:clamp(20px,5.2vw,26px);font-weight:950;line-height:1.15;margin:17px 0 7px;text-shadow:0 3px 18px #ff8a3544}
-        .zb-slide-desc{font-size:13px;line-height:1.5;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
-        .zb-slide-price{font-size:24px;font-weight:950;color:#ffad70;margin:9px 0 14px}
+        .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:48px 14px 14px;overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
+        .zb-slide-photo{width:100%;height:clamp(125px,21vh,180px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
+        .zb-slide-name{font-size:clamp(18px,4.8vw,22px);font-weight:950;line-height:1.15;margin:12px 0 6px;text-shadow:0 3px 18px #ff8a3544}
+        .zb-slide-desc{font-size:12px;line-height:1.4;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
+        .zb-slide-price{font-size:21px;font-weight:950;color:#ffad70;margin:7px 0 10px}
         .zb-slide-actions{display:flex;gap:10px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
         .zb-slide-actions button{flex:1;min-height:52px;border-radius:15px;font-weight:950;font-size:13px}
         .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
@@ -873,12 +874,10 @@ function openProductDetails(item) {
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
         #productGalleryCounter{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
         #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
-        #productDetailsPanel.zb-swipe-hit{animation:zbShake .38s cubic-bezier(.36,.07,.19,.97)}
-        .zb-food-slide.zb-cutout-hit{animation:zbCutoutReveal .48s cubic-bezier(.16,1,.3,1) both}
-        @keyframes zbCutoutReveal{0%{clip-path:polygon(50% 0,50% 0,50% 100%,50% 100%);transform:scale(.94) rotate(-1deg);filter:drop-shadow(0 0 18px #ff9b4a88)}55%{clip-path:polygon(0 0,100% 8%,94% 100%,5% 92%);transform:scale(1.015) rotate(.35deg)}100%{clip-path:polygon(0 0,100% 0,100% 100%,0 100%);transform:scale(1) rotate(0);filter:none}}
-        @keyframes zbShake{0%,100%{transform:translateX(0) scale(1)}18%{transform:translateX(-9px) rotate(-.7deg) scale(1.012)}38%{transform:translateX(8px) rotate(.7deg)}58%{transform:translateX(-5px)}78%{transform:translateX(3px)}}
-        @media(min-width:700px){#productDetailsPanel{width:min(90vw,430px);height:min(84dvh,740px);max-height:84dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
-        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit,.zb-food-slide.zb-cutout-hit{animation:none}}
+        #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.15s ease-in-out}
+        @keyframes zbSlowShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
+        @media(min-width:700px){#productDetailsPanel{width:min(84vw,360px);height:min(72dvh,600px);max-height:72dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
+        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit{animation:none}}
       </style>
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
         <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
@@ -935,7 +934,7 @@ function openProductDetails(item) {
       void panel.offsetWidth;
       panel.classList.add("zb-swipe-hit");
       const activeSlide=gallery.children[index];
-      if(activeSlide){void activeSlide.offsetWidth;activeSlide.classList.add("zb-cutout-hit");}
+      
     }
   };
   gallery.onscroll=updateCounter;
