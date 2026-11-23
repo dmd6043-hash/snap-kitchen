@@ -880,26 +880,42 @@ function openProductDetails(item) {
   }
 
   const gallery = $("productCategoryGallery");
-  $("productCategoryTitle").textContent = (selectedRestaurant?.name || selectedRestaurant?.Name || "RESTAURANT MENU").toUpperCase() + " · ALL " + galleryItems.length + " ITEMS";
+  $("productCategoryTitle").textContent = (selectedRestaurant?.name || selectedRestaurant?.Name || "RESTAURANT MENU").toUpperCase() + " · " + galleryItems.length + " ITEMS";
   gallery.innerHTML = "";
+  gallery.style.cssText = "display:flex;gap:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scroll-behavior:smooth;padding:4px 0 12px;margin:0 0 10px;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none;";
   galleryItems.forEach((entry, index) => {
-    const tile = document.createElement("button");
-    tile.type = "button";
-    tile.setAttribute("aria-label", "View " + entry.name);
-    tile.style.cssText = "flex:0 0 118px;width:118px;scroll-snap-align:start;text-align:left;padding:7px;border:1px solid " + (entry.id === item.id ? "#ff9a4d" : "#514033") + ";border-radius:15px;background:" + (entry.id === item.id ? "#3a281d" : "#1b1714") + ";color:#fff;overflow:hidden;";
-    const thumb = entry.imageUrl
-      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:82px;object-fit:contain;object-position:center;background:#100d0a;border-radius:10px;display:block;" loading="lazy">'
-      : '<div style="height:82px;display:grid;place-items:center;background:#30251e;border-radius:10px;font-size:36px;">' + escapeHTML(entry.emoji || "🍽️") + '</div>';
-    tile.innerHTML = thumb + '<strong style="display:block;font-size:12px;line-height:1.25;margin:7px 1px 4px;min-height:30px;">' + escapeHTML(entry.name) + '</strong><span style="font-size:12px;color:#ffad70;font-weight:900;">' + money(entry.price) + '</span>';
-    tile.addEventListener("click", () => {
-      openProductDetails(entry);
-      const activeTile = Array.from($("productCategoryGallery").children).find(el => el.textContent.includes(entry.name));
-      activeTile?.scrollIntoView({behavior:"smooth",inline:"center",block:"nearest"});
+    const slide = document.createElement("button");
+    slide.type = "button";
+    slide.setAttribute("aria-label", "View item " + (index + 1) + ": " + entry.name);
+    slide.style.cssText = "flex:0 0 100%;width:100%;min-width:100%;scroll-snap-align:center;scroll-snap-stop:always;text-align:center;padding:10px;border:1px solid " + (entry.id === item.id ? "#ff9a4d" : "#514033") + ";border-radius:19px;background:linear-gradient(145deg,#302116,#17120f);color:#fff;overflow:hidden;box-sizing:border-box;";
+    const photo = entry.imageUrl
+      ? '<img src="' + escapeHTML(entry.imageUrl) + '" alt="' + escapeHTML(entry.name) + '" style="width:100%;height:clamp(180px,30vh,245px);object-fit:contain;object-position:center;background:#100d0a;border-radius:13px;display:block;" loading="lazy">'
+      : '<div style="height:clamp(180px,30vh,245px);display:grid;place-items:center;background:#241b15;border-radius:13px;font-size:76px;">' + escapeHTML(entry.emoji || "🍽️") + '</div>';
+    slide.innerHTML = photo +
+      '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px 3px 2px;text-align:left;">' +
+      '<strong style="font-size:16px;line-height:1.25;">' + escapeHTML(entry.name) + '</strong>' +
+      '<span style="flex:0 0 auto;font-size:17px;color:#ffad70;font-weight:900;">' + money(entry.price) + '</span></div>' +
+      '<span style="display:block;text-align:left;color:#b9a99c;font-size:10px;margin:7px 3px 0;">TAP TO VIEW THIS ITEM</span>';
+    slide.addEventListener("click", () => {
+      if (entry.id !== item.id) openProductDetails(entry);
     });
-    gallery.appendChild(tile);
+    gallery.appendChild(slide);
   });
-  const selectedTile = Array.from(gallery.children).find(el => el.textContent.includes(item.name));
-  selectedTile?.scrollIntoView({block:"nearest",inline:"center"});
+  const selectedIndex = Math.max(0, galleryItems.findIndex(entry => entry.id === item.id));
+  gallery.scrollLeft = selectedIndex * gallery.clientWidth;
+  let counter = $("productGalleryCounter");
+  if (!counter) {
+    counter = document.createElement("div");
+    counter.id = "productGalleryCounter";
+    counter.style.cssText = "text-align:center;color:#ffbd87;font-size:11px;font-weight:900;letter-spacing:1px;margin:-3px 0 12px;";
+    gallery.insertAdjacentElement("afterend", counter);
+  }
+  const updateGalleryCounter = () => {
+    const active = Math.min(galleryItems.length, Math.max(1, Math.round(gallery.scrollLeft / Math.max(1, gallery.clientWidth)) + 1));
+    counter.textContent = "ITEM " + active + " OF " + galleryItems.length + "  ·  SWIPE TO EXPLORE";
+  };
+  gallery.onscroll = updateGalleryCounter;
+  updateGalleryCounter();
 
   const detailVisual = $("productDetailsEmoji");
   detailVisual.innerHTML = "";
