@@ -808,7 +808,7 @@ function renderMenu() {
     const restaurantOnline = isRestaurantOnlineNow(itemRestaurant);
 
     card.innerHTML = `
-      <div class="product-emoji" style="overflow:hidden;">${restaurantOnline && item.imageUrl ? `<img src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : (restaurantOnline ? escapeHTML(item.emoji || "🍽️") : "")}</div>
+      ${restaurantOnline ? `<div class="menu-photo-wrap">${item.imageUrl ? `<img class="menu-food-photo" src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy">` : `<div class="menu-photo-fallback">${escapeHTML(item.emoji || "🍽️")}</div>`}<span class="menu-photo-type ${String(item.foodType).toLowerCase()==="non-veg"?"nonveg":"veg"}">${String(item.foodType).toLowerCase()==="non-veg"?"NON-VEG":"VEG"}</span></div>` : ""}
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
         ${restaurantOnline ? `<small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
@@ -823,6 +823,8 @@ function renderMenu() {
     `;
 
     if (restaurantOnline) {
+      const foodPhoto=card.querySelector(".menu-food-photo");
+      if(foodPhoto)foodPhoto.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="menu-photo-fallback";fallback.textContent=item.emoji||"🍽️";foodPhoto.replaceWith(fallback);},{once:true});
       card.addEventListener("click", () => openProductDetails(item));
       card.style.cursor = "pointer";
       card.querySelector(".add-button").addEventListener("click", (event) => { event.stopPropagation(); animateFoodToCart(card); addToCart(item); });
