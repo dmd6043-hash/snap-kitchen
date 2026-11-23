@@ -610,7 +610,7 @@ function loadSelectedRestaurantMenu() {
         .filter((cartItem) => menu.some((menuItem) => menuItem.id === (cartItem.menuItemId || cartItem.id)))
         .map((cartItem) => {
           const updatedItem = menu.find(
-            (menuItem) => menuItem.id === cartItem.id
+            (menuItem) => menuItem.id === (cartItem.menuItemId || cartItem.id)
           );
 
           return {
