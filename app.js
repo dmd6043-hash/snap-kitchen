@@ -874,8 +874,9 @@ function openProductDetails(item) {
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
         #productGalleryCounter{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
         #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
+        #productDetailsPanel{touch-action:pan-y}
         #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.15s ease-in-out}
-        @keyframes zbSlowShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-3px)}40%{transform:translateX(3px)}60%{transform:translateX(-2px)}80%{transform:translateX(1px)}}
+        @keyframes zbSlowShake{0%,100%{transform:translateY(0)}20%{transform:translateY(-4px)}40%{transform:translateY(4px)}60%{transform:translateY(-3px)}80%{transform:translateY(2px)}}
         @media(min-width:700px){#productDetailsPanel{width:min(84vw,360px);height:min(72dvh,600px);max-height:72dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
         @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit{animation:none}}
       </style>
@@ -888,6 +889,25 @@ function openProductDetails(item) {
     document.body.appendChild(overlay);
     $("closeProductDetails").addEventListener("click",()=>{overlay.style.display="none";});
     overlay.addEventListener("click",event=>{if(event.target===overlay)overlay.style.display="none";});
+    const detailsPanel=$("productDetailsPanel");
+    let panelTouchStart=null;
+    detailsPanel.addEventListener("touchstart",event=>{
+      if(event.target.closest("button,select,input,textarea") || event.target.closest("#productCategoryGallery")) return;
+      const touch=event.changedTouches[0];
+      panelTouchStart={x:touch.clientX,y:touch.clientY};
+    },{passive:true});
+    detailsPanel.addEventListener("touchend",event=>{
+      if(!panelTouchStart)return;
+      const touch=event.changedTouches[0];
+      const dx=touch.clientX-panelTouchStart.x;
+      const dy=touch.clientY-panelTouchStart.y;
+      panelTouchStart=null;
+      if(Math.abs(dx)<42 || Math.abs(dx)<Math.abs(dy)*1.2)return;
+      const width=Math.max(1,$("productCategoryGallery").clientWidth);
+      const current=Math.round($("productCategoryGallery").scrollLeft/width);
+      const next=Math.max(0,Math.min(galleryItems.length-1,current+(dx<0?1:-1)));
+      $("productCategoryGallery").scrollTo({left:next*width,behavior:"smooth"});
+    },{passive:true});
     document.addEventListener("keydown",event=>{if(event.key==="Escape"&&overlay.style.display!=="none")overlay.style.display="none";});
   }
 
