@@ -852,27 +852,27 @@ function openProductDetails(item) {
     overlay.id = "productDetailsOverlay";
     Object.assign(overlay.style, {
       position:"fixed", inset:"0", zIndex:"100000", display:"none",
-      alignItems:"stretch", justifyContent:"center", padding:"0",
-      background:"radial-gradient(circle at 50% 18%,rgba(255,139,54,.25),transparent 42%),rgba(5,5,7,.97)",
+      alignItems:"center", justifyContent:"center", padding:"16px",
+      background:"radial-gradient(circle at 50% 18%,rgba(255,139,54,.20),transparent 42%),rgba(5,5,7,.88)",
       backdropFilter:"blur(16px)", overflow:"hidden"
     });
     overlay.innerHTML = `
       <style>
-        #productDetailsPanel{position:relative;width:100%;height:100dvh;max-height:100dvh;overflow:hidden;background:linear-gradient(160deg,#21170f 0%,#09090b 72%);color:#fff;text-align:center;display:flex;flex-direction:column;isolation:isolate}
+        #productDetailsPanel{position:relative;width:min(92vw,390px);height:min(82dvh,700px);max-height:82dvh;overflow:hidden;background:linear-gradient(160deg,#21170f 0%,#09090b 72%);border:1px solid #ff9b4a88;border-radius:26px;box-shadow:0 25px 85px #000d,0 0 28px #ff8a3525;color:#fff;text-align:center;display:flex;flex-direction:column;isolation:isolate}
         #productCategoryGallery{display:flex;flex:1;min-height:0;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;touch-action:pan-x;scrollbar-width:none}
         #productCategoryGallery::-webkit-scrollbar{display:none}
-        .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding: max(58px,env(safe-area-inset-top)) 20px max(22px,env(safe-area-inset-bottom));overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
-        .zb-slide-photo{width:100%;height:clamp(220px,39vh,360px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
-        .zb-slide-name{font-size:clamp(23px,6vw,31px);font-weight:950;line-height:1.15;margin:17px 0 7px;text-shadow:0 3px 18px #ff8a3544}
+        .zb-food-slide{position:relative;flex:0 0 100%;width:100%;min-width:100%;height:100%;min-height:0;scroll-snap-align:center;scroll-snap-stop:always;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;padding:58px 17px 17px;overflow-y:auto;background:radial-gradient(ellipse at 50% 25%,rgba(255,135,48,.12),transparent 58%)}
+        .zb-slide-photo{width:100%;height:clamp(155px,27vh,245px);object-fit:contain;object-position:center;background:linear-gradient(145deg,#1d1712,#080808);border-radius:24px;box-shadow:0 16px 50px #000b,0 0 30px #ff8a3522;border:1px solid #ff9b4a55}
+        .zb-slide-name{font-size:clamp(20px,5.2vw,26px);font-weight:950;line-height:1.15;margin:17px 0 7px;text-shadow:0 3px 18px #ff8a3544}
         .zb-slide-desc{font-size:13px;line-height:1.5;color:#c9bdb3;max-width:440px;margin:0 auto 10px}
-        .zb-slide-price{font-size:27px;font-weight:950;color:#ffad70;margin:9px 0 14px}
+        .zb-slide-price{font-size:24px;font-weight:950;color:#ffad70;margin:9px 0 14px}
         .zb-slide-actions{display:flex;gap:10px;width:100%;max-width:440px;margin-top:auto;padding-top:12px}
         .zb-slide-actions button{flex:1;min-height:52px;border-radius:15px;font-weight:950;font-size:13px}
         .zb-add{background:#2b1d14;color:#fff;border:1px solid #ff963f}
         .zb-buy{background:linear-gradient(135deg,#ffc078,#ff7626);color:#1b1008;border:0;box-shadow:0 7px 25px #ff812955}
         .zb-variant{width:100%;max-width:440px;padding:12px;border-radius:12px;background:#211a15;color:white;border:1px solid #80512e}
-        #productGalleryCounter{position:absolute;top:max(15px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
-        #closeProductDetails{position:absolute;right:16px;top:max(13px,env(safe-area-inset-top));z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
+        #productGalleryCounter{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
+        #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
         #productSwipeFlash{position:absolute;inset:0;z-index:7;pointer-events:none;opacity:0;background:linear-gradient(115deg,transparent 10%,#fff9 48%,#ff8b3555 56%,transparent 90%);mix-blend-mode:screen}
         #productDetailsPanel.zb-swipe-hit{animation:zbShake .42s cubic-bezier(.36,.07,.19,.97)}
         #productSwipeFlash.zb-flash-hit{animation:zbFlash .42s ease-out}
@@ -884,7 +884,7 @@ function openProductDetails(item) {
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
         <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
         <div id="productGalleryCounter">SWIPE TO EXPLORE</div>
-        <div id="productSwipeFlash"></div>
+        
         <div id="productCategoryGallery" aria-label="Swipe through restaurant menu items"></div>
       </div>`;
     document.body.appendChild(overlay);
