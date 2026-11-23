@@ -808,13 +808,13 @@ function renderMenu() {
     const restaurantOnline = isRestaurantOnlineNow(itemRestaurant);
 
     card.innerHTML = `
-      <div class="product-emoji" style="overflow:hidden;">${item.imageUrl ? `<img src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : escapeHTML(item.emoji || "🍽️")}</div>
+      <div class="product-emoji" style="overflow:hidden;">${restaurantOnline && item.imageUrl ? `<img src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="width:100%;height:100%;object-fit:cover;border-radius:12px;">` : (restaurantOnline ? escapeHTML(item.emoji || "🍽️") : "")}</div>
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
-        <small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>
+        ${restaurantOnline ? `<small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
         ${restaurantOnline ? `<p>${escapeHTML(item.description)}</p>` : ""}
-        <strong>${item.variants?.length ? "From " : ""}${money(item.price)}</strong>
-        ${item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
+        <strong>${item.variants?.length && restaurantOnline ? "From " : ""}${money(item.price)}</strong>
+        ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
         <button type="button" class="add-button" style="flex:1;min-width:0;">${quantity > 0 ? "Added " + quantity : "ADD +"}</button>
