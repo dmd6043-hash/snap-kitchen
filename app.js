@@ -250,9 +250,22 @@ let userLocation = null;
 let isOpeningRestaurant = false;
 let isPlacingOrder = false;
 let unsubscribeMenu = null;
+let unsubscribeRestaurantStatus = null;
 let unsubscribeTracking = null;
 
 // HELPERS
+function isRestaurantOnlineNow(restaurant) {
+  return !!restaurant && restaurant.active !== false && restaurant.isOnline !== false && restaurant.isAcceptingOrders !== false;
+}
+function renderSelectedRestaurantStatus() {
+  const heading = $("selectedRestaurantName");
+  if (!heading || !selectedRestaurant) return;
+  heading.textContent = selectedRestaurant.name || selectedRestaurant.Name || "Restaurant";
+  const badge = document.createElement("span");
+  badge.textContent = isRestaurantOnlineNow(selectedRestaurant) ? "  ● ONLINE" : "  ● OFFLINE";
+  badge.style.cssText = "display:inline-block;margin-left:9px;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:900;vertical-align:middle;background:" + (isRestaurantOnlineNow(selectedRestaurant) ? "#123b2b;color:#72e5ad" : "#3b171c;color:#ff8794");
+  heading.appendChild(badge);
+}
 function showToast(message) {
   const toast = $("toast");
 
@@ -383,11 +396,7 @@ async function loadRestaurants() {
         id: document.id,
         ...document.data()
       }))
-      .filter((item) =>
-        (item.active === true || item.Active === true) &&
-        item.isOnline !== false &&
-        item.isAcceptingOrders !== false
-      );
+      .filter((item) => item.active === true || item.Active === true);
 
     if (!restaurants.length) {
       if (grid) grid.innerHTML = "<p>Abhi koi active restaurant nahi mila.</p>";
@@ -454,12 +463,14 @@ function renderRestaurants() {
     card.style.cursor = "pointer";
     card.style.touchAction = "manipulation";
 
+    const restaurantOnline = isRestaurantOnlineNow(restaurant);
     card.innerHTML = `
       <div class="restaurant-emoji">🍽️</div>
       <div class="restaurant-info">
         <h3>${escapeHTML(restaurant.name || restaurant.Name || "Restaurant")}</h3>
         <p>${escapeHTML(restaurant.description || restaurant.Description || "Fresh food and local favourites")}</p>
         <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
+        <span style="display:inline-block;margin-top:7px;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:900;background:${restaurantOnline ? "#123b2b" : "#3b171c"};color:${restaurantOnline ? "#72e5ad" : "#ff8794"};">● ${restaurantOnline ? "ONLINE" : "OFFLINE"}</span>
         ${
           (restaurant.foodCategory || (restaurant.isPureVeg === true || restaurant.isPureVeg === "true" ? "Veg Only" : ""))
             ? '<span class="veg-label">' + escapeHTML(restaurant.foodCategory || "PURE VEG").toUpperCase() + '</span>'
@@ -479,10 +490,8 @@ async function openRestaurant(restaurant) {
 
   isOpeningRestaurant = true;
 
-  if (unsubscribeMenu) {
-    unsubscribeMenu();
-    unsubscribeMenu = null;
-  }
+  if (unsubscribeMenu) { unsubscribeMenu(); unsubscribeMenu = null; }
+  if (unsubscribeRestaurantStatus) { unsubscribeRestaurantStatus(); unsubscribeRestaurantStatus = null; }
 
   if (typeof window.zaikaGo === "function") window.zaikaGo("explore");
 
@@ -501,10 +510,20 @@ async function openRestaurant(restaurant) {
     menuSection.style.display = "block";
   }
 
-  if ($("selectedRestaurantName")) {
-    $("selectedRestaurantName").textContent =
-      restaurant.name || restaurant.Name || "Restaurant";
-  }
+  renderSelectedRestaurantStatus();
+  unsubscribeRestaurantStatus = onSnapshot(doc(db, "restaurants", selectedRestaurant.id), (snap) => {
+    if (!snap.exists() || !selectedRestaurant) return;
+    selectedRestaurant = { id: snap.id, ...snap.data() };
+    if (!isRestaurantOnlineNow(selectedRestaurant)) {
+      cart = [];
+      renderCart();
+      closeCart();
+      $("checkoutForm")?.remove();
+      showToast("Restaurant OFFLINE hai. Menu dekh sakte hain, order nahi kar sakte.");
+    }
+    renderSelectedRestaurantStatus();
+    renderMenu();
+  }, (error) => console.warn("Restaurant status listener error:", error));
 
   if ($("backRestaurants")) {
     $("backRestaurants").style.display = "inline-flex";
@@ -580,6 +599,7 @@ function loadSelectedRestaurantMenu() {
         })
         .filter((item) => item.available);
 
+      if (!isRestaurantOnlineNow(selectedRestaurant)) cart = [];
       cart = cart
         .filter((cartItem) => menu.some((menuItem) => menuItem.id === cartItem.id))
         .map((cartItem) => {
@@ -776,24 +796,29 @@ function renderMenu() {
     card.dataset.productId = String(item.id);
 
     const quantity = getQuantity(item.restaurantId ? item.restaurantId + "__" + item.id : item.id);
+    const restaurantOnline = isRestaurantOnlineNow(selectedRestaurant);
 
     card.innerHTML = `
       <div class="product-emoji">${escapeHTML(item.emoji || "🍽️")}</div>
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
-        <p>${escapeHTML(item.description)}</p>
+        ${restaurantOnline ? `<p>${escapeHTML(item.description)}</p>` : ""}
         <strong>${money(item.price)}</strong>
       </div>
-      <div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
+      ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;">
         <button type="button" class="add-button" style="flex:1;min-width:0;">${quantity > 0 ? "Added " + quantity : "ADD +"}</button>
         <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
-      </div>
+      </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
 
-    card.addEventListener("click", () => openProductDetails(item));
-    card.style.cursor = "pointer";
-    card.querySelector(".add-button").addEventListener("click", (event) => { event.stopPropagation(); animateFoodToCart(card); addToCart(item); });
-    card.querySelector(".buy-now-button").addEventListener("click", (event) => { event.stopPropagation(); buyNow(item); });
+    if (restaurantOnline) {
+      card.addEventListener("click", () => openProductDetails(item));
+      card.style.cursor = "pointer";
+      card.querySelector(".add-button").addEventListener("click", (event) => { event.stopPropagation(); animateFoodToCart(card); addToCart(item); });
+      card.querySelector(".buy-now-button").addEventListener("click", (event) => { event.stopPropagation(); buyNow(item); });
+    } else {
+      card.style.cursor = "default";
+    }
 
     products.appendChild(card);
   });
@@ -801,6 +826,7 @@ function renderMenu() {
 
 // PRODUCT DETAILS POPUP
 function openProductDetails(item) {
+  if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
   let overlay = $("productDetailsOverlay");
   if (!overlay) {
     overlay = document.createElement("div");
@@ -874,6 +900,7 @@ function animateFoodToCart(productCard) {
 function buyNow(item) {
   const itemRestaurant = item.restaurantId ? (restaurants.find((r) => r.id === item.restaurantId) || { id: item.restaurantId, name: item.restaurantName || "Restaurant" }) : selectedRestaurant;
   if (!itemRestaurant) { showToast("Please select a restaurant first"); return; }
+  if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("Restaurant OFFLINE hai. Abhi order nahi ho sakta."); return; }
   // Buy Now starts checkout with this item only.
   cart = [{ id: item.restaurantId ? item.restaurantId + "__" + item.id : item.id, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, price: Number(item.price) || 0, quantity: 1 }];
   selectedRestaurant = itemRestaurant;
@@ -884,6 +911,7 @@ function buyNow(item) {
 function addToCart(item) {
   const itemRestaurant=item.restaurantId?(restaurants.find((r)=>r.id===item.restaurantId)||{id:item.restaurantId,name:item.restaurantName||"Restaurant"}):selectedRestaurant;
   if(!itemRestaurant){showToast("Please select a restaurant first");return;}
+  if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Abhi cart mein add nahi kar sakte.");return;}
   if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("Ek order mein ek hi restaurant se items add kar sakte hain. Pehle current cart complete karein.");return;}
   selectedRestaurant=itemRestaurant;
   const cartItemId=item.restaurantId?item.restaurantId+"__"+item.id:item.id;
@@ -1615,6 +1643,7 @@ async function copyText(value) {
 // PLACE ORDER
 async function placeOrder() {
   if (isPlacingOrder) return;
+  if (!isRestaurantOnlineNow(selectedRestaurant)) { cart = []; renderCart(); renderMenu(); closeCart(); $("checkoutForm")?.remove(); showToast("Restaurant OFFLINE hai. Order place nahi ho sakta."); return; }
 
   const name = $("customerName")?.value.trim() || "";
   const phone = $("customerPhone")?.value.trim() || "";
