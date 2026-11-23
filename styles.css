@@ -1238,3 +1238,24 @@ html, body {
 @media (prefers-reduced-motion: reduce) {
   .login-welcome-animation { animation: none; }
 }
+
+/* ZaikaBox premium customer menu photography */
+#products{align-items:stretch;gap:13px}
+.product-card{padding:0!important;border-radius:19px!important;overflow:hidden!important;background:linear-gradient(155deg,#26201b,#14110f)!important;border:1px solid rgba(255,166,91,.20)!important;box-shadow:0 9px 24px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)!important;transition:transform .18s ease,border-color .18s ease}
+.product-card:active{transform:scale(.985)}
+.menu-photo-wrap{position:relative;width:100%;aspect-ratio:4/3;min-height:112px;max-height:190px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#49301f,#211811 72%);border-bottom:1px solid rgba(255,172,103,.14)}
+.menu-food-photo{display:block;width:100%;height:100%;object-fit:cover;object-position:center;transition:transform .35s ease,filter .35s ease}
+.product-card:active .menu-food-photo{transform:scale(1.035);filter:saturate(1.08)}
+.menu-photo-wrap:after{content:"";position:absolute;inset:48% 0 0;background:linear-gradient(transparent,rgba(0,0,0,.24));pointer-events:none}
+.menu-photo-type{position:absolute;z-index:1;top:8px;left:8px;padding:5px 8px;border-radius:999px;font-size:8px;letter-spacing:.55px;font-weight:900;backdrop-filter:blur(9px);box-shadow:0 3px 10px #0005}
+.menu-photo-type.veg{background:rgba(17,105,55,.88);color:#d8ffe5;border:1px solid #75d99b88}
+.menu-photo-type.nonveg{background:rgba(151,34,38,.9);color:#ffe2e2;border:1px solid #ff9a9a88}
+.menu-photo-fallback{width:100%;height:100%;min-height:112px;display:grid;place-items:center;font-size:48px;color:#ffbd83;background:radial-gradient(circle at 50% 35%,#49301f,#211811 72%)}
+.product-info{padding:11px 12px 13px!important;min-width:0}
+.product-card h3{font-family:'Outfit',sans-serif;font-size:14px!important;line-height:1.25;margin:0 0 6px!important;color:#fff6ec}
+.product-card p{font-size:10px!important;line-height:1.45!important;margin:6px 0;color:#c5b6a9}
+.product-card .product-info>strong{display:block;color:#ffb16f;font-size:16px;margin-top:8px}
+.product-card .product-info>small{font-size:9px!important;line-height:1.4}
+.product-actions{padding:0 11px 12px;margin-top:0!important}
+.product-actions button{margin-top:0!important;min-height:36px;border-radius:11px!important;font-size:10px!important;letter-spacing:.2px}
+@media(max-width:360px){#products{gap:9px}.product-info{padding:9px 9px 11px!important}.product-card h3{font-size:12px!important}.menu-photo-type{top:6px;left:6px}}
