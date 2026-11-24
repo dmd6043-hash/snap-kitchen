@@ -498,20 +498,22 @@ function renderRestaurants() {
         const nextIndex=(next+restaurantPhotos.length)%restaurantPhotos.length;
         const image=cover.querySelector(".restaurant-cover-image");
         if(image){
-          const distance=direction>0?"-100%":"100%";
-          const entry=direction>0?"100%":"-100%";
-          image.style.transition="transform .32s ease";
-          image.style.transform=`translateX(${distance})`;
+          const exitX=direction>0?"-100%":"100%";
+          const enterX=direction>0?"100%":"-100%";
+          image.style.setProperty("transition","transform .35s ease","important");
+          image.style.transform=`translateX(${exitX})`;
           setTimeout(()=>{
             current=nextIndex;
-            image.style.transition="none";
+            image.style.setProperty("transition","none","important");
             image.src=restaurantPhotos[current];
-            image.style.transform=`translateX(${entry})`;
+            image.style.transform=`translateX(${enterX})`;
             requestAnimationFrame(()=>{
-              image.style.transition="transform .32s ease";
-              image.style.transform="translateX(0)";
+              requestAnimationFrame(()=>{
+                image.style.setProperty("transition","transform .35s ease","important");
+                image.style.transform="translateX(0)";
+              });
             });
-          },330);
+          },360);
         } else {
           current=nextIndex;
         }
