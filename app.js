@@ -477,7 +477,7 @@ function renderRestaurants() {
     const restaurantPhotos = [
       restaurant.coverImageUrl, restaurant.imageUrl, restaurant.bannerUrl, restaurant.photoUrl,
       ...(Array.isArray(restaurant.galleryImages) ? restaurant.galleryImages : [])
-    ].filter((url,index,array) => typeof url==="string" && /^https?:\\/\\//i.test(url.trim()) && array.indexOf(url)===index);
+    ].filter((url,index,array) => typeof url==="string" && /^https?:\/\//i.test(url.trim()) && array.indexOf(url)===index);
     card.innerHTML = `
       <div class="restaurant-cover">
         ${restaurantPhotos.length ? `<img class="restaurant-cover-image" src="${escapeHTML(restaurantPhotos[0])}" alt="${escapeHTML(restaurant.name || "Restaurant")}" loading="lazy">` : '<div class="restaurant-cover-placeholder">🍽️</div>'}
