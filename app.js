@@ -898,7 +898,6 @@ function renderMenu() {
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
         <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;flex-direction:column;flex-wrap:nowrap;"></div>
-        <button type="button" class="buy-now-button" style="flex:1;min-width:0;background:linear-gradient(135deg,#ff9b4a,#ff7626);color:#17110d;border:1px solid #ffad70;border-radius:10px;padding:10px 8px;font-weight:900;font-size:12px;">BUY NOW</button>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
 
@@ -908,7 +907,6 @@ function renderMenu() {
       card.addEventListener("click", () => openProductDetails(item));
       card.style.cursor = "pointer";
       renderMenuCardActions(card,item);
-      card.querySelector(".buy-now-button").addEventListener("click", (event) => { event.stopPropagation(); buyNow(item); });
     } else {
       card.style.cursor = "default";
     }
@@ -1027,7 +1025,7 @@ function openProductDetails(item) {
       '<p class="zb-slide-desc">'+escapeHTML(entry.description||"Freshly prepared with care.")+'</p>'+
       (variants.length?'<select class="zb-variant" aria-label="Choose variant">'+variants.map((v,i)=>'<option value="'+i+'">'+escapeHTML(v.name)+' · '+money(v.price)+'</option>').join("")+'</select>':'')+
       '<div class="zb-slide-price">'+money(variants.length?variants[0].price:entry.price)+'</div>'+
-      '<div class="zb-slide-actions"><button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button></div>'+
+      '<div class="zb-slide-actions"><button type="button" class="zb-add">ADD TO CART +</button></div>'+
       '';
     const select=slide.querySelector(".zb-variant");
     const getChosen=()=>{
@@ -1040,12 +1038,11 @@ function openProductDetails(item) {
       const chosen=getChosen();
       const quantity=getQuantity(getCartItemId(chosen));
       actionHolder.innerHTML=quantity>0
-        ? '<div class="zb-qty-stack"><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button></div><button type="button" class="zb-buy">BUY NOW →</button>'
-        : '<button type="button" class="zb-add">ADD TO CART +</button><button type="button" class="zb-buy">BUY NOW →</button>';
+        ? '<div class="zb-qty-stack"><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button></div>'
+        : '<button type="button" class="zb-add">ADD TO CART +</button>';
       actionHolder.querySelector(".zb-add")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);addToCart(getChosen());renderSlideActions();});
       actionHolder.querySelector(".zb-qty-minus")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(getChosen()),-1);renderSlideActions();});
       actionHolder.querySelector(".zb-qty-plus")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(getChosen()),1);renderSlideActions();});
-      actionHolder.querySelector(".zb-buy")?.addEventListener("click",()=>{overlay.style.display="none";buyNow(getChosen());});
     };
     if(select)select.addEventListener("change",()=>{slide.querySelector(".zb-slide-price").textContent=money(getChosen().price);renderSlideActions();});
     renderSlideActions();
