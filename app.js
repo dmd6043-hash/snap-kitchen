@@ -810,33 +810,14 @@ function renderCategories() {
   });
 }
 
-// SOFT UI CLICK SOUND + TAP FEEDBACK
-let zbAudioContext=null;
-function playUiClickSound(){
-  try{
-    const AudioCtx=window.AudioContext||window.webkitAudioContext;
-    if(!AudioCtx)return;
-    zbAudioContext=zbAudioContext||new AudioCtx();
-    if(zbAudioContext.state==="suspended")zbAudioContext.resume();
-    const oscillator=zbAudioContext.createOscillator();
-    const gain=zbAudioContext.createGain();
-    oscillator.type="sine";
-    oscillator.frequency.setValueAtTime(720,zbAudioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(460,zbAudioContext.currentTime+0.055);
-    gain.gain.setValueAtTime(0.0001,zbAudioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.12,zbAudioContext.currentTime+0.008);
-    gain.gain.exponentialRampToValueAtTime(0.0001,zbAudioContext.currentTime+0.085);
-    oscillator.connect(gain);gain.connect(zbAudioContext.destination);
-    oscillator.start();oscillator.stop(zbAudioContext.currentTime+0.09);
-  }catch(error){console.debug("UI click sound unavailable",error);}
-}
+// Silent UI tap feedback
 function animateQuantityTap(button){
   if(!button)return;
   button.classList.remove("zb-tap-pop");
   void button.offsetWidth;
   button.classList.add("zb-tap-pop");
   setTimeout(()=>button.classList.remove("zb-tap-pop"),260);
-  playUiClickSound();
+
 }
 
 // MENU DISPLAY
@@ -1208,10 +1189,10 @@ function renderCart() {
         <strong>${money(item.price * item.quantity)}</strong>
       </div>
 
-      <div class="quantity-controls">
-        <button type="button" class="minus" aria-label="Decrease quantity">−</button>
-        <span>${item.quantity}</span>
-        <button type="button" class="plus" aria-label="Increase quantity">+</button>
+      <div class="quantity-controls" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:36px;">
+        <button type="button" class="plus" aria-label="Increase quantity" style="order:1;">+</button>
+        <span style="order:2;">${item.quantity}</span>
+        <button type="button" class="minus" aria-label="Decrease quantity" style="order:3;">−</button>
       </div>
     `;
 
