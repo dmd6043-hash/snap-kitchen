@@ -1188,8 +1188,20 @@ function renderCart() {
   const miniCartCount = $("miniCartCount");
   const miniCartTotal = $("miniCartTotal");
   if (miniCart) {
-    miniCart.classList.toggle("visible", totalQuantity > 0);
-    miniCart.setAttribute("aria-hidden", totalQuantity > 0 ? "false" : "true");
+    const shouldShowMiniCart = totalQuantity > 0 && !document.body.classList.contains("cart-open");
+    miniCart.classList.toggle("visible", shouldShowMiniCart);
+    miniCart.setAttribute("aria-hidden", shouldShowMiniCart ? "false" : "true");
+    // Inline important styles bypass any theme/legacy CSS that may keep the bar hidden.
+    miniCart.style.setProperty("position","fixed","important");
+    miniCart.style.setProperty("z-index","10001","important");
+    miniCart.style.setProperty("left","12px","important");
+    miniCart.style.setProperty("right","12px","important");
+    miniCart.style.setProperty("bottom","calc(94px + env(safe-area-inset-bottom))","important");
+    miniCart.style.setProperty("display","flex","important");
+    miniCart.style.setProperty("opacity",shouldShowMiniCart ? "1" : "0","important");
+    miniCart.style.setProperty("visibility",shouldShowMiniCart ? "visible" : "hidden","important");
+    miniCart.style.setProperty("pointer-events",shouldShowMiniCart ? "auto" : "none","important");
+    miniCart.style.setProperty("transform",shouldShowMiniCart ? "translateY(0) scale(1)" : "translateY(28px) scale(.96)","important");
   }
   if (miniCartCount) miniCartCount.textContent = totalQuantity + (totalQuantity === 1 ? " Item added" : " Items added");
   if (miniCartTotal) miniCartTotal.textContent = money(getTotal());
@@ -1265,6 +1277,7 @@ function closeCart() {
   $("shade")?.classList.remove("show");
   $("cart")?.classList.remove("show");
   document.body.classList.remove("cart-open");
+  renderCart();
 }
 
 $("openCart")?.addEventListener("click", openCart);
