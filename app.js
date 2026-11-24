@@ -1198,6 +1198,11 @@ function renderCart() {
     miniCart.style.setProperty("right","12px","important");
     miniCart.style.setProperty("bottom","calc(94px + env(safe-area-inset-bottom))","important");
     miniCart.style.setProperty("display","flex","important");
+    // Force ZaikaBox orange theme directly on the live cart bar element.
+    miniCart.style.setProperty("background","linear-gradient(110deg,#ffb52e 0%,#ff8a00 52%,#f05a00 100%)","important");
+    miniCart.style.setProperty("background-image","linear-gradient(110deg,#ffb52e 0%,#ff8a00 52%,#f05a00 100%)","important");
+    miniCart.style.setProperty("background-color","#ff8a00","important");
+    miniCart.style.setProperty("color","#ffffff","important");
     miniCart.style.setProperty("opacity",shouldShowMiniCart ? "1" : "0","important");
     miniCart.style.setProperty("visibility",shouldShowMiniCart ? "visible" : "hidden","important");
     miniCart.style.setProperty("pointer-events",shouldShowMiniCart ? "auto" : "none","important");
