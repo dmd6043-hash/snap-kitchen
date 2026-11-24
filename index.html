@@ -8,7 +8,7 @@
   <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261124-restaurant-load-fix-v1">
+  <link rel="stylesheet" href="./styles.css?v=20261124-startup-diagnostic-v1">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1105,7 +1105,7 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
-<script type="module" src="./app.js?v=20261124-restaurant-load-fix-v1"></script>
+<script type="module" src="./app.js?v=20261124-startup-diagnostic-v1"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
@@ -1216,6 +1216,18 @@ if ("serviceWorker" in navigator) {
   panel.querySelectorAll("[data-ai-prompt]").forEach(btn=>btn.addEventListener("click",()=>respond(btn.dataset.aiPrompt)));
 
 })();
+</script>
+
+<script>
+// Fallback diagnostic if the customer module fails before it can start.
+window.setTimeout(() => {
+  const status = document.getElementById("restaurantStatus");
+  const grid = document.getElementById("restaurantGrid");
+  if (status && /loading restaurants/i.test(status.textContent || "") && grid && !grid.querySelector(".restaurant-card")) {
+    status.textContent = "App script start nahi hua. Internet connection ya Firebase module loading check kijiye.";
+    grid.innerHTML = '<p>ZaikaBox app start nahi ho paayi. Page refresh karke dobara try kijiye.</p><button type="button" onclick="location.reload()">REFRESH APP</button>';
+  }
+}, 20000);
 </script>
 </body>
 </html>
