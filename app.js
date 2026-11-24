@@ -494,20 +494,32 @@ function renderRestaurants() {
     if(restaurantPhotos.length>1){
       const cover=card.querySelector(".restaurant-cover");
       let current=0,startX=0;
-      const showPhoto=next=>{
+      const showPhoto=(next,direction=1)=>{
         current=(next+restaurantPhotos.length)%restaurantPhotos.length;
         const image=cover.querySelector(".restaurant-cover-image");
-        if(image){image.style.opacity="0";setTimeout(()=>{image.src=restaurantPhotos[current];image.style.opacity="1";},100);}
+        if(image){
+          image.style.transition="none";
+          image.style.opacity="0";
+          image.style.transform=`translateX(${direction>0? "26px":"-26px"}) scale(1.045)`;
+          setTimeout(()=>{
+            image.src=restaurantPhotos[current];
+            requestAnimationFrame(()=>{
+              image.style.transition="transform .72s cubic-bezier(.22,.75,.25,1), opacity .55s ease";
+              image.style.transform="translateX(0) scale(1)";
+              image.style.opacity="1";
+            });
+          },90);
+        }
         cover.querySelectorAll(".restaurant-photo-dot").forEach((dot,index)=>dot.classList.toggle("active",index===current));
       };
       const autoSwipeTimer=setInterval(()=>{
         if(!card.isConnected){clearInterval(autoSwipeTimer);return;}
-        showPhoto(current+1);
+        showPhoto(current+1,1);
       },3000);
       cover.addEventListener("touchstart",event=>{startX=event.changedTouches[0].clientX;},{passive:true});
       cover.addEventListener("touchend",event=>{
         const dx=event.changedTouches[0].clientX-startX;
-        if(Math.abs(dx)>35){event.stopPropagation();showPhoto(current+(dx<0?1:-1));}
+        if(Math.abs(dx)>35){event.stopPropagation();showPhoto(current+(dx<0?1:-1),dx<0?1:-1);}
       },{passive:true});
       cover.addEventListener("click",event=>event.stopPropagation());
     }
