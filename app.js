@@ -978,14 +978,12 @@ function openProductDetails(item) {
         #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
         #productDetailsPanel{touch-action:pan-y}
         #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.45s ease-in-out}
-        #productDetailsOverlay.zb-overlay-open{animation:zbOverlayFade .32s ease-out both}
-        #productDetailsPanel.zb-open-hit{animation:zbPopupEnter .68s cubic-bezier(.18,.89,.32,1.28) both}
+        #productDetailsPanel{opacity:0;transform:translateY(12px) scale(.985);transition:opacity .22s ease-out,transform .28s ease-out}
+        #productDetailsPanel.zb-open-hit{opacity:1;transform:translateY(0) scale(1)}
         #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.45s ease-in-out}
-        @keyframes zbOverlayFade{from{opacity:0}to{opacity:1}}
-        @keyframes zbPopupEnter{0%{opacity:0;transform:translateY(38px) scale(.78);filter:blur(7px)}58%{opacity:1;transform:translateY(-7px) scale(1.045);filter:blur(0)}78%{transform:translateY(2px) scale(.985)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
         @keyframes zbSlowShake{0%,100%{transform:translateY(0)}22%{transform:translateY(-3px)}46%{transform:translateY(3px)}70%{transform:translateY(-2px)}86%{transform:translateY(1px)}}
         @media(min-width:700px){#productDetailsPanel{width:min(84vw,360px);height:min(72dvh,600px);max-height:72dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
-        @media(prefers-reduced-motion:reduce){#productDetailsOverlay.zb-overlay-open,#productDetailsPanel.zb-swipe-hit,#productDetailsPanel.zb-open-hit{animation:none}}
+        @media(prefers-reduced-motion:reduce){#productDetailsPanel{transition:none}#productDetailsPanel.zb-swipe-hit{animation:none}}
       </style>
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
         <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
@@ -1076,12 +1074,9 @@ function openProductDetails(item) {
   };
   gallery.onscroll=updateCounter;
   overlay.style.display="flex";
-  overlay.classList.remove("zb-overlay-open");
   panel.classList.remove("zb-open-hit");
-  void overlay.offsetWidth;
-  overlay.classList.add("zb-overlay-open");
   void panel.offsetWidth;
-  panel.classList.add("zb-open-hit");
+  requestAnimationFrame(()=>panel.classList.add("zb-open-hit"));
   requestAnimationFrame(()=>{gallery.scrollLeft=selectedIndex*gallery.clientWidth;lastIndex=selectedIndex;updateCounter();});
 }
  
