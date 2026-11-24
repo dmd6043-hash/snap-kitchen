@@ -878,7 +878,7 @@ function renderMenu() {
         ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
       </div>
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:center;gap:6px;flex:1;min-width:0;flex-direction:column;flex-wrap:nowrap;"></div>
+        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:0 0 auto;min-width:0;flex-direction:row;flex-wrap:nowrap;"></div>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
 
@@ -906,7 +906,7 @@ function renderMenuCardActions(card,item) {
   if(!holder)return;
   const quantity=getQuantity(getCartItemId(item));
   holder.innerHTML=quantity>0
-    ? '<div class="menu-qty-stack" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;"><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:27px;height:27px;min-width:27px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:17px;font-weight:900;">+</button><strong style="min-width:18px;text-align:center;color:#ffbd87;font-size:13px;">'+quantity+'</strong><button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:27px;height:27px;min-width:27px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:17px;font-weight:900;">−</button></div>'
+    ? '<div class="menu-qty-row" style="display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;white-space:nowrap;"><button type="button" class="menu-qty-minus" aria-label="Decrease quantity" style="width:30px;height:30px;min-width:30px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-size:17px;font-weight:900;">−</button><strong style="min-width:18px;text-align:center;color:#ffbd87;font-size:13px;">'+quantity+'</strong><button type="button" class="menu-qty-plus" aria-label="Increase quantity" style="width:30px;height:30px;min-width:30px;padding:0;line-height:1;border-radius:8px;border:1px solid #ff9b4a;background:#ff8a35;color:#17110d;font-size:17px;font-weight:900;">+</button></div>'
     : '<button type="button" class="add-button" style="width:100%;min-height:40px;border-radius:10px;border:1px solid #ff9b4a;background:#21170f;color:#fff;font-weight:900;">ADD +</button>';
   holder.querySelector(".add-button")?.addEventListener("click",event=>{event.stopPropagation();animateQuantityTap(event.currentTarget);animateFoodToCart(card);addToCart(item);});
   holder.querySelector(".menu-qty-minus")?.addEventListener("click",event=>{event.stopPropagation();animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(item),-1);});
@@ -1019,7 +1019,7 @@ function openProductDetails(item) {
       const chosen=getChosen();
       const quantity=getQuantity(getCartItemId(chosen));
       actionHolder.innerHTML=quantity>0
-        ? '<div class="zb-qty-stack"><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button></div>'
+        ? '<div class="zb-qty-stack"><button type="button" class="zb-qty-minus" aria-label="Decrease quantity">−</button><strong class="zb-qty-value">'+quantity+'</strong><button type="button" class="zb-qty-plus" aria-label="Increase quantity">+</button></div>'
         : '<button type="button" class="zb-add">ADD TO CART +</button>';
       actionHolder.querySelector(".zb-add")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);addToCart(getChosen());renderSlideActions();});
       actionHolder.querySelector(".zb-qty-minus")?.addEventListener("click",event=>{animateQuantityTap(event.currentTarget);changeQuantity(getCartItemId(getChosen()),-1);renderSlideActions();});
