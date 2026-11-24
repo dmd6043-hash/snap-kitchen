@@ -8,7 +8,7 @@
   <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261124-force-orange-cart-v17">
+  <link rel="stylesheet" href="./styles.css?v=20261124-cart-hidden-ai-top-v18">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -749,6 +749,25 @@
 
 
   </style>
+<style id="zaikabox-cart-ai-position-fix">
+/* Keep the sticky cart bar out of the open cart sheet. */
+body.cart-open #miniCartBar{opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(28px) scale(.96)!important}
+/* Compact premium Zaika AI launcher at the upper-right side. */
+.zaika-ai-launcher{
+  position:fixed!important;top:104px!important;right:12px!important;bottom:auto!important;
+  z-index:12000!important;padding:10px 14px!important;border-radius:18px 8px 18px 18px!important;
+  border:1px solid rgba(255,210,160,.55)!important;
+  background:linear-gradient(135deg,#ffd078 0%,#ff941f 48%,#f05c00 100%)!important;
+  color:#211208!important;font-size:13px!important;font-weight:900!important;
+  box-shadow:0 8px 24px rgba(255,119,0,.32),0 3px 10px #0008!important;
+  animation:zaikaAiFloat 2.8s ease-in-out infinite!important;
+}
+.zaika-ai-launcher:before{content:"✦";margin-right:6px;font-size:14px}
+.zaika-ai-panel{top:158px!important;right:12px!important;bottom:auto!important;z-index:12001!important}
+@keyframes zaikaAiFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media(max-width:380px){.zaika-ai-launcher{top:94px!important;right:9px!important;padding:9px 11px!important;font-size:12px!important}.zaika-ai-panel{top:145px!important}}
+@media(prefers-reduced-motion:reduce){.zaika-ai-launcher{animation:none!important}}
+</style>
 </head>
 
 <body>
@@ -1131,7 +1150,7 @@ window.addEventListener("unhandledrejection", function(event) {
 </script>
 
 
-<script type="module" src="./app.js?v=20261124-force-orange-cart-v17"></script>
+<script type="module" src="./app.js?v=20261124-cart-hidden-ai-top-v18"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
