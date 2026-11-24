@@ -8,7 +8,7 @@
   <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261124-emergency-visible-v22">
+  <link rel="stylesheet" href="./styles.css?v=20261124-startup-diagnostic-v23">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1147,20 +1147,20 @@ body.cart-open .zaika-ai-panel{
 
 <!-- MAIN APP -->
 <script>
-// ZAIKABOX STARTUP ERROR REPORTER
-window.addEventListener("error", function(event) {
-  const box = document.getElementById("restaurantStatus");
-  if (box) box.textContent = "STARTUP ERROR: " + (event.message || "JavaScript load failed") + (event.filename ? " | " + event.filename.split("/").pop() : "");
-});
-window.addEventListener("unhandledrejection", function(event) {
-  const box = document.getElementById("restaurantStatus");
-  const reason = event.reason;
-  if (box) box.textContent = "FIREBASE/MODULE ERROR: " + (reason && reason.message ? reason.message : String(reason || "Unknown error"));
-});
+(function(){
+ function show(title,detail){
+  let box=document.getElementById("zaikaStartupDiagnostic");
+  if(!box){box=document.createElement("div");box.id="zaikaStartupDiagnostic";box.style.cssText="position:fixed;inset:12px 10px auto;z-index:999999;background:#24140d;color:#fff;border:2px solid #ff8a35;border-radius:14px;padding:16px;font:14px/1.45 Arial,sans-serif;box-shadow:0 8px 30px #000b;max-height:75vh;overflow:auto;white-space:pre-wrap";document.body.appendChild(box);}
+  box.textContent=title+"\n\n"+(detail||"No extra details")+"\n\nIs message ka screenshot bhejiye; isi se exact error pakadenge.";
+ }
+ window.addEventListener("error",e=>show("ZaikaBox startup error",String(e.message||"JavaScript load failed")+"\n"+String(e.filename||"")+"\nLine: "+String(e.lineno||"")));
+ window.addEventListener("unhandledrejection",e=>{const x=e.reason;show("ZaikaBox module / Firebase error",String(x&&x.message||x||"Unknown rejection"));});
+ setTimeout(()=>{const s=document.getElementById("restaurantStatus"),g=document.getElementById("restaurantGrid");if(s&&g&&!s.textContent.trim()&&!g.textContent.trim())show("ZaikaBox loading ruk gaya","App startup 12 seconds mein complete nahi hua.");},12000);
+})();
 </script>
 
 
-<script type="module" src="./app.js?v=20261124-emergency-visible-v22"></script>
+<script type="module" src="./app.js?v=20261124-startup-diagnostic-v23"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
