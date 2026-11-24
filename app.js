@@ -1247,6 +1247,20 @@ function renderCart() {
       </div>
     `;
 
+    // Force premium orange quantity buttons in the cart (avoid browser-default white buttons).
+    row.querySelectorAll(".quantity-controls button").forEach((button) => {
+      button.style.setProperty("background", "linear-gradient(145deg,#ffb34f 0%,#ff8a17 55%,#f05b00 100%)", "important");
+      button.style.setProperty("background-color", "#ff8a17", "important");
+      button.style.setProperty("color", "#211208", "important");
+      button.style.setProperty("border", "1px solid #ffc078", "important");
+      button.style.setProperty("border-radius", "10px", "important");
+      button.style.setProperty("font-size", "21px", "important");
+      button.style.setProperty("font-weight", "900", "important");
+      button.style.setProperty("line-height", "1", "important");
+      button.style.setProperty("box-shadow", "0 3px 10px rgba(255,125,0,.25)", "important");
+      button.style.setProperty("cursor", "pointer", "important");
+    });
+
     row.querySelector(".minus").addEventListener("click", (event) => {
       animateQuantityTap(event.currentTarget);
       changeQuantity(item.id, -1);
