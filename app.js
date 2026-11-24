@@ -495,22 +495,27 @@ function renderRestaurants() {
       const cover=card.querySelector(".restaurant-cover");
       let current=0,startX=0;
       const showPhoto=(next,direction=1)=>{
-        current=(next+restaurantPhotos.length)%restaurantPhotos.length;
+        const nextIndex=(next+restaurantPhotos.length)%restaurantPhotos.length;
         const image=cover.querySelector(".restaurant-cover-image");
         if(image){
-          image.style.transition="none";
-          image.style.opacity="0";
-          image.style.transform=`translateX(${direction>0? "26px":"-26px"}) scale(1.045)`;
+          const distance=direction>0?"-100%":"100%";
+          const entry=direction>0?"100%":"-100%";
+          image.style.transition="transform .32s ease";
+          image.style.transform=`translateX(${distance})`;
           setTimeout(()=>{
+            current=nextIndex;
+            image.style.transition="none";
             image.src=restaurantPhotos[current];
+            image.style.transform=`translateX(${entry})`;
             requestAnimationFrame(()=>{
-              image.style.transition="transform .72s cubic-bezier(.22,.75,.25,1), opacity .55s ease";
-              image.style.transform="translateX(0) scale(1)";
-              image.style.opacity="1";
+              image.style.transition="transform .32s ease";
+              image.style.transform="translateX(0)";
             });
-          },90);
+          },330);
+        } else {
+          current=nextIndex;
         }
-        cover.querySelectorAll(".restaurant-photo-dot").forEach((dot,index)=>dot.classList.toggle("active",index===current));
+        cover.querySelectorAll(".restaurant-photo-dot").forEach((dot,index)=>dot.classList.toggle("active",index===nextIndex));
       };
       const autoSwipeTimer=setInterval(()=>{
         if(!card.isConnected){clearInterval(autoSwipeTimer);return;}
