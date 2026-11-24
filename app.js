@@ -389,7 +389,15 @@ async function loadRestaurants() {
 
     if (status) status.textContent = "Loading restaurants...";
 
-    const snapshot = await getDocs(collection(db, "restaurants"));
+    // Avoid leaving the home screen stuck on the loading message if Firestore
+    // cannot answer (for example, a network or permission problem).
+    const snapshot = await Promise.race([
+      getDocs(collection(db, "restaurants")),
+      new Promise((_, reject) => setTimeout(
+        () => reject(new Error("Restaurant data load hone mein 15 seconds se zyada lag rahe hain. Internet aur Firestore Rules check kijiye.")),
+        15000
+      ))
+    ]);
 
     restaurants = snapshot.docs
       .map((document) => ({
@@ -412,11 +420,13 @@ async function loadRestaurants() {
   } catch (error) {
     console.error("Restaurant loading error:", error);
 
-    if (status) status.textContent = "Restaurant load nahi ho paya.";
+    const errorCode = error?.code ? " (" + error.code + ")" : "";
+    const errorMessage = error?.message || "Unknown error";
+    if (status) status.textContent = "Restaurant load nahi ho paya" + errorCode + ".";
 
     if (grid) {
       grid.innerHTML = `
-        <p>Restaurant load nahi ho paya.</p>
+        <p>Restaurant load nahi ho paya${errorCode}.</p><small>${escapeHTML(errorMessage)}</small>
         <button type="button" id="retryRestaurants">Retry</button>
       `;
 
