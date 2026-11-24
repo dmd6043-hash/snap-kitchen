@@ -1184,6 +1184,16 @@ function renderCart() {
   }
   if (total) total.textContent = money(getTotal());
 
+  const miniCart = $("miniCartBar");
+  const miniCartCount = $("miniCartCount");
+  const miniCartTotal = $("miniCartTotal");
+  if (miniCart) {
+    miniCart.classList.toggle("visible", totalQuantity > 0);
+    miniCart.setAttribute("aria-hidden", totalQuantity > 0 ? "false" : "true");
+  }
+  if (miniCartCount) miniCartCount.textContent = totalQuantity + (totalQuantity === 1 ? " Item added" : " Items added");
+  if (miniCartTotal) miniCartTotal.textContent = money(getTotal());
+
   if (!lines) {
     console.error("Cart element #cartLines not found in index.html");
     return;
@@ -1259,6 +1269,7 @@ function closeCart() {
 
 $("openCart")?.addEventListener("click", openCart);
 $("viewCart")?.addEventListener("click", openCart);
+$("miniCartBar")?.addEventListener("click", openCart);
 $("navCart")?.addEventListener("click", openCart);
 $("close")?.addEventListener("click", closeCart);
 
