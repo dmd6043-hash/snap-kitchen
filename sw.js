@@ -1,5 +1,5 @@
 
-const CACHE = "zaikabox-v44";
+const CACHE = "zaikabox-v45";
 
 const FILES = [
   "./",
