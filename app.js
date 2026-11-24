@@ -977,10 +977,11 @@ function openProductDetails(item) {
         #productGalleryCounter{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;padding:8px 14px;border:1px solid #ff9b4a66;border-radius:30px;background:#090909b8;color:#ffd1a8;font-size:10px;font-weight:950;letter-spacing:1.4px;white-space:nowrap}
         #closeProductDetails{position:absolute;right:12px;top:10px;z-index:8;width:42px;height:42px;border-radius:50%;border:1px solid #ff9b4a;background:#17100c;color:#ffb477;font-size:27px;box-shadow:0 5px 20px #0009}
         #productDetailsPanel{touch-action:pan-y}
-        #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.15s ease-in-out}
-        @keyframes zbSlowShake{0%,100%{transform:translateY(0)}20%{transform:translateY(-4px)}40%{transform:translateY(4px)}60%{transform:translateY(-3px)}80%{transform:translateY(2px)}}
+        #productDetailsPanel.zb-swipe-hit{animation:zbSlowShake 1.45s ease-in-out}
+        #productDetailsPanel.zb-open-hit{animation:zbSlowShake 1.65s ease-in-out}
+        @keyframes zbSlowShake{0%,100%{transform:translateY(0)}22%{transform:translateY(-3px)}46%{transform:translateY(3px)}70%{transform:translateY(-2px)}86%{transform:translateY(1px)}}
         @media(min-width:700px){#productDetailsPanel{width:min(84vw,360px);height:min(72dvh,600px);max-height:72dvh;margin:auto}#productDetailsOverlay{align-items:center;padding:16px}}
-        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit{animation:none}}
+        @media(prefers-reduced-motion:reduce){#productDetailsPanel.zb-swipe-hit,#productDetailsPanel.zb-open-hit{animation:none}}
       </style>
       <div id="productDetailsPanel" role="dialog" aria-modal="true" aria-label="Food item gallery">
         <button type="button" id="closeProductDetails" aria-label="Close item details">×</button>
@@ -1071,6 +1072,9 @@ function openProductDetails(item) {
   };
   gallery.onscroll=updateCounter;
   overlay.style.display="flex";
+  panel.classList.remove("zb-open-hit");
+  void panel.offsetWidth;
+  panel.classList.add("zb-open-hit");
   requestAnimationFrame(()=>{gallery.scrollLeft=selectedIndex*gallery.clientWidth;lastIndex=selectedIndex;updateCounter();});
 }
  
