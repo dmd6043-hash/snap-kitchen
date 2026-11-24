@@ -882,6 +882,44 @@ function renderMenu() {
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
     `;
 
+    // Force compact horizontal layout directly on each menu card.
+    if (restaurantOnline) {
+      const photo=card.querySelector(".menu-photo-wrap");
+      const info=card.querySelector(".product-info");
+      const actions=card.querySelector(".product-actions");
+      const set=(el,prop,value)=>el&&el.style.setProperty(prop,value,"important");
+      set(card,"display","flex");
+      set(card,"flex-direction","row");
+      set(card,"align-items","stretch");
+      set(card,"gap","0");
+      set(card,"width","100%");
+      set(card,"height","auto");
+      set(card,"min-height","142px");
+      set(card,"padding","0");
+      set(card,"margin","0");
+      set(card,"overflow","hidden");
+      if(photo){
+        set(photo,"display","block");set(photo,"position","relative");
+        set(photo,"flex","0 0 36%");set(photo,"width","36%");
+        set(photo,"min-width","104px");set(photo,"height","auto");
+        set(photo,"min-height","142px");set(photo,"aspect-ratio","auto");
+        set(photo,"margin","0");set(photo,"border-radius","0");
+      }
+      if(info){
+        set(info,"display","block");set(info,"flex","1 1 0");
+        set(info,"width","auto");set(info,"min-width","0");
+        set(info,"margin","0");set(info,"padding","10px 11px 4px");
+        set(info,"box-sizing","border-box");
+      }
+      if(actions){
+        set(actions,"display","flex");set(actions,"flex","0 0 auto");
+        set(actions,"align-items","center");set(actions,"justify-content","flex-start");
+        set(actions,"width","auto");set(actions,"min-width","0");
+        set(actions,"margin","0");set(actions,"padding","2px 11px 10px");
+        set(actions,"box-sizing","border-box");
+      }
+    }
+
     if (restaurantOnline) {
       const foodPhoto=card.querySelector(".menu-food-photo");
       if(foodPhoto)foodPhoto.addEventListener("error",()=>{const fallback=document.createElement("div");fallback.className="menu-photo-fallback";fallback.textContent=item.emoji||"🍽️";foodPhoto.replaceWith(fallback);},{once:true});
