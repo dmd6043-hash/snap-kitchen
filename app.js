@@ -1189,10 +1189,10 @@ function renderCart() {
         <strong>${money(item.price * item.quantity)}</strong>
       </div>
 
-      <div class="quantity-controls" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;min-width:36px;">
-        <button type="button" class="plus" aria-label="Increase quantity" style="order:1;">+</button>
-        <span style="order:2;">${item.quantity}</span>
-        <button type="button" class="minus" aria-label="Decrease quantity" style="order:3;">−</button>
+      <div class="quantity-controls" style="display:flex;flex-direction:row;align-items:center;justify-content:center;gap:8px;min-width:88px;white-space:nowrap;">
+        <button type="button" class="minus" aria-label="Decrease quantity">−</button>
+        <span>${item.quantity}</span>
+        <button type="button" class="plus" aria-label="Increase quantity">+</button>
       </div>
     `;
 
