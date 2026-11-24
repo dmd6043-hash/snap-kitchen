@@ -376,6 +376,15 @@ function clearSavedTracking() {
   }
 }
 
+// ZaikaBox animated food loader used while restaurant/menu data is loading.
+function zaikaFoodLoader(label = "Fresh flavours are loading...") {
+  return `<div class="zb-food-loader" role="status" aria-live="polite">
+    <div class="zb-loader-orbit"><span class="zb-loader-dot"></span><span class="zb-loader-bowl">🍜</span></div>
+    <strong>${escapeHTML(label)}</strong>
+    <small>Good food is worth the wait</small>
+  </div>`;
+}
+
 // LOAD RESTAURANTS
 async function loadRestaurants() {
   const grid = $("restaurantGrid") || $("restaurants");
@@ -384,10 +393,10 @@ async function loadRestaurants() {
   try {
     if (grid) {
       grid.style.display = "grid";
-      grid.innerHTML = "<p>Loading restaurants...</p>";
+      grid.innerHTML = zaikaFoodLoader("Finding delicious places...");
     }
 
-    if (status) status.textContent = "Loading restaurants...";
+    if (status) status.innerHTML = zaikaFoodLoader("Finding delicious places...");
 
     // Avoid leaving the home screen stuck on the loading message if Firestore
     // cannot answer (for example, a network or permission problem).
@@ -620,7 +629,7 @@ function loadSelectedRestaurantMenu() {
     unsubscribeMenu = null;
   }
 
-  if (products) products.innerHTML = "<p>Loading menu...</p>";
+  if (products) products.innerHTML = zaikaFoodLoader("Preparing the menu...");
 
   const menuRef = collection(
     db,
