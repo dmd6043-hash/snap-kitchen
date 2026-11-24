@@ -464,21 +464,48 @@ function renderRestaurants() {
     card.style.touchAction = "manipulation";
 
     const restaurantOnline = isRestaurantOnlineNow(restaurant);
+    const restaurantPhotos = [
+      restaurant.coverImageUrl, restaurant.bannerUrl, restaurant.imageUrl, restaurant.photoUrl,
+      ...(Array.isArray(restaurant.galleryImages) ? restaurant.galleryImages : []),
+      ...(Array.isArray(restaurant.images) ? restaurant.images : []),
+      ...(Array.isArray(restaurant.photos) ? restaurant.photos : [])
+    ].filter((url,index,array) => typeof url === "string" && /^https?:\\/\\//i.test(url) && array.indexOf(url)===index);
+    const restaurantPhotoMarkup = restaurantPhotos.length
+      ? `<div class="restaurant-cover" data-photo-index="0">
+          <img class="restaurant-cover-image" src="${escapeHTML(restaurantPhotos[0])}" alt="${escapeHTML(restaurant.name || "Restaurant")}" loading="lazy">
+          ${restaurantPhotos.length>1 ? `<div class="restaurant-photo-dots">${restaurantPhotos.map((_,index)=>`<span class="restaurant-photo-dot ${index===0?"active":""}" data-dot-index="${index}"></span>`).join("")}</div>` : ""}
+          <span class="restaurant-cover-status ${restaurantOnline?"online":"offline"}">● ${restaurantOnline?"ONLINE":"OFFLINE"}</span>
+        </div>`
+      : `<div class="restaurant-cover restaurant-cover-empty"><span>🍽️</span><span class="restaurant-cover-status ${restaurantOnline?"online":"offline"}">● ${restaurantOnline?"ONLINE":"OFFLINE"}</span></div>`;
     card.innerHTML = `
-      <div class="restaurant-emoji">🍽️</div>
+      ${restaurantPhotoMarkup}
       <div class="restaurant-info">
         <h3>${escapeHTML(restaurant.name || restaurant.Name || "Restaurant")}</h3>
         <p>${escapeHTML(restaurant.description || restaurant.Description || "Fresh food and local favourites")}</p>
-        <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
-        <span style="display:inline-block;margin-top:7px;padding:5px 9px;border-radius:20px;font-size:10px;font-weight:900;background:${restaurantOnline ? "#123b2b" : "#3b171c"};color:${restaurantOnline ? "#72e5ad" : "#ff8794"};">● ${restaurantOnline ? "ONLINE" : "OFFLINE"}</span>
-        ${
-          (restaurant.foodCategory || (restaurant.isPureVeg === true || restaurant.isPureVeg === "true" ? "Veg Only" : ""))
-            ? '<span class="veg-label">' + escapeHTML(restaurant.foodCategory || "PURE VEG").toUpperCase() + '</span>'
-            : ""
-        }
+        <div class="restaurant-meta">
+          <small>${escapeHTML(restaurant.city || restaurant.City || "Jagdalpur")}</small>
+          ${(restaurant.foodCategory || (restaurant.isPureVeg === true || restaurant.isPureVeg === "true" ? "Veg Only" : "")) ? '<span class="veg-label">' + escapeHTML(restaurant.foodCategory || "PURE VEG").toUpperCase() + '</span>' : ""}
+        </div>
       </div>
     `;
 
+    if (restaurantPhotos.length > 1) {
+      const cover=card.querySelector(".restaurant-cover");
+      let current=0,startX=0;
+      const showPhoto=(next)=>{
+        current=(next+restaurantPhotos.length)%restaurantPhotos.length;
+        cover.dataset.photoIndex=String(current);
+        const image=cover.querySelector(".restaurant-cover-image");
+        image.style.opacity="0";
+        window.setTimeout(()=>{image.src=restaurantPhotos[current];image.style.opacity="1";},110);
+        cover.querySelectorAll(".restaurant-photo-dot").forEach((dot,index)=>dot.classList.toggle("active",index===current));
+      };
+      cover.addEventListener("touchstart",event=>{startX=event.changedTouches[0].clientX;},{passive:true});
+      cover.addEventListener("touchend",event=>{
+        const dx=event.changedTouches[0].clientX-startX;
+        if(Math.abs(dx)>35){event.stopPropagation();showPhoto(current+(dx<0?1:-1));}
+      },{passive:true});
+    }
     card.addEventListener("click", () => openRestaurant(restaurant));
     grid.appendChild(card);
   });
