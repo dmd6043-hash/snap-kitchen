@@ -1105,6 +1105,20 @@
 <div id="toast"></div>
 
 <!-- MAIN APP -->
+<script>
+// ZAIKABOX STARTUP ERROR REPORTER
+window.addEventListener("error", function(event) {
+  const box = document.getElementById("restaurantStatus");
+  if (box) box.textContent = "STARTUP ERROR: " + (event.message || "JavaScript load failed") + (event.filename ? " | " + event.filename.split("/").pop() : "");
+});
+window.addEventListener("unhandledrejection", function(event) {
+  const box = document.getElementById("restaurantStatus");
+  const reason = event.reason;
+  if (box) box.textContent = "FIREBASE/MODULE ERROR: " + (reason && reason.message ? reason.message : String(reason || "Unknown error"));
+});
+</script>
+
+
 <script type="module" src="./app.js?v=20261124-startup-diagnostic-v1"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
