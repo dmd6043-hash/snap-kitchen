@@ -1516,3 +1516,114 @@ html, body {
 .restaurant-info p{font-size:13px!important;line-height:1.4!important;margin:0 0 8px!important;color:#c9bcb0!important}
 .restaurant-meta{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important}
 .restaurant-meta small{color:#a99c91!important;font-size:12px!important}
+
+
+/* Compact horizontal food item cards and quantity controls */
+.product-card:has(.menu-photo-wrap){
+  display:grid!important;
+  grid-template-columns: minmax(104px, 36%) minmax(0, 1fr)!important;
+  grid-template-rows:auto auto!important;
+  align-items:stretch!important;
+  gap:0!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0!important;
+  overflow:hidden!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-photo-wrap{
+  grid-column:1!important;
+  grid-row:1 / span 2!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:100%!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  margin:0!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-photo-wrap:before{display:none!important;content:none!important}
+.product-card:has(.menu-photo-wrap) .menu-food-photo,
+.product-card:has(.menu-photo-wrap) .menu-photo-fallback{
+  position:absolute!important;
+  inset:0!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:auto!important;
+  border-radius:0!important;
+  object-fit:cover!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info{
+  grid-column:2!important;
+  grid-row:1!important;
+  min-width:0!important;
+  width:auto!important;
+  padding:10px 11px 4px!important;
+  margin:0!important;
+  background:transparent!important;
+  border:0!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info h3{
+  font-size:14px!important;
+  line-height:1.25!important;
+  margin:0 0 4px!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info p{
+  font-size:11px!important;
+  line-height:1.3!important;
+  margin:3px 0!important;
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+}
+.product-card:has(.menu-photo-wrap) .product-info>strong{font-size:15px!important;margin:4px 0 0!important}
+.product-card:has(.menu-photo-wrap) .product-actions{
+  grid-column:2!important;
+  grid-row:2!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  width:auto!important;
+  min-width:0!important;
+  padding:2px 11px 10px!important;
+  margin:0!important;
+  background:transparent!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-quantity-control{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  flex:0 0 auto!important;
+  width:auto!important;
+  min-width:0!important;
+  gap:7px!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-qty-row{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:7px!important;
+}
+.product-card:has(.menu-photo-wrap) .menu-quantity-control .add-button{
+  width:auto!important;
+  min-width:94px!important;
+  min-height:34px!important;
+  padding:0 13px!important;
+}
+.cart-item{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;width:100%!important;min-width:0!important}
+.cart-item-info{flex:1 1 auto!important;min-width:0!important}
+.cart-item .quantity-controls{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:8px!important;flex:0 0 auto!important;min-width:82px!important;white-space:nowrap!important}
+.cart-item .quantity-controls button{width:30px!important;height:30px!important;min-width:30px!important;padding:0!important}
+@media(max-width:360px){
+ .product-card:has(.menu-photo-wrap){grid-template-columns:96px minmax(0,1fr)!important}
+ .product-card:has(.menu-photo-wrap) .product-info{padding:8px 9px 3px!important}
+ .product-card:has(.menu-photo-wrap) .product-actions{padding:2px 9px 8px!important}
+}
