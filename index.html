@@ -8,7 +8,7 @@
   <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261124-boxed-menu-v12">
+  <link rel="stylesheet" href="./styles.css?v=20261124-animated-mini-cart-v13">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1026,6 +1026,18 @@
   </button>
 </nav>
 
+<!-- ANIMATED MINI CART BAR -->
+<div id="miniCartBar" class="mini-cart-bar" role="button" tabindex="0" aria-label="View your cart" aria-hidden="true">
+  <div class="mini-cart-left">
+    <span class="mini-cart-icon">🛒</span>
+    <span class="mini-cart-copy">
+      <strong id="miniCartCount">0 Items added</strong>
+      <small id="miniCartTotal">₹0</small>
+    </span>
+  </div>
+  <span class="mini-cart-action">View Cart <b>›</b></span>
+</div>
+
 <!-- CART BACKDROP -->
 <div id="shade" aria-hidden="true"></div>
 
@@ -1119,7 +1131,7 @@ window.addEventListener("unhandledrejection", function(event) {
 </script>
 
 
-<script type="module" src="./app.js?v=20261124-boxed-menu-v12"></script>
+<script type="module" src="./app.js?v=20261124-animated-mini-cart-v13"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
