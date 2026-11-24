@@ -1978,3 +1978,29 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
   .mini-cart-copy strong{font-size:13px!important}
   .mini-cart-action{font-size:12px!important}
 }
+
+
+/* ZAikaBox: remove Android/Chrome native blue tap and text-selection flash on menu cards */
+#products,
+#products *,
+#products *::before,
+#products *::after {
+  -webkit-tap-highlight-color: transparent !important;
+  -webkit-touch-callout: none !important;
+}
+#products .product-card,
+#products .product-card * {
+  -webkit-user-select: none !important;
+  user-select: none !important;
+}
+#products .product-card,
+#products .product-card:focus,
+#products .product-card:focus-visible,
+#products .product-card:active {
+  outline: 0 !important;
+  -webkit-tap-highlight-color: transparent !important;
+}
+#products .product-card img {
+  pointer-events: none !important;
+  -webkit-user-drag: none !important;
+}
