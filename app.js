@@ -873,55 +873,37 @@ function renderMenu() {
       <div class="product-content">
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
-        ${restaurantOnline ? `<small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
+        ${restaurantOnline ? `<small class="product-food-type">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
         ${restaurantOnline ? `<p>${escapeHTML(item.description)}</p>` : ""}
-        <strong>${item.variants?.length && restaurantOnline ? "From " : ""}${money(item.price)}</strong>
-        ${restaurantOnline && item.variants?.length ? `<small style="display:block;color:#d5b28f;margin-top:4px;">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
+        <div class="product-bottom-row">
+          <strong class="product-price">${item.variants?.length && restaurantOnline ? "From " : ""}${money(item.price)}</strong>
+          ${restaurantOnline ? `<div class="product-actions"><div class="menu-quantity-control"></div></div>` : ""}
+        </div>
+        ${restaurantOnline && item.variants?.length ? `<small class="product-variants">Variants: ${item.variants.map(v=>escapeHTML(v.name)+" "+money(v.price)).join(" · ")}</small>` : ""}
+        ${!restaurantOnline ? `<small class="product-offline">Currently offline</small>` : ""}
       </div>
-      ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
-        <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:0 0 auto;min-width:0;flex-direction:row;flex-wrap:nowrap;"></div>
-      </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
       </div>
     `;
 
-    // Force compact horizontal layout directly on each menu card.
-    if (restaurantOnline) {
+    // Enforce Domino's-style boxed two-column food cards.
+    {
       const photo=card.querySelector(".menu-photo-wrap");
       const content=card.querySelector(".product-content");
       const info=card.querySelector(".product-info");
-      const actions=card.querySelector(".product-actions");
       const set=(el,prop,value)=>el&&el.style.setProperty(prop,value,"important");
-      set(card,"display","flex");
-      set(card,"flex-direction","row");
-      set(card,"align-items","stretch");
-      set(card,"gap","0");
-      set(card,"width","100%");
-      set(card,"height","auto");
-      set(card,"min-height","142px");
-      set(card,"padding","0");
-      set(card,"margin","0");
-      set(card,"overflow","hidden");
+      set(card,"display","flex");set(card,"flex-direction","column");
+      set(card,"align-items","stretch");set(card,"width","100%");
+      set(card,"height","auto");set(card,"min-height","0");
+      set(card,"padding","0");set(card,"margin","0");set(card,"overflow","hidden");
       if(photo){
         set(photo,"display","block");set(photo,"position","relative");
-        set(photo,"flex","0 0 36%");set(photo,"width","36%");
-        set(photo,"min-width","104px");set(photo,"height","auto");
-        set(photo,"min-height","142px");set(photo,"aspect-ratio","auto");
+        set(photo,"flex","0 0 auto");set(photo,"width","100%");
+        set(photo,"min-width","0");set(photo,"height","auto");
+        set(photo,"min-height","0");set(photo,"aspect-ratio","1 / 1");
         set(photo,"margin","0");set(photo,"border-radius","0");
       }
-      if(content){set(content,"display","flex");set(content,"flex","1 1 0");set(content,"flex-direction","column");set(content,"justify-content","space-between");set(content,"min-width","0");set(content,"width","64%");}
-      if(info){
-        set(info,"display","block");set(info,"flex","1 1 0");
-        set(info,"width","auto");set(info,"min-width","0");
-        set(info,"margin","0");set(info,"padding","10px 11px 4px");
-        set(info,"box-sizing","border-box");
-      }
-      if(actions){
-        set(actions,"display","flex");set(actions,"flex","0 0 auto");
-        set(actions,"align-items","center");set(actions,"justify-content","flex-start");
-        set(actions,"width","auto");set(actions,"min-width","0");
-        set(actions,"margin","0");set(actions,"padding","2px 11px 10px");
-        set(actions,"box-sizing","border-box");
-      }
+      if(content){set(content,"display","block");set(content,"width","100%");set(content,"min-width","0");set(content,"margin","0");set(content,"padding","0");}
+      if(info){set(info,"display","block");set(info,"width","100%");set(info,"min-width","0");set(info,"margin","0");set(info,"padding","10px 11px 12px");set(info,"box-sizing","border-box");}
     }
 
     if (restaurantOnline) {
