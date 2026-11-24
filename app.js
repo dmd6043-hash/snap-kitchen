@@ -1271,11 +1271,11 @@ function openCart() {
     return;
   }
 
-  renderCart();
-
+  // Mark cart as open BEFORE rendering so the sticky mini-cart is hidden.
+  document.body.classList.add("cart-open");
   shade.classList.add("show");
   cartElement.classList.add("show");
-  document.body.classList.add("cart-open");
+  renderCart();
 }
 
 function closeCart() {
