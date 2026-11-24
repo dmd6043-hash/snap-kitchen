@@ -2004,3 +2004,17 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
   pointer-events: none !important;
   -webkit-user-drag: none !important;
 }
+
+
+/* ZaikaBox centered food loading animation */
+.zb-food-loader{grid-column:1/-1;min-height:176px;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:22px 14px;margin:8px auto 14px;text-align:center;border:1px solid rgba(255,166,91,.16);border-radius:20px;background:radial-gradient(circle at 50% 35%,rgba(255,138,53,.13),transparent 58%),linear-gradient(145deg,rgba(38,32,27,.96),rgba(20,17,15,.98));}
+.zb-loader-orbit{width:76px;height:76px;position:relative;display:grid;place-items:center;margin-bottom:3px;}
+.zb-loader-orbit:before,.zb-loader-orbit:after{content:"";position:absolute;inset:4px;border:2px solid transparent;border-top-color:#ff9a4d;border-right-color:rgba(255,177,111,.38);border-radius:50%;animation:zbFoodSpin 1.45s linear infinite;}
+.zb-loader-orbit:after{inset:12px;border-top-color:rgba(255,208,158,.85);border-right-color:transparent;animation-duration:2.1s;animation-direction:reverse;}
+.zb-loader-bowl{font-size:34px;filter:drop-shadow(0 5px 9px rgba(255,138,53,.25));animation:zbFoodFloat 1.5s ease-in-out infinite;}
+.zb-loader-dot{position:absolute;width:7px;height:7px;right:3px;top:13px;border-radius:50%;background:#ffc18e;box-shadow:0 0 12px #ff8a35;}
+.zb-food-loader strong{font-size:13px;letter-spacing:.2px;color:#fff2e5;font-weight:800;}
+.zb-food-loader small{font-size:10px;color:#bba99a;}
+@keyframes zbFoodSpin{to{transform:rotate(360deg)}}
+@keyframes zbFoodFloat{0%,100%{transform:translateY(2px) rotate(-5deg) scale(.96)}50%{transform:translateY(-4px) rotate(5deg) scale(1.06)}}
+@media(prefers-reduced-motion:reduce){.zb-loader-orbit:before,.zb-loader-orbit:after,.zb-loader-bowl{animation:none!important}}
