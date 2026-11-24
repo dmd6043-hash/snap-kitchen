@@ -1143,7 +1143,7 @@ function addToCart(item) {
   renderCart();
   renderMenu();
 
-  showToast(item.name + " added to cart");
+  // Confirmation is shown by the sticky mini-cart bar; avoid a second popup in the middle of the screen.
 }
 
 function changeQuantity(id, amount) {
