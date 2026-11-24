@@ -500,6 +500,10 @@ function renderRestaurants() {
         if(image){image.style.opacity="0";setTimeout(()=>{image.src=restaurantPhotos[current];image.style.opacity="1";},100);}
         cover.querySelectorAll(".restaurant-photo-dot").forEach((dot,index)=>dot.classList.toggle("active",index===current));
       };
+      const autoSwipeTimer=setInterval(()=>{
+        if(!card.isConnected){clearInterval(autoSwipeTimer);return;}
+        showPhoto(current+1);
+      },3000);
       cover.addEventListener("touchstart",event=>{startX=event.changedTouches[0].clientX;},{passive:true});
       cover.addEventListener("touchend",event=>{
         const dx=event.changedTouches[0].clientX-startX;
