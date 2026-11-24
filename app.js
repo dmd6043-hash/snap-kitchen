@@ -870,6 +870,7 @@ function renderMenu() {
 
     card.innerHTML = `
       ${restaurantOnline ? `<div class="menu-photo-wrap">${item.imageUrl ? `<img class="menu-food-photo" src="${escapeHTML(item.imageUrl)}" alt="${escapeHTML(item.name)}" loading="lazy" style="display:block;width:100%;height:100%;object-fit:cover!important;object-position:center;padding:0!important;transform:none!important;animation:none!important;filter:saturate(1.12) contrast(1.06);">` : `<div class="menu-photo-fallback">${escapeHTML(item.emoji || "🍽️")}</div>`}<span class="menu-photo-type ${String(item.foodType).toLowerCase()==="non-veg"?"nonveg":"veg"}">${String(item.foodType).toLowerCase()==="non-veg"?"NON-VEG":"VEG"}</span></div>` : ""}
+      <div class="product-content">
       <div class="product-info">
         <h3>${escapeHTML(item.name)}</h3>
         ${restaurantOnline ? `<small style="display:inline-flex;align-items:center;gap:5px;color:${String(item.foodType).toLowerCase()==="non-veg"?"#ff7474":"#7bd58a"};font-weight:800;">${String(item.foodType).toLowerCase()==="non-veg"?"🔴 NON-VEG":"🟢 VEG"}</small>` : ""}
@@ -880,11 +881,13 @@ function renderMenu() {
       ${restaurantOnline ? `<div class="product-actions" style="display:flex;gap:8px;margin-top:10px;align-items:center;">
         <div class="menu-quantity-control" style="display:flex;align-items:center;justify-content:flex-start;gap:6px;flex:0 0 auto;min-width:0;flex-direction:row;flex-wrap:nowrap;"></div>
       </div>` : `<small style="display:block;margin-top:8px;color:#ff8794;font-weight:800;">Currently offline</small>`}
+      </div>
     `;
 
     // Force compact horizontal layout directly on each menu card.
     if (restaurantOnline) {
       const photo=card.querySelector(".menu-photo-wrap");
+      const content=card.querySelector(".product-content");
       const info=card.querySelector(".product-info");
       const actions=card.querySelector(".product-actions");
       const set=(el,prop,value)=>el&&el.style.setProperty(prop,value,"important");
@@ -905,6 +908,7 @@ function renderMenu() {
         set(photo,"min-height","142px");set(photo,"aspect-ratio","auto");
         set(photo,"margin","0");set(photo,"border-radius","0");
       }
+      if(content){set(content,"display","flex");set(content,"flex","1 1 0");set(content,"flex-direction","column");set(content,"justify-content","space-between");set(content,"min-width","0");set(content,"width","64%");}
       if(info){
         set(info,"display","block");set(info,"flex","1 1 0");
         set(info,"width","auto");set(info,"min-width","0");
