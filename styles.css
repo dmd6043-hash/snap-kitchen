@@ -1502,7 +1502,7 @@ html, body {
 /* Restaurant cards: photo-first food delivery style */
 .restaurant-card{display:flex!important;flex-direction:column!important;padding:0!important;overflow:hidden!important;border-radius:22px!important;background:linear-gradient(155deg,#211912,#100d0b)!important;border:1px solid rgba(255,158,75,.28)!important;box-shadow:0 12px 28px rgba(0,0,0,.42)!important;text-align:left!important}
 .restaurant-cover{position:relative!important;width:100%!important;aspect-ratio:16/9!important;overflow:hidden!important;background:radial-gradient(ellipse at center,#3a291b,#080706 78%)!important;box-shadow:0 12px 24px rgba(0,0,0,.45)!important}
-.restaurant-cover-image{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;transition:opacity .18s ease!important}
+.restaurant-cover-image{display:block!important;width:100%!important;height:100%!important;object-fit:cover!important;object-position:center!important;transition:transform .35s ease!important;will-change:transform}
 .restaurant-cover:after{content:"";position:absolute;inset:45% 0 0;background:linear-gradient(180deg,transparent,rgba(0,0,0,.48));pointer-events:none}
 .restaurant-cover-placeholder{height:100%;display:grid;place-items:center;font-size:64px;filter:drop-shadow(0 10px 16px #000)}
 .restaurant-cover-status{position:absolute!important;z-index:2!important;top:12px!important;left:12px!important;padding:6px 10px!important;border-radius:20px!important;font-size:10px!important;font-weight:900!important;backdrop-filter:blur(8px)!important}
