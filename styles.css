@@ -1751,3 +1751,167 @@ html, body {
   #products>.product-card .product-info{padding:9px 9px 4px!important}
   #products>.product-card .product-actions{padding:3px 9px 9px!important}
 }
+
+
+/* v12: boxed two-column menu cards matching the supplied Domino's reference */
+#products{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:start!important;
+  gap:14px 12px!important;
+}
+#products>.product-card{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  height:fit-content!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:1px solid rgba(255,166,91,.25)!important;
+  border-radius:20px!important;
+  box-sizing:border-box!important;
+}
+#products>.product-card>.menu-photo-wrap{
+  display:block!important;
+  position:relative!important;
+  flex:0 0 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:none!important;
+  aspect-ratio:1/1!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  overflow:hidden!important;
+  box-shadow:none!important;
+}
+#products>.product-card>.menu-photo-wrap .menu-food-photo,
+#products>.product-card>.menu-photo-wrap .menu-photo-fallback{
+  position:absolute!important;
+  inset:0!important;
+  display:grid!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  object-fit:cover!important;
+  border-radius:0!important;
+}
+#products>.product-card>.product-content,
+#products>.product-card .product-info{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+  box-sizing:border-box!important;
+}
+#products>.product-card .product-info{
+  padding:10px 11px 12px!important;
+  background:linear-gradient(155deg,#241a13 0%,#17110d 58%,#100d0b 100%)!important;
+}
+#products>.product-card .product-info h3{
+  font-size:14px!important;
+  line-height:1.25!important;
+  min-height:35px;
+  margin:0 0 5px!important;
+}
+#products>.product-card .product-food-type{
+  display:inline-flex!important;
+  align-items:center!important;
+  margin:0 0 5px!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+#products>.product-card .product-info p{
+  display:-webkit-box!important;
+  -webkit-line-clamp:2!important;
+  -webkit-box-orient:vertical!important;
+  overflow:hidden!important;
+  min-height:28px;
+  margin:4px 0 8px!important;
+  font-size:11px!important;
+  line-height:1.35!important;
+}
+#products>.product-card .product-bottom-row{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:7px!important;
+  width:100%!important;
+  min-width:0!important;
+  margin-top:7px!important;
+}
+#products>.product-card .product-price{
+  display:block!important;
+  flex:0 1 auto!important;
+  min-width:0!important;
+  margin:0!important;
+  color:#ffb16f!important;
+  font-size:17px!important;
+  line-height:1.2!important;
+  white-space:nowrap!important;
+}
+#products>.product-card .product-actions{
+  display:flex!important;
+  flex:0 0 auto!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  width:auto!important;
+  min-width:0!important;
+  margin:0!important;
+  padding:0!important;
+}
+#products>.product-card .menu-quantity-control,
+#products>.product-card .menu-qty-row{
+  display:flex!important;
+  flex-direction:row!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:6px!important;
+  width:auto!important;
+  min-width:0!important;
+  white-space:nowrap!important;
+}
+#products>.product-card .menu-quantity-control .add-button{
+  width:auto!important;
+  min-width:72px!important;
+  min-height:36px!important;
+  margin:0!important;
+  padding:0 12px!important;
+  border-radius:10px!important;
+  font-size:12px!important;
+}
+#products>.product-card .menu-qty-row button{
+  flex:0 0 30px!important;
+  width:30px!important;
+  min-width:30px!important;
+  height:30px!important;
+  min-height:30px!important;
+  margin:0!important;
+}
+#products>.product-card .menu-qty-row strong{min-width:16px!important;text-align:center!important}
+#products>.product-card .product-variants,
+#products>.product-card .product-offline{
+  display:block!important;
+  margin-top:6px!important;
+  font-size:9px!important;
+  line-height:1.35!important;
+}
+@media(max-width:360px){
+  #products{gap:10px 8px!important}
+  #products>.product-card{border-radius:16px!important}
+  #products>.product-card .product-info{padding:8px 8px 10px!important}
+  #products>.product-card .product-info h3{font-size:12px!important;min-height:31px}
+  #products>.product-card .product-price{font-size:15px!important}
+  #products>.product-card .menu-quantity-control .add-button{min-width:62px!important;padding:0 8px!important}
+}
