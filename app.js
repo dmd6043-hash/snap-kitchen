@@ -50,7 +50,7 @@ async function callAuthWorker(path, payload) {
   });
   const result = await response.json();
   if (!response.ok || !result.success) {
-    throw new Error(result.error || "Request complete nahi ho payi.");
+    throw new Error(result.error || "The request could not be completed.");
   }
   return result;
 }
@@ -58,7 +58,7 @@ async function callAuthWorker(path, payload) {
 function normalizeAccountPhone(rawPhone) {
   const phone = String(rawPhone || "").replace(/\D/g, "").replace(/^91/, "");
   if (!/^[6-9]\d{9}$/.test(phone)) {
-    throw new Error("Valid 10-digit Indian mobile number daaliye.");
+    throw new Error("Enter a valid 10-digit Indian mobile number.");
   }
   return phone;
 }
@@ -92,7 +92,7 @@ async function updateAccountUI(user) {
   const form = $("accountForm");
   const signedIn = $("accountSignedIn");
   const phoneLabel = $("accountPhone");
-  if (status) status.textContent = user ? "You are logged in." : "Login karein ya naya account banayein.";
+  if (status) status.textContent = user ? "You are logged in." : "Log in or create a new account.";
   if (form) form.hidden = !!user;
   if (signedIn) {
     signedIn.hidden = !user;
@@ -128,11 +128,11 @@ onAuthStateChanged(auth, updateAccountUI);
 
 $("saveCustomerProfile")?.addEventListener("click", async () => {
   try {
-    if (!auth.currentUser) throw new Error("Profile edit karne ke liye login kijiye.");
+    if (!auth.currentUser) throw new Error("Please log in to edit your profile.");
     const name = $("profileName")?.value.trim() || "";
     const phone = normalizeAccountPhone($("profileMobile")?.value);
     const address = $("profileAddress")?.value.trim() || "";
-    if (!name) throw new Error("Apna naam enter kijiye.");
+    if (!name) throw new Error("Enter your name.");
     const profile = { name, phone, address, updatedAt: serverTimestamp() };
     await setDoc(doc(db, "customerProfiles", auth.currentUser.uid), profile, { merge: true });
     customerProfile = { name, phone, address, mapLink: customerProfile.mapLink || "" };
@@ -140,7 +140,7 @@ $("saveCustomerProfile")?.addEventListener("click", async () => {
     fillProfileFields();
     showToast("Profile save ho gayi.");
   } catch (error) {
-    showToast(error.message || "Profile save nahi ho payi.");
+    showToast(error.message || "Could not save your profile.");
   }
 });
 $("profileGetLocation")?.addEventListener("click", () => {
@@ -148,7 +148,7 @@ $("profileGetLocation")?.addEventListener("click", () => {
   const addressField = $("profileAddress");
 
   if (!navigator.geolocation) {
-    showToast("Is device par location support nahi hai.");
+    showToast("Location services are not supported on this device.");
     return;
   }
 
@@ -182,7 +182,7 @@ $("profileGetLocation")?.addEventListener("click", () => {
         button.disabled = false;
         button.textContent = "📍 Use Current Location";
       }
-      showToast("Location address mein add ho gayi. Save Profile dabayein.");
+      showToast("Your current address has been filled in. Select Save Profile to continue.");
     },
     (error) => {
       console.error("Profile GPS error:", error);
@@ -191,8 +191,8 @@ $("profileGetLocation")?.addEventListener("click", () => {
         button.textContent = "📍 Use Current Location";
       }
       showToast(error.code === 1
-        ? "Location permission allow kijiye."
-        : "Location nahi mil paayi. Dobara try kijiye.");
+        ? "Please allow location access."
+        : "Could not retrieve your location. Please try again.");
     },
     { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
   );
@@ -205,13 +205,13 @@ $("accountRegister")?.addEventListener("click", async () => {
     const phone = normalizeAccountPhone($("accountMobile")?.value);
     const email = String($("accountEmail")?.value || "").trim().toLowerCase();
     const password = $("accountPassword")?.value || "";
-    if (!email) throw new Error("Email address daaliye.");
-    if (password.length < 8) throw new Error("Password kam se kam 8 characters ka rakhein.");
+    if (!email) throw new Error("Enter your email address.");
+    if (password.length < 8) throw new Error("Password must contain at least 8 characters.");
     await callAuthWorker("/signup", { phone, email, password });
     await signInWithEmailAndPassword(auth, email, password);
-    showToast("ZaikaBox account ban gaya aur login ho gaya.");
+    showToast("Your ZaikaBox account has been created and you are now logged in.");
   } catch (error) {
-    showToast(error.message || "Account nahi ban paya.");
+    showToast(error.message || "Could not create your account.");
   }
 });
 
@@ -219,29 +219,29 @@ $("accountLogin")?.addEventListener("click", async () => {
   try {
     const phone = normalizeAccountPhone($("accountMobile")?.value);
     const password = $("accountPassword")?.value || "";
-    if (!password) throw new Error("Password daaliye.");
+    if (!password) throw new Error("Enter your password.");
     const result = await callAuthWorker("/login", { phone, password });
     await signInWithEmailAndPassword(auth, result.email, password);
     showToast("Login successful.");
   } catch (error) {
-    showToast(error.message || "Login nahi ho paya.");
+    showToast(error.message || "Could not log in.");
   }
 });
 
 $("accountForgot")?.addEventListener("click", async () => {
   try {
     const email = String($("accountEmail")?.value || "").trim().toLowerCase();
-    if (!email) throw new Error("Pehle registered email daaliye.");
+    if (!email) throw new Error("Enter your registered email address first.");
     const result = await callAuthWorker("/forgot-password", { email });
-    showToast(result.message || "Agar email registered hai to reset link bhej diya jayega.");
+    showToast(result.message || "If the email is registered, a password reset link will be sent.");
   } catch (error) {
-    showToast(error.message || "Password reset request nahi ho payi.");
+    showToast(error.message || "Could not submit the password reset request.");
   }
 });
 
 $("accountLogout")?.addEventListener("click", async () => {
-  try { await signOut(auth); showToast("Logout ho gaya."); }
-  catch (error) { showToast("Logout nahi ho paya."); }
+  try { await signOut(auth); showToast("You have been logged out."); }
+  catch (error) { showToast("Could not log out."); }
 });
 
 let restaurants = [];
@@ -337,7 +337,7 @@ function saveTrackingDetails(orderId, trackingCode) {
     localStorage.setItem(TRACKING_STORAGE_KEY, JSON.stringify(details));
   } catch (error) {
     console.error("Tracking save error:", error);
-    showToast("Tracking device par save nahi ho payi.");
+    showToast("Could not save tracking details on this device.");
   }
 
   if ($("trackingOrderId")) {
@@ -409,7 +409,7 @@ async function loadRestaurants() {
     const snapshot = await Promise.race([
       getDocs(collection(db, "restaurants")),
       new Promise((_, reject) => setTimeout(
-        () => reject(new Error("Restaurant data load hone mein 15 seconds se zyada lag rahe hain. Internet aur Firestore Rules check kijiye.")),
+        () => reject(new Error("Restaurant data is taking longer than 15 seconds to load. Please check your internet connection and Firestore Rules.")),
         15000
       ))
     ]);
@@ -422,7 +422,7 @@ async function loadRestaurants() {
       .filter((item) => item.active === true || item.Active === true);
 
     if (!restaurants.length) {
-      if (grid) grid.innerHTML = "<p>Abhi koi active restaurant nahi mila.</p>";
+      if (grid) grid.innerHTML = "<p>No active restaurants are available right now.</p>";
       if (status) status.textContent = "No active restaurants found.";
       return;
     }
@@ -437,11 +437,11 @@ async function loadRestaurants() {
 
     const errorCode = error?.code ? " (" + error.code + ")" : "";
     const errorMessage = error?.message || "Unknown error";
-    if (status) status.textContent = "Restaurant load nahi ho paya" + errorCode + ".";
+    if (status) status.textContent = "Could not load restaurants" + errorCode + ".";
 
     if (grid) {
       grid.innerHTML = `
-        <p>Restaurant load nahi ho paya${errorCode}.</p><small>${escapeHTML(errorMessage)}</small>
+        <p>Could not load restaurants${errorCode}.</p><small>${escapeHTML(errorMessage)}</small>
         <button type="button" id="retryRestaurants">Retry</button>
       `;
 
@@ -473,7 +473,7 @@ function renderRestaurants() {
   });
 
   if (!visibleRestaurants.length) {
-    grid.innerHTML = '<p class="restaurant-empty">Is filter mein abhi koi restaurant nahi mila.</p>';
+    grid.innerHTML = '<p class="restaurant-empty">No restaurants match this filter.</p>';
     return;
   }
 
@@ -586,7 +586,7 @@ async function openRestaurant(restaurant) {
       renderCart();
       closeCart();
       $("checkoutForm")?.remove();
-      if (wasOnline) showToast("Restaurant OFFLINE ho gaya. Menu aur price dekh sakte hain, order nahi kar sakte.");
+      if (wasOnline) showToast("The restaurant is now offline. You can view the menu and prices, but cannot place an order.");
     }
     renderSelectedRestaurantStatus();
     renderMenu();
@@ -699,7 +699,7 @@ function loadSelectedRestaurantMenu() {
 
       if (products) {
         products.innerHTML = `
-          <p>Menu load nahi ho paya.</p>
+          <p>Could not load the menu.</p>
           <button type="button" id="retryMenu">Retry Menu</button>
         `;
 
@@ -757,10 +757,10 @@ async function renderHomeFoodCategories() {
       button.addEventListener("click", () => browseFoodCategory(item.categoryName));
       container.appendChild(button);
     });
-    if (!unique.size) container.innerHTML = '<p class="home-category-loading">Abhi koi food category available nahi hai.</p>';
+    if (!unique.size) container.innerHTML = '<p class="home-category-loading">No food categories are available right now.</p>';
   } catch (error) {
     console.error("Home food categories load error:", error);
-    container.innerHTML = '<p class="home-category-loading">Food categories load nahi ho payi.</p>';
+    container.innerHTML = '<p class="home-category-loading">Could not load food categories.</p>';
   }
 }
 
@@ -788,7 +788,7 @@ async function browseFoodCategory(selectedCategory) {
   }));
   if(!globalCategoryMode||globalBrowseCategory!==selectedCategory)return;
   menu=groups.flat();renderMenu();
-  if(!menu.length&&$("empty")){$("empty").hidden=false;$("empty").style.display="block";$("empty").textContent="Abhi "+selectedCategory+" ke items available nahi hain.";}
+  if(!menu.length&&$("empty")){$("empty").hidden=false;$("empty").style.display="block";$("empty").textContent="Currently, "+selectedCategory+" items are not available.";}
  } catch(e){console.error("Category items loading error:",e);if($("products"))$("products").textContent="Food items load nahi ho paye. Please try again.";}
 }
 window.zaikaBrowseCategory=browseFoodCategory;
@@ -954,7 +954,7 @@ function renderMenuCardActions(card,item) {
 
 // COMPACT FOOD DETAILS POPUP WITH SOFT SLOW SHAKE
 function openProductDetails(item) {
-  if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("Restaurant OFFLINE hai. Sirf menu aur price dekh sakte hain.");
+  if (!isRestaurantOnlineNow(selectedRestaurant)) return showToast("The restaurant is offline. You can only view the menu and prices.");
   const galleryItems = menu.filter((entry) =>
     (!entry.restaurantId || !selectedRestaurant || entry.restaurantId === selectedRestaurant.id) &&
     isMenuItemVisible(entry)
@@ -1129,7 +1129,7 @@ function animateFoodToCart(productCard) {
 function buyNow(item) {
   const itemRestaurant = item.restaurantId ? (restaurants.find((r) => r.id === item.restaurantId) || { id: item.restaurantId, name: item.restaurantName || "Restaurant" }) : selectedRestaurant;
   if (!itemRestaurant) { showToast("Please select a restaurant first"); return; }
-  if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("Restaurant OFFLINE hai. Abhi order nahi ho sakta."); return; }
+  if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("Restaurant OFFLINE hai. Currently, order nahi ho sakta."); return; }
   // Buy Now starts checkout with this item only.
   const variantSuffix=item.variantName?"__v_"+encodeURIComponent(item.variantName):"";
   cart = [{ id: (item.restaurantId ? item.restaurantId + "__" + item.id : item.id)+variantSuffix, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, variantName:item.variantName||"", price: Number(item.price) || 0, quantity: 1 }];
@@ -1141,8 +1141,8 @@ function buyNow(item) {
 function addToCart(item) {
   const itemRestaurant=item.restaurantId?(restaurants.find((r)=>r.id===item.restaurantId)||{id:item.restaurantId,name:item.restaurantName||"Restaurant"}):selectedRestaurant;
   if(!itemRestaurant){showToast("Please select a restaurant first");return;}
-  if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Abhi cart mein add nahi kar sakte.");return;}
-  if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("Ek order mein ek hi restaurant se items add kar sakte hain. Pehle current cart complete karein.");return;}
+  if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Currently, cart mein add nahi kar sakte.");return;}
+  if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("You can add items from only one restaurant per order. Please complete your current cart first.");return;}
   selectedRestaurant=itemRestaurant;
   const cartItemId=getCartItemId(item);
   const existing=cart.find((product)=>product.id===cartItemId);
@@ -1381,14 +1381,14 @@ async function createCheckoutForm() {
             <img id="checkoutUpiQr" src="https://api.qrserver.com/v1/create-qr-code/?size=260x260&amp;margin=10&amp;data=${encodeURIComponent(`upi://pay?pa=${activeUpiId}&pn=MOHAMMAD%20DANISH&am=${Number(getTotal()).toFixed(2)}&cu=INR&tn=ZaikaBox%20Order`)}" alt="Scan to pay ZaikaBox UPI" width="240" height="240" style="display:block;width:100%;max-width:240px;height:auto;margin:auto;" loading="eager">
           </div>
           <div style="display:inline-block;margin-top:13px;padding:7px 15px;border-radius:30px;background:#ff8a35;color:#17110d;font-size:12px;font-weight:900;letter-spacing:1px;">SCAN &amp; PAY</div>
-          <p style="color:#f8e9df;font-size:12px;line-height:1.5;margin:10px 0 0;">Apne UPI app se QR scan karke payment karein</p>
+          <p style="color:#f8e9df;font-size:12px;line-height:1.5;margin:10px 0 0;">Scan the QR code using your UPI app to make the payment.</p>
         </div>
         <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
         <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
         <button type="button" id="copyCheckoutUpi" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">COPY UPI ID</button>
         <button type="button" id="openUpiApp" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#29211b!important;color:#ffffff!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">PAY</button>
         <label for="paymentUtr" style="display:block;margin-top:12px;">UPI Transaction ID</label>
-        <input id="paymentUtr" type="text" maxlength="30" placeholder="Payment ke baad Transaction ID enter karein" autocomplete="off">
+        <input id="paymentUtr" type="text" maxlength="30" placeholder="Enter the Transaction ID after payment." autocomplete="off">
         <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
           <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
           Maine UPI app mein payment complete kar diya hai.
@@ -1397,7 +1397,7 @@ async function createCheckoutForm() {
       </div>
       <div id="codPaymentDetails" style="display:none;padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
         <strong>Cash on Delivery selected</strong>
-        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Abhi online payment ya Transaction ID ki zaroorat nahi hai.</p>
+        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Currently, online payment ya Transaction ID ki zaroorat nahi hai.</p>
       </div>
       <button type="button" id="placeOrder" style="display:block;width:100%;min-height:50px;margin-top:14px;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:900;font-size:15px;">I HAVE PAID</button>
     </div>
@@ -1485,9 +1485,9 @@ async function createCheckoutForm() {
 window.zaikaCheckoutClick = async function () {
   const checkoutButton = $("checkout");
   try {
-    showToast("Checkout open ho raha hai...");
+    showToast("Opening checkout...");
     if (!selectedRestaurant) {
-      showToast("Restaurant select nahi hua. Restaurant page par wapas jaakar item add karein.");
+      showToast("No restaurant selected. Return to the restaurant page and add an item.");
       console.error("Checkout blocked: selectedRestaurant is missing.");
       return;
     }
@@ -1498,7 +1498,7 @@ window.zaikaCheckoutClick = async function () {
     if (!auth.currentUser) {
       closeCart();
       window.zaikaGo?.("account");
-      showToast("Order place karne ke liye pehle login ya sign up karein.");
+      showToast("Please log in or sign up before placing an order.");
       return;
     }
     if (checkoutButton) {
@@ -1507,7 +1507,7 @@ window.zaikaCheckoutClick = async function () {
     }
     await createCheckoutForm();
     const checkoutForm = $("checkoutForm");
-    if (!checkoutForm) throw new Error("Checkout form create nahi hua.");
+    if (!checkoutForm) throw new Error("Could not create the checkout form.");
     checkoutForm.hidden = false;
     checkoutForm.style.display = "block";
     checkoutForm.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -1562,7 +1562,7 @@ async function getCurrentLocation() {
     },
     (error) => {
       console.error("GPS error:", error);
-      showToast("Location permission allow kijiye");
+      showToast("Please allow location access.");
     },
     {
       enableHighAccuracy: true,
@@ -1580,8 +1580,8 @@ function loadLeaflet() {
   leafletLoaderPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
-    script.onload = () => window.L ? resolve(window.L) : reject(new Error("Map library load nahi hui."));
-    script.onerror = () => reject(new Error("Map load nahi hui. Internet connection check kijiye."));
+    script.onload = () => window.L ? resolve(window.L) : reject(new Error("Could not load the map library."));
+    script.onerror = () => reject(new Error("Could not load the map. Please check your internet connection."));
     document.head.appendChild(script);
   });
   return leafletLoaderPromise;
@@ -1630,7 +1630,7 @@ function updateLiveDeliveryMap(location) {
         (time ? " · Updated " + time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "");
     }
   }).catch((error) => {
-    if (meta) meta.textContent = error.message || "Live map load nahi ho paaya.";
+    if (meta) meta.textContent = error.message || "Could not load the live map.";
   });
 }
 
@@ -1657,7 +1657,7 @@ function listenForDeliveryLocation(trackingCode) {
     (error) => {
       console.warn("Delivery location listener:", error);
       const meta = $("zbMapMeta");
-      if (meta) meta.textContent = "Live location abhi available nahi hai.";
+      if (meta) meta.textContent = "Live location is not available yet.";
     }
   );
 }
@@ -1674,7 +1674,7 @@ function renderTrackingStatus(data) {
     result.innerHTML = `
       <div class="tracking-status">
         <h3>${status === "Payment Pending" ? "⏳ Payment Verification Pending" : "❌ Payment Verification Failed"}</h3>
-        <p>${status === "Payment Pending" ? "Aapka UPI payment reference admin verify kar raha hai. Payment confirm hone ke baad restaurant ko order milega." : "Payment verify nahi ho paaya. Transaction ID aur payment details check karke support se sampark karein."}</p>
+        <p>${status === "Payment Pending" ? "Your UPI payment reference is being verified by the administrator. The restaurant will receive your order after payment is confirmed." : "Payment could not be verified. Check your Transaction ID and payment details, then contact support."}</p>
         <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
         <p><strong>Status:</strong> ${escapeHTML(status)}</p>
       </div>
@@ -1686,7 +1686,7 @@ function renderTrackingStatus(data) {
     result.innerHTML = `
       <div class="tracking-status">
         <h3>❌ Order Rejected</h3>
-        <p>Restaurant ne is order ko reject kar diya hai. Details ke liye restaurant se contact karein.</p>
+        <p>The restaurant has rejected this order. Please contact the restaurant for details.</p>
         <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
       </div>
     `;
@@ -1742,7 +1742,7 @@ function renderTrackingStatus(data) {
             <span class="zb-live-pill">${status === "Delivered" ? "🏁 DELIVERED" : "🛵 ON THE WAY"}</span>
           </div>
           <div id="zbLiveMap" class="zb-live-map" role="img" aria-label="Live delivery partner map"></div>
-          <div id="zbMapMeta" class="zb-map-meta">Delivery partner ka GPS connect ho raha hai...</div>
+          <div id="zbMapMeta" class="zb-map-meta">Connecting to the delivery partner's GPS...</div>
         </div>
       ` : `
         <div class="zb-map-waiting">
@@ -1774,7 +1774,7 @@ function startTracking(orderId, trackingCode) {
   if (!cleanOrderId || !/^[A-Z2-9]{20}$/.test(cleanCode)) {
     if (result) {
       result.hidden = false;
-      result.innerHTML = "<p>Order ID ya Tracking Code sahi nahi hai.</p>";
+      result.innerHTML = "<p>The Order ID or Tracking Code is incorrect.</p>";
     }
     return;
   }
@@ -1798,7 +1798,7 @@ function startTracking(orderId, trackingCode) {
       if (!snapshot.exists()) {
         if (result) {
           result.hidden = false;
-          result.innerHTML = "<p>Order nahi mila. Order ID aur Tracking Code check kijiye.</p>";
+          result.innerHTML = "<p>Order not found. Please check the Order ID and Tracking Code.</p>";
         }
 
         unsubscribeTracking?.();
@@ -1811,7 +1811,7 @@ function startTracking(orderId, trackingCode) {
       if (data.orderId !== cleanOrderId) {
         if (result) {
           result.hidden = false;
-          result.innerHTML = "<p>Order details match nahi hui. Dobara check kijiye.</p>";
+          result.innerHTML = "<p>Order details do not match. Please check again.</p>";
         }
 
         unsubscribeTracking?.();
@@ -1826,7 +1826,7 @@ function startTracking(orderId, trackingCode) {
 
       if (result) {
         result.hidden = false;
-        result.innerHTML = "<p>Tracking load nahi ho paayi. Dobara try kijiye.</p>";
+        result.innerHTML = "<p>Could not load tracking. Please try again.</p>";
       }
 
       unsubscribeTracking?.();
@@ -1845,8 +1845,8 @@ function restoreSavedTracking() {
       result.hidden = false;
       result.innerHTML = `
         <div class="tracking-status">
-          <p>Abhi is device par koi saved order nahi hai.</p>
-          <p>Order place karne ke baad tracking yahan automatically dikhegi.</p>
+          <p>Currently, is device par koi saved order nahi hai.</p>
+          <p>Tracking will appear here automatically after you place an order.</p>
         </div>
       `;
     }
@@ -1877,12 +1877,12 @@ function trackOrder() {
       return;
     }
 
-    showToast("Order ID aur Tracking Code dono enter kijiye.");
+    showToast("Enter both the Order ID and Tracking Code.");
     return;
   }
 
   if (!/^[A-Z2-9]{20}$/.test(trackingCode)) {
-    showToast("Tracking Code sahi format mein enter kijiye.");
+    showToast("Enter the Tracking Code in the correct format.");
     return;
   }
 
@@ -1952,7 +1952,7 @@ function showOrderSuccess(orderId, trackingCode, whatsappURL) {
   successCard.innerHTML = `
     <div style="font-size:30px;text-align:center;">🎉</div>
     <h3 style="text-align:center;">Order Submitted — Payment Pending</h3>
-    <p style="text-align:center;">Aapka UPI reference admin verify karega. Verification ke baad hi restaurant order accept kar payega.</p>
+    <p style="text-align:center;">The administrator will verify your UPI reference. The restaurant can accept the order only after verification.</p>
 
     <div style="background:#160f0a;padding:12px;border-radius:12px;margin:12px 0;">
       <small>YOUR ORDER ID</small>
@@ -2014,14 +2014,14 @@ async function copyText(value) {
     await navigator.clipboard.writeText(value);
     showToast("Copied successfully!");
   } catch (error) {
-    showToast("Copy nahi hua. Text manually copy kijiye.");
+    showToast("Could not copy. Please copy the text manually.");
   }
 }
 
 // PLACE ORDER
 async function placeOrder() {
   if (isPlacingOrder) return;
-  if (!isRestaurantOnlineNow(selectedRestaurant)) { cart = []; renderCart(); renderMenu(); closeCart(); $("checkoutForm")?.remove(); showToast("Restaurant OFFLINE hai. Order place nahi ho sakta."); return; }
+  if (!isRestaurantOnlineNow(selectedRestaurant)) { cart = []; renderCart(); renderMenu(); closeCart(); $("checkoutForm")?.remove(); showToast("The restaurant is offline. You cannot place an order."); return; }
 
   const name = $("customerName")?.value.trim() || "";
   const phone = $("customerPhone")?.value.trim() || "";
@@ -2054,12 +2054,12 @@ async function placeOrder() {
   const paymentMethod = $("paymentMethod")?.value || "UPI";
   const utr = $("paymentUtr")?.value.trim() || "";
   if (paymentMethod === "UPI" && !/^[A-Za-z0-9]{6,30}$/.test(utr)) {
-    showToast("Valid Transaction ID enter kijiye (6–30 characters).");
+    showToast("Enter a valid Transaction ID (6–30 characters).");
     $("paymentUtr")?.focus();
     return;
   }
   if (paymentMethod === "UPI" && !$("paymentConfirmed")?.checked) {
-    showToast("Pehle UPI payment complete karke confirmation tick kijiye.");
+    showToast("Complete the UPI payment first and tick the confirmation box.");
     return;
   }
 
@@ -2086,7 +2086,7 @@ async function placeOrder() {
     // Re-check live restaurant availability immediately before creating the order.
     const liveRestaurantSnapshot = await getDoc(doc(db, "restaurants", selectedRestaurant.id));
     if (!liveRestaurantSnapshot.exists()) {
-      throw new Error("Ye restaurant abhi available nahi hai.");
+      throw new Error("This restaurant is currently unavailable.");
     }
     const liveRestaurant = liveRestaurantSnapshot.data();
     if (
@@ -2094,7 +2094,7 @@ async function placeOrder() {
       liveRestaurant.isOnline === false ||
       liveRestaurant.isAcceptingOrders === false
     ) {
-      throw new Error("Restaurant abhi OFFLINE hai. ONLINE hone par dobara order karein.");
+      throw new Error("The restaurant is currently offline. Please try again when it is online.");
     }
 
     const trackingCode = generateTrackingCode();
