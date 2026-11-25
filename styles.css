@@ -2018,3 +2018,60 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
 @keyframes zbFoodSpin{to{transform:rotate(360deg)}}
 @keyframes zbFoodFloat{0%,100%{transform:translateY(2px) rotate(-5deg) scale(.96)}50%{transform:translateY(-4px) rotate(5deg) scale(1.06)}}
 @media(prefers-reduced-motion:reduce){.zb-loader-orbit:before,.zb-loader-orbit:after,.zb-loader-bowl{animation:none!important}}
+
+
+/* LIVE DELIVERY MAP */
+.zb-live-map-card {
+  overflow: hidden;
+  margin: 16px 0;
+  padding: 12px;
+  border: 1px solid rgba(255,138,53,.28);
+  border-radius: 20px;
+  background: linear-gradient(150deg,#211a14,#15120f);
+  box-shadow: 0 12px 28px rgba(0,0,0,.22);
+}
+.zb-live-map-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:11px;
+  color:#fff5eb;
+  font-size:10px;
+  letter-spacing:.7px;
+}
+.zb-live-map-head > div {display:flex;align-items:center;gap:7px}
+.zb-live-dot {
+  width:8px;height:8px;border-radius:50%;
+  background:#37d69a;box-shadow:0 0 0 5px rgba(55,214,154,.12);
+  animation:zbLivePulse 1.5s infinite;
+}
+.zb-live-pill {
+  padding:6px 9px;border-radius:30px;
+  color:#ffc18e;background:rgba(255,138,53,.13);
+  border:1px solid rgba(255,138,53,.25);
+  white-space:nowrap;
+}
+.zb-live-map {
+  width:100%;height:260px;min-height:220px;
+  overflow:hidden;border-radius:14px;
+  background:#29251f;z-index:0;
+}
+.zb-map-meta {
+  padding:10px 3px 1px;
+  color:#b8aa9e;font-size:11px;line-height:1.5;
+}
+.zb-scooter-map-icon {
+  display:grid;place-items:center;background:transparent;border:0;
+}
+.zb-scooter-map-icon span {
+  display:grid;place-items:center;width:42px;height:42px;
+  border:2px solid #fff;border-radius:50%;
+  background:linear-gradient(135deg,#ff9b4a,#e85f18);
+  box-shadow:0 5px 18px rgba(0,0,0,.45);
+  font-size:24px;
+}
+@keyframes zbLivePulse {
+  0%,100%{box-shadow:0 0 0 4px rgba(55,214,154,.10)}
+  50%{box-shadow:0 0 0 8px rgba(55,214,154,.02)}
+}
