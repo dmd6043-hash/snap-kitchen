@@ -2102,3 +2102,13 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
 .zb-map-waiting span {font-size:32px}
 .zb-map-waiting strong {font-size:13px;color:#fff5eb}
 .zb-map-waiting small {max-width:250px;color:#b8aa9e;font-size:11px;line-height:1.5}
+
+/* ZaikaBox: larger immersive order-tracking map */
+.zb-live-map-card{margin:20px -2px;padding:16px;border-radius:24px;}
+.zb-live-map-head{font-size:12px;letter-spacing:.9px;margin-bottom:14px;}
+.zb-live-map{height: min(58vh, 560px);min-height:380px;border-radius:20px;}
+.zb-map-wait-pin{width:66px;height:66px;font-size:32px;}
+.zb-map-wait-label{font-size:13px;padding:9px 14px;}
+.zb-map-meta{font-size:13px;padding:12px 4px 2px;}
+@media(max-width:480px){.zb-live-map-card{margin:18px -4px;padding:14px;}.zb-live-map{height:56vh;min-height:390px;max-height:560px;}}
+@media(min-width:700px){.zb-live-map{height:560px;}}
