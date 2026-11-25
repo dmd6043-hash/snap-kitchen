@@ -1735,16 +1735,21 @@ function renderTrackingStatus(data) {
       <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
       <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
-      ${!isPickup ? `
+      ${!isPickup ? (status === "Out for Delivery" || status === "Delivered" ? `
         <div class="zb-live-map-card">
           <div class="zb-live-map-head">
             <div><span class="zb-live-dot"></span><strong>LIVE DELIVERY TRACKING</strong></div>
-            <span class="zb-live-pill">🛵 ON THE WAY</span>
+            <span class="zb-live-pill">${status === "Delivered" ? "🏁 DELIVERED" : "🛵 ON THE WAY"}</span>
           </div>
           <div id="zbLiveMap" class="zb-live-map" role="img" aria-label="Live delivery partner map"></div>
           <div id="zbMapMeta" class="zb-map-meta">Delivery partner ka GPS connect ho raha hai...</div>
         </div>
-      ` : ""}
+      ` : `
+        <div class="zb-map-waiting">
+          <span>🛵</span><strong>Live map ready hai</strong>
+          <small>Delivery partner ke START DELIVERY karte hi scooty ki live location yahan dikhegi.</small>
+        </div>
+      `) : ""}
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Order status automatically updates from the server.</p>
       ${
