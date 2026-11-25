@@ -1157,7 +1157,7 @@ body.cart-open .zaika-ai-panel{
  }
  window.addEventListener("error",e=>show("ZaikaBox startup error",String(e.message||"JavaScript load failed")+"\n"+String(e.filename||"")+"\nLine: "+String(e.lineno||"")));
  window.addEventListener("unhandledrejection",e=>{const x=e.reason;show("ZaikaBox module / Firebase error",String(x&&x.message||x||"Unknown rejection"));});
- setTimeout(()=>{const s=document.getElementById("restaurantStatus"),g=document.getElementById("restaurantGrid");if(s&&g&&!s.textContent.trim()&&!g.textContent.trim())show("ZaikaBox loading ruk gaya","App startup 12 seconds mein complete nahi hua.");},12000);
+ setTimeout(()=>{const s=document.getElementById("restaurantStatus"),g=document.getElementById("restaurantGrid");if(s&&g&&!s.textContent.trim()&&!g.textContent.trim())show("ZaikaBox loading ruk gaya","App startup did not complete within 12 seconds.");},12000);
 })();
 </script>
 
