@@ -1682,12 +1682,14 @@ function renderTrackingStatus(data) {
     return;
   }
 
-  if (status === "Rejected") {
+  if (status === "Rejected" || status === "Out of Stock") {
+    const stockIssue = status === "Out of Stock";
     result.innerHTML = `
       <div class="tracking-status">
-        <h3>❌ Order Rejected</h3>
-        <p>The restaurant has rejected this order. Please contact the restaurant for details.</p>
+        <h3>${stockIssue ? "⚠️ Item Unavailable" : "❌ Order Rejected"}</h3>
+        <p>${stockIssue ? "The restaurant has marked an item as out of stock. Please contact the restaurant or ZaikaBox Support for help with this order." : "The restaurant has rejected this order. Please contact the restaurant for details."}</p>
         <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
+        <p><strong>Status:</strong> ${escapeHTML(status)}</p>
       </div>
     `;
     return;
@@ -1699,20 +1701,23 @@ function renderTrackingStatus(data) {
     status === "Picked Up";
 
   const steps = isPickup
-    ? ["New", "Accepted", "Preparing", "Ready for Pickup", "Picked Up"]
-    : ["New", "Accepted", "Preparing", "Out for Delivery", "Delivered"];
+    ? ["New", "Accepted", "Preparing", "Ready", "Picked Up"]
+    : ["New", "Accepted", "Preparing", "Ready", "Out for Delivery", "Delivered"];
 
   const labels = {
     "New": "Order Received",
     "Accepted": "Order Accepted",
     "Preparing": "Food is Being Prepared",
+    "Ready": isPickup ? "Ready for Pickup" : "Food Ready · Waiting for Delivery Partner",
     "Ready for Pickup": "Ready for Pickup",
     "Picked Up": "Order Picked Up",
     "Out for Delivery": "Out for Delivery",
-    "Delivered": "Delivered"
+    "Delivered": "Delivered",
+    "Not Ready": "Restaurant is Preparing Your Order Again"
   };
 
   const currentIndex = steps.indexOf(status);
+  const isNotReady = status === "Not Ready";
 
   const timeline = steps.map((step, index) => {
     const completed = currentIndex >= index;
@@ -1750,6 +1755,7 @@ function renderTrackingStatus(data) {
           <small>Delivery partner ke START DELIVERY karte hi scooty ki live location yahan dikhegi.</small>
         </div>
       `) : ""}
+      ${isNotReady ? '<div class="zb-map-waiting"><strong>⏳ Restaurant is preparing your order again</strong><small>Delivery will start after the restaurant confirms READY.</small></div>' : ""}
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Order status automatically updates from the server.</p>
       ${
