@@ -2075,3 +2075,13 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
   0%,100%{box-shadow:0 0 0 4px rgba(55,214,154,.10)}
   50%{box-shadow:0 0 0 8px rgba(55,214,154,.02)}
 }
+
+.zb-map-waiting {
+  display:grid;justify-items:center;gap:7px;text-align:center;
+  margin:14px 0;padding:20px 14px;border-radius:18px;
+  background:linear-gradient(145deg,#211a14,#15120f);
+  border:1px dashed rgba(255,138,53,.28);
+}
+.zb-map-waiting span {font-size:32px}
+.zb-map-waiting strong {font-size:13px;color:#fff5eb}
+.zb-map-waiting small {max-width:250px;color:#b8aa9e;font-size:11px;line-height:1.5}
