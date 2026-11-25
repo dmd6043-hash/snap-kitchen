@@ -1591,8 +1591,10 @@ function updateLiveDeliveryMap(location) {
   latestDeliveryLocation = location || null;
   const mapBox = $("zbLiveMap");
   const meta = $("zbMapMeta");
-  if (!mapBox || !location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
-    if (meta && !location) meta.textContent = "Delivery partner ke ride start karte hi live location yahan dikhegi.";
+  if (!mapBox) return;
+  if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+    mapBox.classList.add("is-waiting");
+    if (meta) meta.textContent = "Waiting for delivery partner GPS. The map will update automatically.";
     return;
   }
 
@@ -1603,6 +1605,8 @@ function updateLiveDeliveryMap(location) {
     if (!currentBox) return;
     if (!deliveryMap || deliveryMapElement !== currentBox) {
       if (deliveryMap) deliveryMap.remove();
+      currentBox.innerHTML = "";
+      currentBox.classList.remove("is-waiting");
       deliveryMapElement = currentBox;
       deliveryMap = L.map(currentBox, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
@@ -1742,21 +1746,25 @@ function renderTrackingStatus(data) {
       <h3>📦 Your ${isPickup ? "Pickup" : "Delivery"} Order Status</h3>
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
       <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
-      ${!isPickup ? (status === "Out for Delivery" || status === "Delivered" ? `
+      ${!isPickup ? `
         <div class="zb-live-map-card">
           <div class="zb-live-map-head">
             <div><span class="zb-live-dot"></span><strong>LIVE DELIVERY TRACKING</strong></div>
-            <span class="zb-live-pill">${status === "Delivered" ? "🏁 DELIVERED" : "🛵 ON THE WAY"}</span>
+            <span class="zb-live-pill">${status === "Delivered" ? "🏁 DELIVERED" : status === "Out for Delivery" ? "🛵 ON THE WAY" : "⏳ WAITING FOR RIDER"}</span>
           </div>
-          <div id="zbLiveMap" class="zb-live-map" role="img" aria-label="Live delivery partner map"></div>
-          <div id="zbMapMeta" class="zb-map-meta">Connecting to the delivery partner's GPS...</div>
+          <div id="zbLiveMap" class="zb-live-map is-waiting" role="img" aria-label="Live delivery map waiting for GPS">
+            <div class="zb-map-preview" aria-hidden="true">
+              <span class="zb-map-road zb-map-road-one"></span>
+              <span class="zb-map-road zb-map-road-two"></span>
+              <span class="zb-map-road zb-map-road-three"></span>
+              <span class="zb-map-route"></span>
+              <span class="zb-map-wait-pin">🛵</span>
+              <span class="zb-map-wait-label">Waiting for live location</span>
+            </div>
+          </div>
+          <div id="zbMapMeta" class="zb-map-meta">Waiting for delivery partner GPS. The map will update automatically.</div>
         </div>
-      ` : `
-        <div class="zb-map-waiting">
-          <span>🛵</span><strong>Live map is ready</strong>
-          <small>Delivery partner ke START DELIVERY karte hi scooty ki live location yahan dikhegi.</small>
-        </div>
-      `) : ""}
+      ` : ""}
       ${isNotReady ? '<div class="zb-map-waiting"><strong>⏳ Restaurant is preparing your order again</strong><small>Delivery will start after the restaurant confirms READY.</small></div>' : ""}
       <div class="tracking-order-items">${timeline}</div>
       <p style="font-size:12px;">Order status automatically updates from the server.</p>
@@ -1767,7 +1775,7 @@ function renderTrackingStatus(data) {
       }
     </div>
   `;
-  if (!isPickup && (status === "Out for Delivery" || status === "Delivered")) {
+  if (!isPickup) {
     updateLiveDeliveryMap(latestDeliveryLocation);
   }
 }
