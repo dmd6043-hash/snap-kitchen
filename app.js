@@ -32,6 +32,12 @@ const DEFAULT_WHATSAPP_NUMBER = "918319014718";
 const DEFAULT_UPI_ID = "8269568200-3@ybl";
 let activeUpiId = DEFAULT_UPI_ID;
 const TRACKING_STORAGE_KEY = "zaikabox_active_order_v1";
+let unsubscribeDeliveryLocation = null;
+let latestDeliveryLocation = null;
+let deliveryMap = null;
+let deliveryMarker = null;
+let deliveryMapElement = null;
+let leafletLoaderPromise = null;
 
 const $ = (id) => document.getElementById(id);
 const AUTH_WORKER_URL = "https://little-boat-b4f9.dmd6043.workers.dev";
@@ -1566,6 +1572,96 @@ async function getCurrentLocation() {
 }
 
 // TRACKING STATUS DISPLAY
+
+// LIVE DELIVERY MAP — reads only this order's private tracking-code location.
+function loadLeaflet() {
+  if (window.L) return Promise.resolve(window.L);
+  if (leafletLoaderPromise) return leafletLoaderPromise;
+  leafletLoaderPromise = new Promise((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://unpkg.com/leaflet@1.9.4/dist/leaflet.js";
+    script.onload = () => window.L ? resolve(window.L) : reject(new Error("Map library load nahi hui."));
+    script.onerror = () => reject(new Error("Map load nahi hui. Internet connection check kijiye."));
+    document.head.appendChild(script);
+  });
+  return leafletLoaderPromise;
+}
+
+function updateLiveDeliveryMap(location) {
+  latestDeliveryLocation = location || null;
+  const mapBox = $("zbLiveMap");
+  const meta = $("zbMapMeta");
+  if (!mapBox || !location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+    if (meta && !location) meta.textContent = "Delivery partner ke ride start karte hi live location yahan dikhegi.";
+    return;
+  }
+
+  const lat = Number(location.latitude);
+  const lng = Number(location.longitude);
+  loadLeaflet().then((L) => {
+    const currentBox = $("zbLiveMap");
+    if (!currentBox) return;
+    if (!deliveryMap || deliveryMapElement !== currentBox) {
+      if (deliveryMap) deliveryMap.remove();
+      deliveryMapElement = currentBox;
+      deliveryMap = L.map(currentBox, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+      }).addTo(deliveryMap);
+      const scooterIcon = L.divIcon({
+        className: "zb-scooter-map-icon",
+        html: '<span>🛵</span>',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22]
+      });
+      deliveryMarker = L.marker([lat, lng], { icon: scooterIcon }).addTo(deliveryMap)
+        .bindPopup("ZaikaBox delivery partner");
+    } else {
+      deliveryMarker.setLatLng([lat, lng]);
+      deliveryMap.panTo([lat, lng], { animate: true, duration: 0.7 });
+    }
+    setTimeout(() => deliveryMap && deliveryMap.invalidateSize(), 120);
+    if (meta) {
+      const accuracy = Number(location.accuracy);
+      const time = location.updatedAt?.toDate ? location.updatedAt.toDate() : null;
+      meta.textContent = "🟢 Live GPS · " +
+        (Number.isFinite(accuracy) ? "Accuracy ±" + Math.round(accuracy) + " m" : "Location received") +
+        (time ? " · Updated " + time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "");
+    }
+  }).catch((error) => {
+    if (meta) meta.textContent = error.message || "Live map load nahi ho paaya.";
+  });
+}
+
+function stopDeliveryLocationListener() {
+  if (unsubscribeDeliveryLocation) unsubscribeDeliveryLocation();
+  unsubscribeDeliveryLocation = null;
+  latestDeliveryLocation = null;
+  if (deliveryMap) deliveryMap.remove();
+  deliveryMap = null;
+  deliveryMarker = null;
+  deliveryMapElement = null;
+}
+
+function listenForDeliveryLocation(trackingCode) {
+  stopDeliveryLocationListener();
+  const cleanCode = normalizeTrackingCode(trackingCode);
+  if (!cleanCode) return;
+  unsubscribeDeliveryLocation = onSnapshot(
+    doc(db, "deliveryLocations", cleanCode),
+    (snapshot) => {
+      latestDeliveryLocation = snapshot.exists() ? snapshot.data() : null;
+      updateLiveDeliveryMap(latestDeliveryLocation);
+    },
+    (error) => {
+      console.warn("Delivery location listener:", error);
+      const meta = $("zbMapMeta");
+      if (meta) meta.textContent = "Live location abhi available nahi hai.";
+    }
+  );
+}
+
 function renderTrackingStatus(data) {
   const result = $("trackingResult");
   if (!result) return;
@@ -1640,10 +1736,13 @@ function renderTrackingStatus(data) {
       <p><strong>Restaurant:</strong> ${escapeHTML(data.restaurantName)}</p>
       <p><strong>Current Status:</strong> ${escapeHTML(labels[status] || status)}</p>
       ${!isPickup ? `
-        <div class="zb-scooter-track ${status === "Out for Delivery" ? "is-moving" : status === "Delivered" ? "is-done" : ""}">
-          <div class="zb-track-caption">${status === "Out for Delivery" ? "🛵 Your order is on the way!" : status === "Delivered" ? "🏁 Order reached you!" : "🍳 Your order is getting ready"}</div>
-          <div class="zb-road"><span class="zb-scooter" aria-label="Delivery scooter">🛵</span></div>
-          <div class="zb-track-label"><span>Restaurant</span><span>Your location</span></div>
+        <div class="zb-live-map-card">
+          <div class="zb-live-map-head">
+            <div><span class="zb-live-dot"></span><strong>LIVE DELIVERY TRACKING</strong></div>
+            <span class="zb-live-pill">🛵 ON THE WAY</span>
+          </div>
+          <div id="zbLiveMap" class="zb-live-map" role="img" aria-label="Live delivery partner map"></div>
+          <div id="zbMapMeta" class="zb-map-meta">Delivery partner ka GPS connect ho raha hai...</div>
         </div>
       ` : ""}
       <div class="tracking-order-items">${timeline}</div>
@@ -1655,6 +1754,9 @@ function renderTrackingStatus(data) {
       }
     </div>
   `;
+  if (!isPickup && (status === "Out for Delivery" || status === "Delivered")) {
+    updateLiveDeliveryMap(latestDeliveryLocation);
+  }
 }
 
 // START LIVE TRACKING LISTENER
@@ -1676,6 +1778,7 @@ function startTracking(orderId, trackingCode) {
     unsubscribeTracking();
     unsubscribeTracking = null;
   }
+  listenForDeliveryLocation(cleanCode);
 
   if (result) {
     result.hidden = false;
