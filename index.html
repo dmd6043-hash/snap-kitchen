@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
   <meta name="theme-color" content="#0b0d10">
-  <meta name="description" content="ZaikaBox - Har Craving Ka Apna Box! Discover local restaurants and order food in Jagdalpur.">
+  <meta name="description" content="ZaikaBox - Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
   <link rel="stylesheet" href="./styles.css?v=20261125-live-map-v31">
@@ -15,7 +15,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-  <title>ZaikaBox - Har Craving Ka Apna Box!</title>
+  <title>ZaikaBox - Discover Great Local Food</title>
 
   <style>
     :root {
@@ -790,7 +790,7 @@ body.cart-open .zaika-ai-panel{
     <div class="brand">
       <div>
         <div class="brand-name" style="font-family:'Outfit',sans-serif;font-weight:800;letter-spacing:-.6px"><span class="brand-zaika" style="color:#ff8a35">Zaika</span><span class="brand-box" style="color:#ffffff">Box</span></div>
-        <div class="brand-tag">Har Craving Ka Apna Box!</div>
+        <div class="brand-tag">Discover Great Local Food</div>
       </div>
     </div>
 
@@ -915,7 +915,7 @@ body.cart-open .zaika-ai-panel{
     </div>
 
 
-    <div class="footer-note">ZaikaBox • Har Craving Ka Apna Box!</div>
+    <div class="footer-note">ZaikaBox • Discover Great Local Food</div>
   </main>
 
   <!-- TRACK SCREEN -->
@@ -1009,19 +1009,19 @@ body.cart-open .zaika-ai-panel{
       <button class="primary-btn" id="accountLogin" type="button" style="width:100%;margin-top:14px">Login →</button>
       <button class="primary-btn" id="accountRegister" type="button" style="width:100%;margin-top:10px;background:#30251c;border:1px solid #ff8a35">Create New Account</button>
       <button class="text-btn" id="accountForgot" type="button" style="width:100%;margin-top:12px">Forgot Password? Send reset link</button>
-      <p style="font-size:11px;color:#b4a69a;margin-top:12px">Guest checkout pehle ki tarah available rahega.</p>
+      <p style="font-size:11px;color:#b4a69a;margin-top:12px">Guest checkout will remain available as before.</p>
     </div>
     <div id="accountSignedIn" class="track-card" hidden>
       <h3>My Profile 👤</h3>
       <p>Account: <strong id="accountPhone"></strong></p>
       <label for="profileName">Your Name</label>
-      <input class="field" id="profileName" type="text" placeholder="Apna naam" autocomplete="name">
+      <input class="field" id="profileName" type="text" placeholder="Your name" autocomplete="name">
       <label for="profileMobile">Mobile Number</label>
       <input class="field" id="profileMobile" type="tel" inputmode="numeric" maxlength="10" placeholder="10 digit mobile number" autocomplete="tel">
       <label for="profileAddress">Saved Delivery Address</label>
-      <textarea class="field" id="profileAddress" rows="3" placeholder="Apna delivery address"></textarea>
+      <textarea class="field" id="profileAddress" rows="3" placeholder="Your delivery address"></textarea>
       <button class="primary-btn" id="profileGetLocation" type="button" style="width:100%;margin-top:9px;background:#171717 !important;background-image:none !important;color:#ffffff !important;border:1px solid #ff8a35 !important;box-shadow:none !important">📍 <span style="color:#ff8a35">Use Current Location</span></button>
-      <p style="font-size:11px;color:#b4a69a;margin:7px 0 0">Location fill hone ke baad Save Profile dabayein.</p>
+      <p style="font-size:11px;color:#b4a69a;margin:7px 0 0">After your location is filled in, select Save Profile.</p>
       <button class="primary-btn" id="saveCustomerProfile" type="button" style="width:100%;margin-top:12px">Save Profile</button>
       <button class="primary-btn" id="accountLogout" type="button" style="width:100%;margin-top:10px;background:#30251c;border:1px solid #ff8a35;display:flex;align-items:center;justify-content:center;gap:9px"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true" style="stroke:#ff8a35;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"><path d="M10 17l5-5-5-5"/><path d="M15 12H3"/><path d="M12 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-6"/></svg><span>Logout</span></button>
     </div>
@@ -1133,10 +1133,10 @@ body.cart-open .zaika-ai-panel{
     <div class="zaika-ai-msg bot">Hello! 👋 I am Zaika AI. How can I help you with orders, restaurants, the menu, or support?</div>
   </div>
   <div class="zaika-ai-quick">
-    <button type="button" data-ai-prompt="Mera order kaise track karun?">Track order</button>
+    <button type="button" data-ai-prompt="How can I track my order?">Track order</button>
     <button type="button" data-ai-prompt="I have a payment problem">Payment help</button>
     <button type="button" data-ai-prompt="I need customer support">Customer support</button>
-    <button type="button" data-ai-prompt="Restaurant kaise dhoondhun?">Find restaurant</button>
+    <button type="button" data-ai-prompt="How can I find a restaurant?">Find restaurant</button>
   </div>
   <form class="zaika-ai-compose" id="zaikaAiForm">
     <input id="zaikaAiInput" type="text" placeholder="Type your message here..." autocomplete="off" aria-label="Message Zaika AI">
@@ -1153,7 +1153,7 @@ body.cart-open .zaika-ai-panel{
  function show(title,detail){
   let box=document.getElementById("zaikaStartupDiagnostic");
   if(!box){box=document.createElement("div");box.id="zaikaStartupDiagnostic";box.style.cssText="position:fixed;inset:12px 10px auto;z-index:999999;background:#24140d;color:#fff;border:2px solid #ff8a35;border-radius:14px;padding:16px;font:14px/1.45 Arial,sans-serif;box-shadow:0 8px 30px #000b;max-height:75vh;overflow:auto;white-space:pre-wrap";document.body.appendChild(box);}
-  box.textContent=title+"\n\n"+(detail||"No extra details")+"\n\nIs message ka screenshot bhejiye; isi se exact error pakadenge.";
+  box.textContent=title+"\n\n"+(detail||"No extra details")+"\n\nPlease share a screenshot of this message so we can identify the exact error.";
  }
  window.addEventListener("error",e=>show("ZaikaBox startup error",String(e.message||"JavaScript load failed")+"\n"+String(e.filename||"")+"\nLine: "+String(e.lineno||"")));
  window.addEventListener("unhandledrejection",e=>{const x=e.reason;show("ZaikaBox module / Firebase error",String(x&&x.message||x||"Unknown rejection"));});
@@ -1293,8 +1293,8 @@ window.setTimeout(() => {
   const status = document.getElementById("restaurantStatus");
   const grid = document.getElementById("restaurantGrid");
   if (status && /loading restaurants/i.test(status.textContent || "") && grid && !grid.querySelector(".restaurant-card")) {
-    status.textContent = "App script start nahi hua. Internet connection ya Firebase module loading check kijiye.";
-    grid.innerHTML = '<p>ZaikaBox app start nahi ho paayi. Page refresh karke dobara try kijiye.</p><button type="button" onclick="location.reload()">REFRESH APP</button>';
+    status.textContent = "The app script did not start. Please check your internet connection and Firebase module loading.";
+    grid.innerHTML = '<p>ZaikaBox could not start. Refresh the page and try again.</p><button type="button" onclick="location.reload()">REFRESH APP</button>';
   }
 }, 20000);
 </script>
