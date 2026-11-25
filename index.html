@@ -1233,8 +1233,10 @@ html,body{min-height:100%!important;background:#100d0a!important;color:#fffaf5!i
     }
   }catch(error){console.warn("ZaikaBox recovery cleanup:",error);}
   document.body.classList.remove("cart-open");
+  const screens=document.querySelectorAll(".app > main.screen");
+  screens.forEach(screen=>screen.classList.remove("active"));
   const home=document.getElementById("homeScreen");
-  if(home){home.classList.add("active");home.hidden=false;home.style.setProperty("display","block","important");}
+  if(home){home.classList.add("active");home.hidden=false;home.style.removeProperty("display");}
 })();
 </script>
 
