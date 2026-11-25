@@ -2020,6 +2020,19 @@ body.cart-open .mini-cart-bar{opacity:0!important;visibility:hidden!important;po
 @media(prefers-reduced-motion:reduce){.zb-loader-orbit:before,.zb-loader-orbit:after,.zb-loader-bowl{animation:none!important}}
 
 
+.tracking-step.is-current {
+  background:rgba(255,138,53,.10);
+  border-radius:12px;
+  animation:zbTrackingStepPulse 1.8s ease-in-out infinite;
+}
+@keyframes zbTrackingStepPulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(255,138,53,0); }
+  50% { box-shadow:0 0 0 5px rgba(255,138,53,.10); }
+}
+@media(prefers-reduced-motion:reduce) {
+  .tracking-step.is-current { animation:none!important; }
+}
+
 /* LIVE DELIVERY MAP */
 .zb-live-map-card {
   overflow: hidden;
