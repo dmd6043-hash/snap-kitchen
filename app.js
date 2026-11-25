@@ -1695,10 +1695,12 @@ function renderTrackingStatus(data) {
     return;
   }
 
+  // A live delivery status takes priority over an outdated/mismatched orderType label.
   const isPickup =
-    data.orderType === "Pickup" ||
-    status === "Ready for Pickup" ||
-    status === "Picked Up";
+    !["Out for Delivery", "Delivered"].includes(status) &&
+    (data.orderType === "Pickup" ||
+     status === "Ready for Pickup" ||
+     status === "Picked Up");
 
   const steps = isPickup
     ? ["New", "Accepted", "Preparing", "Ready", "Picked Up"]
@@ -1723,13 +1725,13 @@ function renderTrackingStatus(data) {
     const completed = currentIndex >= index;
 
     return `
-      <div class="tracking-step" style="
+      <div class="tracking-step ${index === currentIndex ? "is-current" : ""}" style="
         padding:10px;
         margin:6px 0;
         border-left:4px solid ${completed ? "#ff8a35" : "#554766"};
         opacity:${completed ? "1" : "0.5"};
       ">
-        ${completed ? "✅" : "○"}
+        ${index === currentIndex && status === "Out for Delivery" ? "🛵" : completed ? "✅" : "○"}
         <strong>${labels[step]}</strong>
       </div>
     `;
