@@ -154,9 +154,9 @@ $("profileGetLocation")?.addEventListener("click", () => {
 
   if (button) {
     button.disabled = true;
-    button.textContent = "📍 Location mil rahi hai...";
+    button.textContent = "📍 Getting your location...";
   }
-  showToast("Current location mil rahi hai...");
+  showToast("Getting your current location...");
 
   navigator.geolocation.getCurrentPosition(
     async (position) => {
@@ -789,7 +789,7 @@ async function browseFoodCategory(selectedCategory) {
   if(!globalCategoryMode||globalBrowseCategory!==selectedCategory)return;
   menu=groups.flat();renderMenu();
   if(!menu.length&&$("empty")){$("empty").hidden=false;$("empty").style.display="block";$("empty").textContent="Currently, "+selectedCategory+" items are not available.";}
- } catch(e){console.error("Category items loading error:",e);if($("products"))$("products").textContent="Food items load nahi ho paye. Please try again.";}
+ } catch(e){console.error("Category items loading error:",e);if($("products"))$("products").textContent="Could not load food items. Please try again.";}
 }
 window.zaikaBrowseCategory=browseFoodCategory;
 // CATEGORIES
@@ -1129,7 +1129,7 @@ function animateFoodToCart(productCard) {
 function buyNow(item) {
   const itemRestaurant = item.restaurantId ? (restaurants.find((r) => r.id === item.restaurantId) || { id: item.restaurantId, name: item.restaurantName || "Restaurant" }) : selectedRestaurant;
   if (!itemRestaurant) { showToast("Please select a restaurant first"); return; }
-  if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("Restaurant OFFLINE hai. Currently, order nahi ho sakta."); return; }
+  if (!isRestaurantOnlineNow(itemRestaurant)) { showToast("The restaurant is offline. Orders cannot be placed right now."); return; }
   // Buy Now starts checkout with this item only.
   const variantSuffix=item.variantName?"__v_"+encodeURIComponent(item.variantName):"";
   cart = [{ id: (item.restaurantId ? item.restaurantId + "__" + item.id : item.id)+variantSuffix, menuItemId: item.id, restaurantId: itemRestaurant.id, name: item.name, variantName:item.variantName||"", price: Number(item.price) || 0, quantity: 1 }];
@@ -1141,7 +1141,7 @@ function buyNow(item) {
 function addToCart(item) {
   const itemRestaurant=item.restaurantId?(restaurants.find((r)=>r.id===item.restaurantId)||{id:item.restaurantId,name:item.restaurantName||"Restaurant"}):selectedRestaurant;
   if(!itemRestaurant){showToast("Please select a restaurant first");return;}
-  if(!isRestaurantOnlineNow(itemRestaurant)){showToast("Restaurant OFFLINE hai. Currently, cart mein add nahi kar sakte.");return;}
+  if(!isRestaurantOnlineNow(itemRestaurant)){showToast("The restaurant is offline. Items cannot be added to the cart right now.");return;}
   if(cart.length&&cart.some((p)=>p.restaurantId&&p.restaurantId!==itemRestaurant.id)){showToast("You can add items from only one restaurant per order. Please complete your current cart first.");return;}
   selectedRestaurant=itemRestaurant;
   const cartItemId=getCartItemId(item);
@@ -1383,7 +1383,7 @@ async function createCheckoutForm() {
           <div style="display:inline-block;margin-top:13px;padding:7px 15px;border-radius:30px;background:#ff8a35;color:#17110d;font-size:12px;font-weight:900;letter-spacing:1px;">SCAN &amp; PAY</div>
           <p style="color:#f8e9df;font-size:12px;line-height:1.5;margin:10px 0 0;">Scan the QR code using your UPI app to make the payment.</p>
         </div>
-        <p style="font-size:12px;text-align:center;color:#ffbd87;">QR scan karke exact amount pay karein.</p>
+        <p style="font-size:12px;text-align:center;color:#ffbd87;">Scan the QR code and pay the exact amount.</p>
         <p style="margin:6px 0;">Order Amount: <strong>${money(getTotal())}</strong></p>
         <button type="button" id="copyCheckoutUpi" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">COPY UPI ID</button>
         <button type="button" id="openUpiApp" style="display:block;width:100%;min-height:46px;margin:10px 0;background:#29211b!important;color:#ffffff!important;border:1px solid #ff8a35;border-radius:11px;font-weight:800;font-size:14px;">PAY</button>
@@ -1391,13 +1391,13 @@ async function createCheckoutForm() {
         <input id="paymentUtr" type="text" maxlength="30" placeholder="Enter the Transaction ID after payment." autocomplete="off">
         <label style="display:flex;gap:8px;align-items:flex-start;margin-top:10px;font-size:13px;">
           <input id="paymentConfirmed" type="checkbox" style="width:auto;margin-top:3px;">
-          Maine UPI app mein payment complete kar diya hai.
+          I have completed the payment in my UPI app.
         </label>
-        <p style="font-size:12px;color:#ffbd87;">Payment Transaction ID admin verify karne ke baad confirm hoga.</p>
+        <p style="font-size:12px;color:#ffbd87;">The payment will be confirmed after the administrator verifies the Transaction ID.</p>
       </div>
       <div id="codPaymentDetails" style="display:none;padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
         <strong>Cash on Delivery selected</strong>
-        <p style="margin:6px 0 0;">Aap delivery ke waqt cash mein payment kar sakte hain. Currently, online payment ya Transaction ID ki zaroorat nahi hai.</p>
+        <p style="margin:6px 0 0;">You can pay in cash when your order is delivered. No online payment or Transaction ID is required.</p>
       </div>
       <button type="button" id="placeOrder" style="display:block;width:100%;min-height:50px;margin-top:14px;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:900;font-size:15px;">I HAVE PAID</button>
     </div>
@@ -1513,7 +1513,7 @@ window.zaikaCheckoutClick = async function () {
     checkoutForm.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     console.error("Proceed to Checkout error:", error);
-    showToast("Checkout open nahi hua: " + (error?.message || "Please refresh and try again."));
+    showToast("Could not open checkout: " + (error?.message || "Please refresh and try again."));
   } finally {
     if (checkoutButton) {
       checkoutButton.disabled = false;
@@ -1746,7 +1746,7 @@ function renderTrackingStatus(data) {
         </div>
       ` : `
         <div class="zb-map-waiting">
-          <span>🛵</span><strong>Live map ready hai</strong>
+          <span>🛵</span><strong>Live map is ready</strong>
           <small>Delivery partner ke START DELIVERY karte hi scooty ki live location yahan dikhegi.</small>
         </div>
       `) : ""}
@@ -1845,7 +1845,7 @@ function restoreSavedTracking() {
       result.hidden = false;
       result.innerHTML = `
         <div class="tracking-status">
-          <p>Currently, is device par koi saved order nahi hai.</p>
+          <p>There are no saved orders on this device.</p>
           <p>Tracking will appear here automatically after you place an order.</p>
         </div>
       `;
