@@ -501,7 +501,7 @@ function renderRestaurants() {
     ].filter((url,index,array) => typeof url==="string" && (/^https?:\/\//i.test(url.trim()) || /^data:image\/(?:jpeg|jpg|png|webp);base64,/i.test(url.trim())) && array.indexOf(url)===index);
     card.innerHTML = `
       <div class="restaurant-cover">
-        ${restaurantPhotos.length ? `<img class="restaurant-cover-image" src="${escapeHTML(restaurantPhotos[0])}" alt="${escapeHTML(restaurant.name || "Restaurant")}" loading="lazy">` : '<div class="restaurant-cover-placeholder">🍽️</div>'}
+        ${restaurantPhotos.length ? `<img class="restaurant-cover-image" src="${escapeHTML(restaurantPhotos[0])}" alt="${escapeHTML(restaurant.name || "Restaurant")}" loading="lazy" draggable="false" style="-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;">` : '<div class="restaurant-cover-placeholder">🍽️</div>'}
         <span class="restaurant-cover-status ${restaurantOnline?"online":"offline"}">● ${restaurantOnline?"ONLINE":"OFFLINE"}</span>
         ${restaurantPhotos.length>1 ? `<div class="restaurant-photo-dots">${restaurantPhotos.map((_,index)=>`<span class="restaurant-photo-dot ${index===0?"active":""}"></span>`).join("")}</div>` : ""}
       </div>
@@ -549,8 +549,10 @@ function renderRestaurants() {
         const dx=event.changedTouches[0].clientX-startX;
         if(Math.abs(dx)>35){event.stopPropagation();showPhoto(current+(dx<0?1:-1),dx<0?1:-1);}
       },{passive:true});
-      cover.addEventListener("click",event=>event.stopPropagation());
+
     }
+    card.addEventListener("contextmenu", event => { if (event.target.closest(".restaurant-cover")) event.preventDefault(); });
+    card.addEventListener("dragstart", event => { if (event.target.closest(".restaurant-cover")) event.preventDefault(); });
     card.addEventListener("click", () => openRestaurant(restaurant));
     grid.appendChild(card);
   });
