@@ -1375,8 +1375,8 @@ async function createCheckoutForm() {
       <h3 style="margin-top:0;">Choose Payment Method</h3>
       <label for="paymentMethod" style="display:block;margin-bottom:8px;">Choose Payment Method</label>
       <select id="paymentMethod" style="display:block;width:100%;min-height:50px;margin:6px 0 14px;padding:10px 12px;background:#302016;color:#fff;border:2px solid #ff8a35;border-radius:12px;font-size:15px;font-weight:800;box-shadow:0 0 12px rgba(255,138,53,.18);">
-        <option value="UPI" style="background:#211b15;color:#fff;">💳 Pay Online via UPI</option>
-        <option value="COD" style="background:#211b15;color:#ffbd87;font-weight:800;">🛵 Cash on Delivery (COD)</option>
+        <option value="UPI" style="background:#211b15;color:#fff;">UPI</option>
+        <option value="COD" style="background:#211b15;color:#ffbd87;font-weight:800;">COD</option>
       </select>
       <div id="upiPaymentDetails" style="display:block;">
         <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
