@@ -1372,11 +1372,11 @@ async function createCheckoutForm() {
     <button type="button" id="continueToPayment" style="width:100%;min-height:50px;margin:14px 0;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:800;font-size:15px;letter-spacing:.4px;box-shadow:0 5px 18px rgba(255,138,53,.22);">CONTINUE TO PAYMENT →</button>
 
     <div id="paymentSection" hidden style="display:none;background:#211b15;border:1px solid #ff8a35;border-radius:14px;padding:14px;margin:14px 0;">
-      <h3 style="margin-top:0;font-size:19px;display:flex;align-items:center;gap:9px;"><span style="display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;background:linear-gradient(135deg,#ff9b45,#ff6b1a);box-shadow:0 5px 14px rgba(255,138,53,.25);">💳</span> Select How to Pay</h3>
+      <h3 style="margin-top:0;">Choose Payment Method</h3>
       <label for="paymentMethod" style="display:block;margin-bottom:8px;">Choose Payment Method</label>
-      <select id="paymentMethod" style="display:block;width:100%;min-height:58px;margin:8px 0 16px;padding:12px 14px;background:linear-gradient(120deg,#392417,#241811);color:#fff;border:2px solid #ff9a4d;border-radius:15px;font-size:16px;font-weight:900;letter-spacing:.1px;box-shadow:0 8px 22px rgba(255,138,53,.16);">
-        <option value="UPI" style="background:#211b15;color:#fff;">⚡️ UPI / Online Payment</option>
-        <option value="COD" style="background:#211b15;color:#ffbd87;font-weight:800;">🚚 Cash on Delivery (Pay at Doorstep)</option>
+      <select id="paymentMethod" style="display:block;width:100%;min-height:50px;margin:6px 0 14px;padding:10px 12px;background:#302016;color:#fff;border:2px solid #ff8a35;border-radius:12px;font-size:15px;font-weight:800;box-shadow:0 0 12px rgba(255,138,53,.18);">
+        <option value="UPI" style="background:#211b15;color:#fff;">💳 Pay Online via UPI</option>
+        <option value="COD" style="background:#211b15;color:#ffbd87;font-weight:800;">🛵 Cash on Delivery (COD)</option>
       </select>
       <div id="upiPaymentDetails" style="display:block;">
         <p style="margin:6px 0;">UPI ID: <strong id="checkoutUpiId">${escapeHTML(activeUpiId)}</strong></p>
@@ -1402,8 +1402,8 @@ async function createCheckoutForm() {
         <p style="font-size:12px;color:#ffbd87;">The payment will be confirmed after the administrator verifies the Transaction ID.</p>
       </div>
       <div id="codPaymentDetails" style="display:none;padding:12px;border:1px solid #4b8065;border-radius:10px;margin-top:10px;">
-        <strong>🚚 Pay when your order arrives</strong>
-        <p style="margin:6px 0 0;">No advance payment needed. Simply pay the delivery partner in cash when your order reaches you. 💵</p>
+        <strong>💵 Cash on Delivery selected</strong>
+        <p style="margin:6px 0 0;">You can pay in cash when your order is delivered. No online payment or Transaction ID is required.</p>
       </div>
       <button type="button" id="placeOrder" style="display:block;width:100%;min-height:50px;margin-top:14px;background:#ff8a35!important;color:#17110d!important;border:1px solid #ff8a35;border-radius:12px;font-weight:900;font-size:15px;">I HAVE PAID</button>
     </div>
