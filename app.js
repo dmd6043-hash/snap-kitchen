@@ -36,6 +36,12 @@ let unsubscribeDeliveryLocation = null;
 let latestDeliveryLocation = null;
 let deliveryMap = null;
 let deliveryMarker = null;
+let customerMarker = null;
+let deliveryRouteLine = null;
+let customerCurrentLocation = null;
+let customerLocationWatchId = null;
+let lastRouteRequestAt = 0;
+let lastRouteKey = "";
 let deliveryMapElement = null;
 let leafletLoaderPromise = null;
 
@@ -1587,19 +1593,40 @@ function loadLeaflet() {
   return leafletLoaderPromise;
 }
 
+function startCustomerTrackingLocation() {
+  if (!navigator.geolocation || customerLocationWatchId !== null) return;
+  navigator.geolocation.getCurrentPosition((position) => {
+    customerCurrentLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+    updateLiveDeliveryMap(latestDeliveryLocation);
+  }, (error) => {
+    const meta = $("zbMapMeta");
+    if (meta) meta.textContent = error.code === 1
+      ? "Allow location access to show your current position on the map."
+      : "Your current location is temporarily unavailable.";
+  }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 10000 });
+  customerLocationWatchId = navigator.geolocation.watchPosition((position) => {
+    customerCurrentLocation = { latitude: position.coords.latitude, longitude: position.coords.longitude };
+    updateLiveDeliveryMap(latestDeliveryLocation);
+  }, (error) => {
+    console.warn("Customer location watch:", error);
+  }, { enableHighAccuracy: true, maximumAge: 5000, timeout: 20000 });
+}
+
 function updateLiveDeliveryMap(location) {
   latestDeliveryLocation = location || null;
   const mapBox = $("zbLiveMap");
   const meta = $("zbMapMeta");
   if (!mapBox) return;
-  if (!location || !Number.isFinite(Number(location.latitude)) || !Number.isFinite(Number(location.longitude))) {
+  const hasRider = location && Number.isFinite(Number(location.latitude)) && Number.isFinite(Number(location.longitude));
+  const rider = hasRider ? [Number(location.latitude), Number(location.longitude)] : null;
+  const customer = customerCurrentLocation
+    ? [Number(customerCurrentLocation.latitude), Number(customerCurrentLocation.longitude)] : null;
+  if (!rider && !customer) {
     mapBox.classList.add("is-waiting");
-    if (meta) meta.textContent = "Waiting for delivery partner GPS. The map will update automatically.";
+    if (meta) meta.textContent = "Allow location access to show your position. The delivery partner location will appear when GPS is available.";
     return;
   }
 
-  const lat = Number(location.latitude);
-  const lng = Number(location.longitude);
   loadLeaflet().then((L) => {
     const currentBox = $("zbLiveMap");
     if (!currentBox) return;
@@ -1608,30 +1635,57 @@ function updateLiveDeliveryMap(location) {
       currentBox.innerHTML = "";
       currentBox.classList.remove("is-waiting");
       deliveryMapElement = currentBox;
-      deliveryMap = L.map(currentBox, { zoomControl: true, scrollWheelZoom: false }).setView([lat, lng], 16);
+      const initial = rider || customer;
+      deliveryMap = L.map(currentBox, { zoomControl: true, scrollWheelZoom: false }).setView(initial, 15);
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19,
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
       }).addTo(deliveryMap);
-      const scooterIcon = L.divIcon({
-        className: "zb-scooter-map-icon",
-        html: '<span>🛵</span>',
-        iconSize: [44, 44],
-        iconAnchor: [22, 22]
-      });
-      deliveryMarker = L.marker([lat, lng], { icon: scooterIcon }).addTo(deliveryMap)
-        .bindPopup("ZaikaBox delivery partner");
-    } else {
-      deliveryMarker.setLatLng([lat, lng]);
-      deliveryMap.panTo([lat, lng], { animate: true, duration: 0.7 });
     }
+    const scooterIcon = L.divIcon({ className: "zb-scooter-map-icon", html: '<span>🛵</span>', iconSize: [44,44], iconAnchor: [22,22] });
+    const customerIcon = L.divIcon({ className: "zb-customer-map-icon", html: '<span>●</span>', iconSize: [30,30], iconAnchor: [15,15] });
+    if (rider) {
+      if (!deliveryMarker) deliveryMarker = L.marker(rider, { icon: scooterIcon }).addTo(deliveryMap).bindPopup("ZaikaBox delivery partner");
+      else deliveryMarker.setLatLng(rider);
+    }
+    if (customer) {
+      if (!customerMarker) customerMarker = L.marker(customer, { icon: customerIcon }).addTo(deliveryMap).bindPopup("Your current location");
+      else customerMarker.setLatLng(customer);
+    }
+    if (rider && customer) {
+      const routeKey = rider.map(v => v.toFixed(4)).join(",") + "|" + customer.map(v => v.toFixed(4)).join(",");
+      const now = Date.now();
+      if (routeKey !== lastRouteKey && now - lastRouteRequestAt > 8000) {
+        lastRouteKey = routeKey;
+        lastRouteRequestAt = now;
+        fetch("https://router.project-osrm.org/route/v1/driving/" + rider[1] + "," + rider[0] + ";" + customer[1] + "," + customer[0] + "?overview=full&geometries=geojson")
+          .then(response => response.ok ? response.json() : Promise.reject(new Error("Route unavailable")))
+          .then(data => {
+            if (!deliveryMap || !data.routes || !data.routes[0]) return;
+            const points = data.routes[0].geometry.coordinates.map(point => [point[1], point[0]]);
+            if (deliveryRouteLine) deliveryRouteLine.setLatLngs(points);
+            else deliveryRouteLine = L.polyline(points, { color: "#2388ff", weight: 7, opacity: .95, lineCap: "round", lineJoin: "round" }).addTo(deliveryMap);
+            deliveryMap.fitBounds(L.latLngBounds(points), { padding: [42,42], maxZoom: 16 });
+          }).catch(() => {
+            if (!deliveryMap) return;
+            const points = [rider, customer];
+            if (deliveryRouteLine) deliveryRouteLine.setLatLngs(points);
+            else deliveryRouteLine = L.polyline(points, { color: "#2388ff", weight: 6, opacity: .9, dashArray: "10 9" }).addTo(deliveryMap);
+          });
+      }
+    }
+    const bounds = [];
+    if (rider) bounds.push(rider);
+    if (customer) bounds.push(customer);
+    if (bounds.length && !deliveryRouteLine) deliveryMap.fitBounds(L.latLngBounds(bounds), { padding: [40,40], maxZoom: 16 });
     setTimeout(() => deliveryMap && deliveryMap.invalidateSize(), 120);
     if (meta) {
-      const accuracy = Number(location.accuracy);
-      const time = location.updatedAt?.toDate ? location.updatedAt.toDate() : null;
-      meta.textContent = "🟢 Live GPS · " +
-        (Number.isFinite(accuracy) ? "Accuracy ±" + Math.round(accuracy) + " m" : "Location received") +
-        (time ? " · Updated " + time.toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "");
+      if (rider && customer) {
+        const accuracy = Number(location.accuracy);
+        meta.textContent = "🔵 Blue route · 🛵 Delivery partner · 🔵 Your current location" +
+          (Number.isFinite(accuracy) ? " · Rider GPS ±" + Math.round(accuracy) + " m" : "");
+      } else if (customer) meta.textContent = "Your current location is shown. Waiting for delivery partner GPS to draw the route.";
+      else meta.textContent = "Waiting for your location to draw the route to the delivery partner.";
     }
   }).catch((error) => {
     if (meta) meta.textContent = error.message || "Could not load the live map.";
@@ -1642,14 +1696,22 @@ function stopDeliveryLocationListener() {
   if (unsubscribeDeliveryLocation) unsubscribeDeliveryLocation();
   unsubscribeDeliveryLocation = null;
   latestDeliveryLocation = null;
+  if (customerLocationWatchId !== null && navigator.geolocation) navigator.geolocation.clearWatch(customerLocationWatchId);
+  customerLocationWatchId = null;
+  customerCurrentLocation = null;
   if (deliveryMap) deliveryMap.remove();
   deliveryMap = null;
   deliveryMarker = null;
+  customerMarker = null;
+  deliveryRouteLine = null;
+  lastRouteKey = "";
+  lastRouteRequestAt = 0;
   deliveryMapElement = null;
 }
 
 function listenForDeliveryLocation(trackingCode) {
   stopDeliveryLocationListener();
+  startCustomerTrackingLocation();
   const cleanCode = normalizeTrackingCode(trackingCode);
   if (!cleanCode) return;
   unsubscribeDeliveryLocation = onSnapshot(
