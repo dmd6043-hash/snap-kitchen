@@ -8,7 +8,7 @@
   <meta name="description" content="ZaikaBox - Discover local restaurants and order food in Jagdalpur.">
 
   <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="stylesheet" href="./styles.css?v=20261125-large-track-v36">
+  <link rel="stylesheet" href="./styles.css?v=20261127-customer-offline-v42">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -803,6 +803,16 @@ body.cart-open .zaika-ai-panel{
   <!-- HOME SCREEN -->
   <main id="homeScreen" class="screen active">
 
+    <section id="customerOfflinePanel" class="customer-offline-panel" role="status" aria-live="polite" hidden>
+      <div class="customer-offline-icon" aria-hidden="true">📡</div>
+      <div class="customer-offline-copy">
+        <span class="customer-offline-kicker">CONNECTION PAUSED</span>
+        <h2>You’re currently offline</h2>
+        <p>Looks like your internet connection took a break. Reconnect to discover restaurants and order your favourites.</p>
+        <div class="customer-offline-status"><span></span> Waiting for connection</div>
+      </div>
+    </section>
+
     <div class="hero">
       <div class="eyebrow">WELCOME TO ZAIKABOX</div>
       <h1>Cravings Ka <span>Perfect</span> Match!</h1>
@@ -1156,7 +1166,7 @@ body.cart-open .zaika-ai-panel{
 </script>
 
 
-<script type="module" src="./app.js?v=20261126-restaurant-image-tap-v41"></script>
+<script type="module" src="./app.js?v=20261127-customer-offline-v42"></script>
 
 <!-- NAVIGATION AND RESTAURANT SEARCH -->
 <script>
