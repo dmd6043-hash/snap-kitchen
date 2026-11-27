@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="orange" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9b27"/><stop offset="1" stop-color="#ef6d08"/></linearGradient></defs>
+<rect width="512" height="512" rx="72" fill="#100d0a"/>
+<rect x="15" y="15" width="482" height="482" rx="60" fill="none" stroke="#ff8500" stroke-width="10"/>
+<g fill="url(#orange)" stroke="#ff8500" stroke-linejoin="round" stroke-linecap="round">
+<path d="M139 157 Q173 112 213 150 L229 221Z"/><circle cx="173" cy="163" r="6" fill="#100d0a"/><circle cx="195" cy="181" r="6" fill="#100d0a"/>
+<path d="M287 153 Q293 111 337 111 Q379 111 385 153Z"/><path d="M285 162 Q336 177 388 162 L378 182 Q337 197 296 182Z"/><path d="M296 190 Q337 205 378 190 L367 210 Q337 224 307 210Z"/>
+<path d="M212 236 Q256 214 300 236 L290 274 Q256 294 222 274Z"/><path d="M224 237 Q238 220 250 239 Q263 257 276 238 Q288 222 297 239" fill="none" stroke="#100d0a" stroke-width="7"/>
+<path d="M367 226 Q383 207 401 225 Q413 238 397 254 L379 271 Q363 284 348 268 Q337 253 352 238Z"/><path d="M397 224 L414 209 M405 238 L422 231" fill="none" stroke="#ff9b27" stroke-width="9"/>
+<path d="M256 301 L119 263 L139 238 L256 277Z"/><path d="M256 277 L373 238 L393 263 L256 301Z"/>
+<path d="M139 270 L256 310 L373 270 L373 360 L256 414 L139 360Z"/>
+<path d="M139 270 L256 310 L373 270" fill="none" stroke="#ffd08b" stroke-width="6"/>
+<path d="M256 310 L256 411" fill="none" stroke="#d95d00" stroke-width="4" opacity=".6"/>
+</g>
+<text x="256" y="458" text-anchor="middle" font-family="Arial,sans-serif" font-size="40" font-weight="700" letter-spacing="-1"><tspan fill="#fffaf5">Zaika</tspan><tspan fill="#ff8500">Box</tspan></text>
+</svg>
