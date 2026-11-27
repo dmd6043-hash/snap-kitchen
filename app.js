@@ -2344,6 +2344,16 @@ $("backRestaurants")?.addEventListener("click", () => {
   renderRestaurants();
 });
 
+// CUSTOMER INTERNET CONNECTION STATUS
+function updateCustomerOfflinePanel() {
+  const panel = $("customerOfflinePanel");
+  if (!panel) return;
+  panel.hidden = navigator.onLine !== false;
+}
+window.addEventListener("offline", updateCustomerOfflinePanel);
+window.addEventListener("online", updateCustomerOfflinePanel);
+updateCustomerOfflinePanel();
+
 // START APP
 renderCart();
 loadRestaurants();
