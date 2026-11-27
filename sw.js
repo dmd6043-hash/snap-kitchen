@@ -1,4 +1,4 @@
-const CACHE = "zaikabox-v63-final-icon";
+const CACHE = "zaikabox-v64-final-icon";
 
 const FILES = [
   "./",
@@ -6,7 +6,7 @@ const FILES = [
   "./styles.css",
   "./app.js",
   "./manifest.webmanifest",
-  "./zaikabox-flavor-box-logo-v4.svg"
+  "./zaikabox-final-icon.svg"
 ];
 
 self.addEventListener("install", event => {
@@ -21,10 +21,7 @@ self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
       Promise.all(
-        keys
-          .filter(key =>
-            key.startsWith("zaikabox-") && key !== CACHE
-          )
+        keys.filter(key => key.startsWith("zaikabox-") && key !== CACHE)
           .map(key => caches.delete(key))
       )
     ).then(() => self.clients.claim())
@@ -33,21 +30,13 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-
   event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (
-          response.ok &&
-          event.request.url.startsWith(self.location.origin)
-        ) {
-          const copy = response.clone();
-          caches.open(CACHE).then(cache =>
-            cache.put(event.request, copy)
-          );
-        }
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+    fetch(event.request).then(response => {
+      if (response.ok && event.request.url.startsWith(self.location.origin)) {
+        const copy = response.clone();
+        caches.open(CACHE).then(cache => cache.put(event.request, copy));
+      }
+      return response;
+    }).catch(() => caches.match(event.request))
   );
 });
