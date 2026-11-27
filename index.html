@@ -1226,22 +1226,19 @@ html,body{min-height:100%!important;background:#100d0a!important;color:#fffaf5!i
 .topbar{display:flex!important;visibility:visible!important;opacity:1!important}
 </style>
 <script>
-(async function(){
-  try{
-    if("serviceWorker" in navigator){
-      const regs=await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(reg=>reg.unregister()));
-    }
-    if("caches" in window){
-      const keys=await caches.keys();
-      await Promise.all(keys.filter(key=>key.startsWith("zaikabox-")).map(key=>caches.delete(key)));
-    }
-  }catch(error){console.warn("ZaikaBox recovery cleanup:",error);}
+(function(){
   document.body.classList.remove("cart-open");
   const screens=document.querySelectorAll(".app > main.screen");
   screens.forEach(screen=>screen.classList.remove("active"));
   const home=document.getElementById("homeScreen");
   if(home){home.classList.add("active");home.hidden=false;home.style.removeProperty("display");}
+  if("serviceWorker" in navigator){
+    window.addEventListener("load",()=>{
+      navigator.serviceWorker.register("./sw.js")
+        .then(reg=>reg.update().catch(()=>{}))
+        .catch(error=>console.warn("ZaikaBox offline setup:",error));
+    },{once:true});
+  }
 })();
 </script>
 
