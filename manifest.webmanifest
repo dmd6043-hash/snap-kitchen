@@ -1,16 +1,16 @@
 {
-  "id": "./",
-  "name": "ZaikaBox - Har Craving Ka Apna Box!",
-  "short_name": "ZaikaBox",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#100d0a",
-  "theme_color": "#ff8500",
-  "description": "ZaikaBox - Discover local restaurants and order your favourite food in Jagdalpur.",
-  "icons": [
-    {"src":"./zaikabox-final-icon.svg?v=20261127-final2","sizes":"192x192","type":"image/svg+xml","purpose":"any"},
-    {"src":"./zaikabox-final-icon.svg?v=20261127-final2","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
+  "id":"./?zaikabox-install=final-v3",
+  "name":"ZaikaBox - Har Craving Ka Apna Box!",
+  "short_name":"ZaikaBox",
+  "start_url":"./",
+  "scope":"./",
+  "display":"standalone",
+  "orientation":"portrait",
+  "background_color":"#100d0a",
+  "theme_color":"#ff8500",
+  "description":"ZaikaBox - Discover local restaurants and order your favourite food in Jagdalpur.",
+  "icons":[
+    {"src":"./zaikabox-final-icon-v2.svg?v=20261127-v3","sizes":"192x192","type":"image/svg+xml","purpose":"any"},
+    {"src":"./zaikabox-final-icon-v2.svg?v=20261127-v3","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
   ]
 }
