@@ -1280,7 +1280,7 @@ html,body{min-height:100%!important;background:#100d0a!important;color:#fffaf5!i
   if(home){home.classList.add("active");home.hidden=false;home.style.removeProperty("display");}
   if("serviceWorker" in navigator){
     window.addEventListener("load",()=>{
-      navigator.serviceWorker.register("./sw.js")
+      navigator.serviceWorker.register("./sw.js",{scope:"./",updateViaCache:"none"})
         .then(reg=>reg.update().catch(()=>{}))
         .catch(error=>console.warn("ZaikaBox offline setup:",error));
     },{once:true});
