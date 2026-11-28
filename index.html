@@ -804,7 +804,7 @@ body.cart-open .zaika-ai-panel{
 @keyframes zbFlapL{to{transform:translate(-14px,-32px) rotate(-58deg)}}@keyframes zbFlapR{to{transform:translate(14px,-32px) rotate(58deg)}}
 @keyframes zbFoodPop{0%{opacity:0;transform:translateY(35px) scale(.45) rotate(-15deg)}55%{opacity:1;transform:translateY(-67px) scale(1.12) rotate(7deg)}100%{opacity:1;transform:translateY(-58px) scale(1) rotate(0)}}
 @keyframes zbWordReveal{to{opacity:1;transform:translateY(0)}}
-@media(prefers-reduced-motion:reduce){#zbLaunchSplash{transition:none}.zb-launch-flap,.zb-launch-food,.zb-launch-word{animation:none!important;opacity:1;transform:none}}
+/* Keep the branded launch animation active even when device-wide reduced motion is enabled. */
 </style>
 </head>
 
@@ -1345,7 +1345,7 @@ window.setTimeout(() => {
 (function(){
  const splash=document.getElementById("zbLaunchSplash");
  if(!splash)return;
- const delay=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches?650:2700;
+ const delay=3600;
  window.setTimeout(()=>{splash.classList.add("zb-launch-hide");window.setTimeout(()=>splash.remove(),600);},delay);
 })();
 </script>
